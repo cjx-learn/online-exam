@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.exam.mapper.ExamMapper">
+
+    <resultMap id="BaseResultMap" type="com.exam.entity.Exam">
+        <id column="id" property="id"/>
+        <result column="class_id" property="classId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="type" property="type"/>
+        <result column="duration" property="duration"/>
+        <result column="total_score" property="totalScore"/>
+        <result column="pass_score" property="passScore"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="allow_retake" property="allowRetake"/>
+        <result column="max_attempts" property="maxAttempts"/>
+        <result column="shuffle_questions" property="shuffleQuestions"/>
+        <result column="shuffle_options" property="shuffleOptions"/>
+        <result column="show_answer" property="showAnswer"/>
+        <result column="auto_grade" property="autoGrade"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+
+        <!-- 扩展字段 -->
+        <result column="class_name" property="className"/>
+        <result column="creator_name" property="creatorName"/>
+        <result column="question_count" property="questionCount"/>
+        <result column="student_count" property="studentCount"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        e.id, e.class_id, e.title, e.description, e.cover_image, e.type, e.duration,
+        e.total_score, e.pass_score, e.start_time, e.end_time, e.allow_retake,
+        e.max_attempts, e.shuffle_questions, e.shuffle_options, e.show_answer, e.auto_grade,
+        e.creator_id, e.status, e.create_time, e.update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />,
+        c.name AS class_name,
+        t.real_name AS creator_name,
+        (SELECT COUNT(*) FROM exam_question eq WHERE eq.exam_id = e.id) AS question_count,
+        (SELECT COUNT(DISTINCT er.student_id) FROM exam_record er WHERE er.exam_id = e.id) AS student_count
+        FROM exam e
+        LEFT JOIN class c ON e.class_id = c.id
+        LEFT JOIN teacher t ON e.creator_id = t.id
+        WHERE e.id = #{id}
+    </select>
+
+    <select id="selectByClassId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />,
+        c.name AS class_name,
+        t.real_name AS creator_name,
+        (SELECT COUNT(*) FROM exam_question eq WHERE eq.exam_id = e.id) AS question_count,
+        (SELECT COUNT(DISTINCT er.student_id) FROM exam_record er WHERE er.exam_id = e.id) AS student_count
+        FROM exam e
+        LEFT JOIN class c ON e.class_id = c.id
+        LEFT JOIN teacher t ON e.creator_id = t.id
+        WHERE e.class_id = #{classId}
+        AND e.status = 1 <!-- 仅查询已发布的考试 -->
+        ORDER BY e.start_time ASC, e.create_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO exam (
+        class_id, title, description, cover_image, type, duration, total_score, pass_score,
+        start_time, end_time, allow_retake, max_attempts, shuffle_questions, shuffle_options,
+        show_answer, auto_grade, creator_id, status
+        ) VALUES (
+        #{classId}, #{title}, #{description}, #{coverImage}, #{type}, #{duration}, #{totalScore}, #{passScore},
+        #{startTime}, #{endTime}, #{allowRetake}, #{maxAttempts}, #{shuffleQuestions}, #{shuffleOptions},
+        #{showAnswer}, #{autoGrade}, #{creatorId}, #{status}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE exam
+        <set>
+            <if test="classId != null">class_id = #{classId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="coverImage != null">cover_image = #{coverImage},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="totalScore != null">total_score = #{totalScore},</if>
+            <if test="passScore != null">pass_score = #{passScore},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="allowRetake != null">allow_retake = #{allowRetake},</if>
+            <if test="maxAttempts != null">max_attempts = #{maxAttempts},</if>
+            <if test="shuffleQuestions != null">shuffle_questions = #{shuffleQuestions},</if>
+            <if test="shuffleOptions != null">shuffle_options = #{shuffleOptions},</if>
+            <if test="showAnswer != null">show_answer = #{showAnswer},</if>
+            <if test="autoGrade != null">auto_grade = #{autoGrade},</if>
+            <if test="creatorId != null">creator_id = #{creatorId},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM exam WHERE id = #{id}
+    </delete>
+
+</mapper>

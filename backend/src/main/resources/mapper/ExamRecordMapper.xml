@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.exam.mapper.ExamRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.exam.entity.ExamRecord">
+        <id column="id" property="id"/>
+        <result column="exam_id" property="examId"/>
+        <result column="student_id" property="studentId"/>
+        <result column="attempt_number" property="attemptNumber"/>
+        <result column="start_time" property="startTime"/>
+        <result column="submit_time" property="submitTime"/>
+        <result column="duration" property="duration"/>
+        <result column="total_score" property="totalScore"/>
+        <result column="objective_score" property="objectiveScore"/>
+        <result column="subjective_score" property="subjectiveScore"/>
+        <result column="pass_status" property="passStatus"/>
+        <result column="ip_address" property="ipAddress"/>
+        <result column="status" property="status"/>
+        <!-- <result column="teacher_comment" property="teacherComment"/>  数据库中没有此字段，暂时移除 -->
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+
+        <!-- 扩展字段 -->
+        <result column="exam_title" property="examTitle"/>
+        <result column="exam_description" property="examDescription"/>
+        <result column="student_name" property="studentName"/>
+        <result column="student_no" property="studentNo"/>
+        <result column="exam_start_time" property="examStartTime"/>
+        <result column="exam_end_time" property="examEndTime"/>
+        <result column="is_graded" property="isGraded"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, exam_id, student_id, attempt_number, start_time, submit_time, duration,
+        total_score, objective_score, subjective_score, pass_status, ip_address, status,
+        -- teacher_comment, -- 数据库中没有此字段，暂时移除
+        create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM exam_record
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByStudentIdAndExamId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM exam_record
+        WHERE student_id = #{studentId} AND exam_id = #{examId}
+    </select>
+
+    <select id="selectByStudentId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM exam_record
+        WHERE student_id = #{studentId}
+    </select>
+
+    <select id="selectByExamId" resultMap="BaseResultMap">
+        SELECT
+        er.id, er.exam_id, er.student_id, er.attempt_number, er.start_time, er.submit_time, er.duration,
+        er.total_score, er.objective_score, er.subjective_score, er.pass_status, er.ip_address, er.status,
+        er.create_time, er.update_time,
+        s.real_name AS student_name,
+        s.student_no AS student_no
+        FROM exam_record er
+        LEFT JOIN student s ON er.student_id = s.id
+        WHERE er.exam_id = #{examId}
+        ORDER BY er.total_score DESC, er.submit_time DESC
+    </select>
+
+    <select id="selectStudentExamRecordsByClassId" resultMap="BaseResultMap">
+        SELECT
+        er.id, er.exam_id, er.student_id, er.attempt_number, er.start_time, er.submit_time, er.duration,
+        er.total_score, er.objective_score, er.subjective_score, er.pass_status, er.ip_address, er.status,
+        er.create_time, er.update_time,
+        e.title AS exam_title,
+        e.description AS exam_description,
+        e.start_time AS exam_start_time, -- 查询考试的开始时间
+        e.end_time AS exam_end_time, -- 查询考试的结束时间
+        s.real_name AS student_name
+        FROM exam_record er
+        LEFT JOIN exam e ON er.exam_id = e.id
+        LEFT JOIN student s ON er.student_id = s.id
+        WHERE er.student_id = #{studentId}
+        AND e.class_id = #{classId}
+        ORDER BY er.create_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO exam_record (
+        exam_id, student_id, attempt_number, start_time, submit_time, duration,
+        total_score, objective_score, subjective_score, pass_status, ip_address, status
+        ) VALUES (
+        #{examId}, #{studentId}, #{attemptNumber}, #{startTime}, #{submitTime}, #{duration},
+        #{totalScore}, #{objectiveScore}, #{subjectiveScore}, #{passStatus}, #{ipAddress}, #{status}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE exam_record
+        <set>
+            <if test="examId != null">exam_id = #{examId},</if>
+            <if test="studentId != null">student_id = #{studentId},</if>
+            <if test="attemptNumber != null">attempt_number = #{attemptNumber},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="submitTime != null">submit_time = #{submitTime},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="totalScore != null">total_score = #{totalScore},</if>
+            <if test="objectiveScore != null">objective_score = #{objectiveScore},</if>
+            <if test="subjectiveScore != null">subjective_score = #{subjectiveScore},</if>
+            <if test="passStatus != null">pass_status = #{passStatus},</if>
+            <if test="ipAddress != null">ip_address = #{ipAddress},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM exam_record WHERE id = #{id}
+    </delete>
+
+</mapper>

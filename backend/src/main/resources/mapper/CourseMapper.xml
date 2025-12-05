@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.exam.mapper.CourseMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="CourseResultMap" type="com.exam.entity.Course">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="code" column="code"/>
+        <result property="description" column="description"/>
+        <result property="coverImage" column="cover_image"/>
+        <result property="category" column="category"/>
+        <result property="credit" column="credit"/>
+        <result property="hours" column="hours"/>
+        <result property="department" column="department"/>
+        <result property="level" column="level"/>
+        <result property="prerequisite" column="prerequisite"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    
+    <!-- 查询所有启用的课程 -->
+    <select id="selectAll" resultMap="CourseResultMap">
+        SELECT * FROM course 
+        WHERE status = 1
+        ORDER BY code ASC
+    </select>
+    
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="CourseResultMap">
+        SELECT * FROM course WHERE id = #{id}
+    </select>
+    
+    <!-- 根据课程代码查询 -->
+    <select id="selectByCode" resultMap="CourseResultMap">
+        SELECT * FROM course WHERE code = #{code}
+    </select>
+    
+    <!-- 根据分类查询 -->
+    <select id="selectByCategory" resultMap="CourseResultMap">
+        SELECT * FROM course 
+        WHERE category = #{category} AND status = 1
+        ORDER BY code ASC
+    </select>
+    
+    <!-- 插入课程 -->
+    <insert id="insert" parameterType="com.exam.entity.Course" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO course (
+            name, code, description, cover_image, category, 
+            credit, hours, department, level, prerequisite, status
+        ) VALUES (
+            #{name}, #{code}, #{description}, #{coverImage}, #{category},
+            #{credit}, #{hours}, #{department}, #{level}, #{prerequisite}, #{status}
+        )
+    </insert>
+    
+    <!-- 更新课程 -->
+    <update id="update" parameterType="com.exam.entity.Course">
+        UPDATE course
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="code != null">code = #{code},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="coverImage != null">cover_image = #{coverImage},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="credit != null">credit = #{credit},</if>
+            <if test="hours != null">hours = #{hours},</if>
+            <if test="department != null">department = #{department},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="prerequisite != null">prerequisite = #{prerequisite},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除课程（软删除） -->
+    <update id="delete">
+        UPDATE course SET status = 0 WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID查询课程名称 -->
+    <select id="selectNameById" resultType="java.lang.String">
+        SELECT name FROM course WHERE id = #{id}
+    </select>
+    
+</mapper>
+

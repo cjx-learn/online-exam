@@ -1,0 +1,43 @@
+# Maven
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/HELP.md
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.DS_Store
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Log
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+
+# Temp
+*.tmp
+*.bak
+*.swp
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local

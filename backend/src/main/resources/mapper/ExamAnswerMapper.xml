@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.exam.mapper.ExamAnswerMapper">
+
+    <resultMap id="BaseResultMap" type="com.exam.entity.ExamAnswer">
+        <id column="id" property="id"/>
+        <result column="exam_record_id" property="examRecordId"/>
+        <result column="question_id" property="questionId"/>
+        <result column="user_answer" property="userAnswer"/>
+        <result column="is_correct" property="isCorrect"/>
+        <result column="score" property="score"/>
+        <result column="teacher_comment" property="teacherComment"/>
+        <result column="graded_by" property="gradedBy"/>
+        <result column="graded_time" property="gradedTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Columns">
+        id, exam_record_id, question_id, user_answer, is_correct, score, teacher_comment, graded_by, graded_time, create_time, update_time
+    </sql>
+
+    <select id="selectByRecordId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM answer_record
+        WHERE exam_record_id = #{recordId}
+        ORDER BY id ASC
+    </select>
+
+    <select id="selectByRecordIdAndQuestionId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Columns"/>
+        FROM answer_record
+        WHERE exam_record_id = #{recordId}
+          AND question_id = #{questionId}
+        LIMIT 1
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO answer_record (
+            exam_record_id, 
+            question_id, 
+            user_answer, 
+            is_correct, 
+            score, 
+            teacher_comment, 
+            graded_by, 
+            graded_time,
+            create_time, 
+            update_time
+        )
+        VALUES (
+            #{examRecordId}, 
+            #{questionId}, 
+            #{userAnswer}, 
+            #{isCorrect}, 
+            #{score}, 
+            #{teacherComment}, 
+            #{gradedBy}, 
+            #{gradedTime},
+            NOW(), 
+            NOW()
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE answer_record
+        SET
+            <if test="userAnswer != null">user_answer = #{userAnswer},</if>
+            <if test="isCorrect != null">is_correct = #{isCorrect},</if>
+            score = #{score},
+            teacher_comment = #{teacherComment},
+            <if test="gradedBy != null">graded_by = #{gradedBy},</if>
+            graded_time = #{gradedTime},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.exam.mapper.QuestionMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="QuestionResultMap" type="com.exam.entity.Question">
+        <id property="id" column="id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="type" column="type"/>
+        <result property="content" column="content"/>
+        <result property="options" column="options"/>
+        <result property="answer" column="answer"/>
+        <result property="score" column="score"/>
+        <result property="category" column="category"/>
+        <result property="difficulty" column="difficulty"/>
+        <result property="creatorId" column="creator_id"/>
+        <result property="createTime" column="create_time"/>
+
+        <!-- 联查课程名称 -->
+        <association property="courseName" javaType="java.lang.String"
+                     select="com.exam.mapper.CourseMapper.selectNameById"
+                     column="course_id"/>
+    </resultMap>
+
+    <!-- 基本列 -->
+    <sql id="Base_Column_List">
+        id, course_id, type, content, options, answer, score, category, difficulty, creator_id, create_time
+    </sql>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="QuestionResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据课程ID查询题目列表 -->
+    <select id="getQuestionsByCourseId" resultMap="QuestionResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM question
+        WHERE course_id = #{courseId}
+        <if test="type != null">
+            AND type = #{type}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 插入题目 -->
+    <insert id="insert" parameterType="com.exam.entity.Question" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO question (course_id, type, content, options, answer, score, category, difficulty, creator_id, create_time)
+        VALUES (#{courseId}, #{type}, #{content}, #{options}, #{answer}, #{score}, #{category}, #{difficulty}, #{creatorId}, #{createTime})
+    </insert>
+
+    <!-- 更新题目 -->
+    <update id="update" parameterType="com.exam.entity.Question">
+        UPDATE question
+        <set>
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="options != null">options = #{options},</if>
+            <if test="answer != null">answer = #{answer},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="difficulty != null">difficulty = #{difficulty},</if>
+            <if test="creatorId != null">creator_id = #{creatorId},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除题目 -->
+    <delete id="deleteById">
+        DELETE FROM question WHERE id = #{id}
+    </delete>
+
+</mapper>
