@@ -141,10 +141,29 @@
               <el-option label="⭐⭐ 中等" :value="2"></el-option>
               <el-option label="⭐⭐⭐ 困难" :value="3"></el-option>
             </el-select>
-            <el-button type="primary" @click="showAddQuestionDialog" class="add-question-btn">
-              <el-icon><Plus /></el-icon>
-              添加题目
-            </el-button>
+            <div class="btn-group">
+              <el-button type="primary" @click="showAddQuestionDialog" class="add-question-btn">
+                <el-icon><Plus /></el-icon>
+                添加题目
+              </el-button>
+              <el-upload
+                ref="excelUploadRef"
+                :action="''"
+                :auto-upload="false"
+                :show-file-list="false"
+                accept=".xlsx,.xls"
+                :on-change="handleExcelFileChange"
+              >
+                <el-button type="success" class="upload-excel-btn">
+                  <el-icon><Upload /></el-icon>
+                  批量导入
+                </el-button>
+              </el-upload>
+              <el-button type="info" @click="downloadExcelTemplate" class="download-template-btn">
+                <el-icon><Download /></el-icon>
+                下载模板
+              </el-button>
+            </div>
           </div>
           <el-table :data="paginatedQuestionList" stripe style="width: 100%">
             <el-table-column type="index" label="序号" width="60" :index="getQuestionIndex" />
@@ -456,9 +475,10 @@ import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  Back, User, Document, EditPen, Reading, Plus, UserFilled, SwitchButton, Edit, Search, Histogram
+  Back, User, Document, EditPen, Reading, Plus, UserFilled, SwitchButton, Edit, Search, Histogram, Upload, Download
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import * as XLSX from 'xlsx'
 
 const route = useRoute()
 const router = useRouter()
@@ -573,6 +593,7 @@ const gradingList = ref([])
 const questionDialogVisible = ref(false)
 const questionDetailVisible = ref(false)
 const questionFormRef = ref(null)
+const excelUploadRef = ref(null)
 
 // 题目表单
 const questionForm = reactive({
@@ -1054,6 +1075,129 @@ const handleLogout = () => {
 // 返回主界面
 const goBack = () => {
   router.push('/teacher/home')
+}
+
+// Excel批量导入处理
+const handleExcelFileChange = async (file) => {
+  const rawFile = file.raw
+  if (!rawFile) return
+  
+  const isExcel = rawFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
+                  rawFile.type === 'application/vnd.ms-excel' ||
+                  rawFile.name.endsWith('.xlsx') || rawFile.name.endsWith('.xls')
+  if (!isExcel) {
+    ElMessage.error('请上传 Excel 文件（.xlsx 或 .xls）')
+    return
+  }
+  
+  try {
+    const data = await readExcelFile(rawFile)
+    if (data.length === 0) {
+      ElMessage.warning('Excel 文件中没有数据')
+      return
+    }
+    await batchAddQuestions(data)
+  } catch (error) {
+    console.error('解析 Excel 文件失败:', error)
+    ElMessage.error('解析 Excel 文件失败，请检查文件格式')
+  }
+}
+
+// 读取Excel文件
+const readExcelFile = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const data = e.target.result
+        const workbook = XLSX.read(data, { type: 'array' })
+        const sheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[sheetName]
+        const jsonData = XLSX.utils.sheet_to_json(worksheet)
+        
+        const typeMap = { '单选题': 1, '多选题': 2, '判断题': 3, '填空题': 4, '简答题': 5 }
+        const difficultyMap = { '简单': 1, '中等': 2, '困难': 3 }
+        
+        const questions = jsonData.map(row => {
+          const questionType = typeMap[row['题型']] || 1
+          let answer = row['答案'] || ''
+          
+          // 判断题答案转换为 T/F 格式
+          if (questionType === 3) {
+            const answerLower = answer.toString().toLowerCase()
+            if (answerLower === '正确' || answerLower === '对' || answerLower === 'true' || answerLower === 't' || answerLower === '是') {
+              answer = 'T'
+            } else {
+              answer = 'F'
+            }
+          }
+          
+          const question = {
+            type: questionType,
+            content: row['题干'] || '',
+            answer: answer,
+            score: parseInt(row['分值']) || 5,
+            category: row['知识点'] || '',
+            difficulty: difficultyMap[row['难度']] || 1,
+            courseId: classInfo.courseId
+          }
+          if ([1, 2].includes(question.type)) {
+            question.options = JSON.stringify({
+              A: row['选项A'] || '', B: row['选项B'] || '',
+              C: row['选项C'] || '', D: row['选项D'] || ''
+            })
+          }
+          return question
+        })
+        resolve(questions)
+      } catch (error) { reject(error) }
+    }
+    reader.onerror = reject
+    reader.readAsArrayBuffer(file)
+  })
+}
+
+// 批量添加题目
+const batchAddQuestions = async (questions) => {
+  if (!classInfo.courseId) {
+    ElMessage.error('课程信息未加载，无法添加题目')
+    return
+  }
+  let successCount = 0, failCount = 0
+  ElMessage.info(`正在导入 ${questions.length} 道题目...`)
+  
+  for (const question of questions) {
+    try {
+      const response = await request.post('/question', question)
+      if (response.code === 200) successCount++
+      else failCount++
+    } catch { failCount++ }
+  }
+  
+  if (successCount > 0) {
+    ElMessage.success(`成功导入 ${successCount} 道题目${failCount > 0 ? `，${failCount} 道失败` : ''}`)
+    loadQuestionList()
+  } else {
+    ElMessage.error('导入失败，请检查数据格式')
+  }
+  if (excelUploadRef.value) excelUploadRef.value.clearFiles()
+}
+
+// 下载Excel模板
+const downloadExcelTemplate = () => {
+  const templateData = [
+    { '题型': '单选题', '题干': '示例：以下哪个是正确的？', '选项A': '选项A内容', '选项B': '选项B内容', '选项C': '选项C内容', '选项D': '选项D内容', '答案': 'A', '分值': 5, '知识点': '示例知识点', '难度': '简单' },
+    { '题型': '多选题', '题干': '示例：以下哪些是正确的？', '选项A': '选项A', '选项B': '选项B', '选项C': '选项C', '选项D': '选项D', '答案': 'A,B,C', '分值': 10, '知识点': '示例知识点', '难度': '中等' },
+    { '题型': '判断题', '题干': '示例：这是判断题？', '选项A': '', '选项B': '', '选项C': '', '选项D': '', '答案': '正确（或填：对/T/是）', '分值': 3, '知识点': '示例知识点', '难度': '简单' },
+    { '题型': '填空题', '题干': '示例：请填写____', '选项A': '', '选项B': '', '选项C': '', '选项D': '', '答案': '正确答案', '分值': 5, '知识点': '示例知识点', '难度': '中等' },
+    { '题型': '简答题', '题干': '示例：请简述观点', '选项A': '', '选项B': '', '选项C': '', '选项D': '', '答案': '参考答案', '分值': 20, '知识点': '示例知识点', '难度': '困难' }
+  ]
+  const worksheet = XLSX.utils.json_to_sheet(templateData)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, '题目模板')
+  worksheet['!cols'] = [{ wch: 10 }, { wch: 40 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 8 }, { wch: 15 }, { wch: 8 }]
+  XLSX.writeFile(workbook, '题目导入模板.xlsx')
+  ElMessage.success('模板下载成功')
 }
 
 // 页面加载
@@ -1546,16 +1690,67 @@ watch(classId, (newClassId) => {
   flex-shrink: 0;
 }
 
-.question-filters .add-question-btn {
+.question-filters .btn-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-left: auto;
+}
+
+.question-filters .add-question-btn {
   white-space: nowrap;
-  width: 200px;
-  min-width: 200px;
-  max-width: 200px;
-  flex-shrink: 0;
-  flex-grow: 0;
   padding: 8px 16px;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.question-filters .add-question-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.question-filters .upload-excel-btn {
+  white-space: nowrap;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
+  transition: all 0.3s ease;
+}
+
+.question-filters .upload-excel-btn:hover {
+  background: linear-gradient(135deg, #389e0d 0%, #52c41a 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
+}
+
+.question-filters .download-template-btn {
+  white-space: nowrap;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #909399 0%, #a6a9ad 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(144, 147, 153, 0.3);
+  transition: all 0.3s ease;
+}
+
+.question-filters .download-template-btn:hover {
+  background: linear-gradient(135deg, #606266 0%, #909399 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(144, 147, 153, 0.4);
 }
 
 .question-filters :deep(.el-input__wrapper) {
