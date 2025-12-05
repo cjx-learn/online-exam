@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.exam.mapper.ClassMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="ClassResultMap" type="com.exam.entity.Class">
+        <id property="id" column="id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="name" column="name"/>
+        <result property="code" column="code"/>
+        <result property="description" column="description"/>
+        <result property="coverImage" column="cover_image"/>
+        <result property="semester" column="semester"/>
+        <result property="schoolYear" column="school_year"/>
+        <result property="credit" column="credit"/>
+        <result property="inviteCode" column="invite_code"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="assistantTeachers" column="assistant_teachers"/>
+        <result property="maxStudents" column="max_students"/>
+        <result property="aiEnabled" column="ai_enabled"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="teacherName" column="teacher_name"/>
+        <result property="studentCount" column="student_count"/>
+    </resultMap>
+    
+    <!-- 根据ID查询 -->
+    <select id="selectById" resultMap="ClassResultMap">
+        SELECT c.*, t.real_name AS teacher_name
+        FROM class c
+        LEFT JOIN teacher t ON c.teacher_id = t.id
+        WHERE c.id = #{id}
+    </select>
+    
+    <!-- 根据邀请码查询 -->
+    <select id="selectByInviteCode" resultMap="ClassResultMap">
+        SELECT c.*, t.real_name AS teacher_name
+        FROM class c
+        LEFT JOIN teacher t ON c.teacher_id = t.id
+        WHERE c.invite_code = #{inviteCode}
+    </select>
+    
+    <!-- 查询教师的所有班级 -->
+    <select id="selectByTeacherId" resultMap="ClassResultMap">
+        SELECT c.*, t.real_name AS teacher_name,
+               (SELECT COUNT(*) FROM student_class sc WHERE sc.class_id = c.id AND sc.status = 1) AS student_count
+        FROM class c
+        LEFT JOIN teacher t ON c.teacher_id = t.id
+        WHERE c.teacher_id = #{teacherId}
+        ORDER BY c.create_time DESC
+    </select>
+    
+    <!-- 查询所有班级 -->
+    <select id="selectAll" resultMap="ClassResultMap">
+        SELECT c.*, t.real_name AS teacher_name,
+               (SELECT COUNT(*) FROM student_class sc WHERE sc.class_id = c.id AND sc.status = 1) AS student_count
+        FROM class c
+        LEFT JOIN teacher t ON c.teacher_id = t.id
+        WHERE c.status = 1
+        ORDER BY c.create_time DESC
+    </select>
+    
+    <!-- 查询学生加入的所有班级 -->
+    <select id="selectByStudentId" resultMap="ClassResultMap">
+        SELECT c.*, t.real_name AS teacher_name,
+               (SELECT COUNT(*) FROM student_class sc2 WHERE sc2.class_id = c.id AND sc2.status = 1) AS student_count
+        FROM class c
+        INNER JOIN student_class sc ON c.id = sc.class_id
+        LEFT JOIN teacher t ON c.teacher_id = t.id
+        WHERE sc.student_id = #{studentId} AND sc.status = 1 AND c.status = 1
+        ORDER BY sc.join_time DESC
+    </select>
+    
+    <!-- 插入班级 -->
+    <insert id="insert" parameterType="com.exam.entity.Class" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO class (
+            course_id, name, code, description, cover_image, semester, school_year, 
+            credit, invite_code, teacher_id, assistant_teachers, 
+            max_students, ai_enabled, status
+        ) VALUES (
+            #{courseId}, #{name}, #{code}, #{description}, #{coverImage}, #{semester}, #{schoolYear},
+            #{credit}, #{inviteCode}, #{teacherId}, #{assistantTeachers},
+            #{maxStudents}, #{aiEnabled}, #{status}
+        )
+    </insert>
+    
+    <!-- 更新班级 -->
+    <update id="update" parameterType="com.exam.entity.Class">
+        UPDATE class
+        <set>
+            <if test="courseId != null">course_id = #{courseId},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="code != null">code = #{code},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="coverImage != null">cover_image = #{coverImage},</if>
+            <if test="semester != null">semester = #{semester},</if>
+            <if test="schoolYear != null">school_year = #{schoolYear},</if>
+            <if test="credit != null">credit = #{credit},</if>
+            <if test="assistantTeachers != null">assistant_teachers = #{assistantTeachers},</if>
+            <if test="maxStudents != null">max_students = #{maxStudents},</if>
+            <if test="aiEnabled != null">ai_enabled = #{aiEnabled},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除班级 -->
+    <delete id="deleteById">
+        DELETE FROM class WHERE id = #{id}
+    </delete>
+    
+    <!-- 查询班级的学生数 -->
+    <select id="countStudents" resultType="int">
+        SELECT COUNT(*) FROM student_class 
+        WHERE class_id = #{classId} AND status = 1
+    </select>
+    
+    <!-- 根据班级名称查询班级 -->
+    <select id="selectByName" resultMap="ClassResultMap">
+        SELECT id, name, code, teacher_id, course_id FROM class WHERE name = #{name}
+    </select>
+
+</mapper>
+

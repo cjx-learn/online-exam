@@ -1,0 +1,32 @@
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 前端
+frontend/node_modules/
+frontend/dist/
+frontend/*.local
+
+# 后端
+backend/target/
+backend/logs/
+backend/*.log
+
+# 日志
+*.log
+logs/
+
+# 敏感文件（可选，根据需要取消注释）
+# backend/src/main/resources/application.yml
+
+# 临时文件
+*.tmp
+*.temp
+*.swp
