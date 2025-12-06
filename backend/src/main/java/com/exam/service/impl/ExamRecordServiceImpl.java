@@ -450,9 +450,9 @@ public class ExamRecordServiceImpl implements ExamRecordService {
         }
         
         // 7. 获取学生信息
-        com.exam.entity.User student = userMapper.selectById(studentRecord.getUserId());
-        String studentName = student != null ? student.getUsername() : "未知";
-        String studentId = student != null ? student.getStudentId() : "未知";
+        com.exam.entity.User student = userMapper.selectById(studentRecord.getStudentId());
+        String studentName = student != null ? (student.getRealName() != null ? student.getRealName() : student.getUsername()) : "未知";
+        String studentIdStr = student != null ? student.getId().toString() : "未知";
         
         // 8. 组装返回数据
         result.put("studentScore", studentScore);
@@ -465,7 +465,7 @@ public class ExamRecordServiceImpl implements ExamRecordService {
         result.put("objectiveScore", studentRecord.getObjectiveScore());
         result.put("subjectiveScore", studentRecord.getSubjectiveScore());
         result.put("studentName", studentName);
-        result.put("studentId", studentId);
+        result.put("studentId", studentIdStr);
         result.put("courseName", exam.getTitle()); // 使用考试标题作为课程名称
         
         return result;
