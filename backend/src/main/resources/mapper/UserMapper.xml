@@ -17,11 +17,11 @@
     </resultMap>
 
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT * FROM user WHERE id = #{id}
+        SELECT * FROM student WHERE id = #{id}
     </select>
 
     <select id="selectByUsername" resultMap="BaseResultMap">
-        SELECT * FROM user WHERE username = #{username}
+        SELECT * FROM student WHERE username = #{username}
     </select>
 
 </mapper>
