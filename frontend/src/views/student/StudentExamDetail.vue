@@ -89,19 +89,19 @@
           </el-button>
         </div>
 
-        <!-- PDF证明内容（隐藏，仅用于导出） -->
+        <!-- PDF证明内容（备用模板，已不使用） -->
         <div id="certificateContent" style="display: none;">
           <div style="padding: 40px; font-family: '微软雅黑', sans-serif;">
             <h1 style="text-align: center; margin-bottom: 30px; color: #333;">成绩证明</h1>
             <div style="margin: 20px 0; line-height: 2;">
+              <p><strong>学生姓名：</strong>{{ examRecord?.studentName }}</p>
+              <p><strong>学号：</strong>{{ examRecord?.studentId }}</p>
               <p><strong>考试名称：</strong>{{ analysisData.examTitle }}</p>
               <p><strong>总分：</strong>{{ analysisData.studentScore }} 分</p>
               <p><strong>客观题得分：</strong>{{ analysisData.objectiveScore || 0 }} 分</p>
               <p><strong>主观题得分：</strong>{{ analysisData.subjectiveScore || 0 }} 分</p>
-              <p><strong>及格分：</strong>{{ analysisData.passScore }} 分</p>
               <p><strong>班级排名：</strong>第 {{ analysisData.rank }} 名 / 共 {{ analysisData.totalStudents }} 人</p>
               <p><strong>班级平均分：</strong>{{ analysisData.classAverage }} 分</p>
-              <p style="margin-top: 40px; text-align: right;">生成日期：{{ new Date().toLocaleDateString('zh-CN') }}</p>
             </div>
           </div>
         </div>
@@ -448,11 +448,15 @@ const downloadPDF = async () => {
   ElMessage.info('正在生成PDF，请稍候...')
   
   try {
-    const currentDate = new Date().toLocaleDateString('zh-CN', { 
-      year: 'numeric', 
-      month: '2-digit', 
-      day: '2-digit' 
-    })
+    const currentDate = new Date()
+    const year = currentDate.getFullYear()
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0')
+    const day = String(currentDate.getDate()).padStart(2, '0')
+    const formattedDate = `${year}年${month}月${day}日`
+    
+    // 获取学生姓名和学号
+    const studentName = examRecord.value?.studentName || '未知'
+    const studentId = examRecord.value?.studentId || '-'
     
     // 创建临时元素并填充实际数据
     const tempDiv = document.createElement('div')
@@ -468,16 +472,17 @@ const downloadPDF = async () => {
       </div>
       <div style="border-top: 2px solid #ccc; padding-top: 30px;">
         <div style="margin: 20px 0; line-height: 2.5; font-size: 16px;">
+          <p style="margin: 10px 0;"><strong style="font-weight: bold;">学生姓名：</strong>${studentName}</p>
+          <p style="margin: 10px 0;"><strong style="font-weight: bold;">学号：</strong>${studentId}</p>
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">考试名称：</strong>${analysisData.value.examTitle || exam.title || '-'}</p>
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">总分：</strong>${analysisData.value.studentScore || 0} 分</p>
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">客观题得分：</strong>${analysisData.value.objectiveScore || 0} 分</p>
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">主观题得分：</strong>${analysisData.value.subjectiveScore || 0} 分</p>
-          <p style="margin: 10px 0;"><strong style="font-weight: bold;">及格分：</strong>${analysisData.value.passScore || 0} 分</p>
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">班级排名：</strong>第 ${analysisData.value.rank || '-'} 名 / 共 ${analysisData.value.totalStudents || 0} 人</p>
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">班级平均分：</strong>${analysisData.value.classAverage || 0} 分</p>
         </div>
         <div style="margin-top: 60px; text-align: right; color: #666; font-size: 14px;">
-          <p>生成日期：${currentDate}</p>
+          <p style="margin: 0;">生成日期：${formattedDate}</p>
         </div>
       </div>
     `
