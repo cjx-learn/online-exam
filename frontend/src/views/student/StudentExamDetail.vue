@@ -467,7 +467,7 @@ const downloadPDF = async () => {
         console.log('解析后的userInfo:', userInfo)
         
         studentName = userInfo.realName || userInfo.username || '未知'
-        studentId = userInfo.userId || userInfo.id || '-'
+        studentId = userInfo.studentNo || userInfo.userId || userInfo.id || '-'
         
         console.log('最终姓名:', studentName)
         console.log('最终学号:', studentId)
