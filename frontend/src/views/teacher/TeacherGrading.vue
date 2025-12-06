@@ -453,12 +453,38 @@ const saveCurrentAnswer = async () => {
       // 因为我们直接修改的是原始数据，所以不需要额外更新
       // 数据已经自动更新了
       
-      // 自动跳转到下一个答案
-      if (hasNextAnswer.value) {
-        goToNextAnswer()
+      // 查找下一个未批改的答案
+      const currentAnswers = currentQuestionAnswers.value
+      let nextUngradedIndex = -1
+      
+      // 从当前位置之后查找
+      for (let i = currentAnswerIndex.value + 1; i < currentAnswers.length; i++) {
+        if (currentAnswers[i].currentScore === null || currentAnswers[i].currentScore === undefined) {
+          nextUngradedIndex = i
+          break
+        }
+      }
+      
+      // 如果后面没有，从头开始查找
+      if (nextUngradedIndex === -1) {
+        for (let i = 0; i < currentAnswerIndex.value; i++) {
+          if (currentAnswers[i].currentScore === null || currentAnswers[i].currentScore === undefined) {
+            nextUngradedIndex = i
+            break
+          }
+        }
+      }
+      
+      // 跳转到下一个未批改的答案，或者提示全部完成
+      if (nextUngradedIndex !== -1) {
+        currentAnswerIndex.value = nextUngradedIndex
+        updateCurrentAnswer()
       } else {
-        // 如果是最后一个答案，检查当前题目是否全部批改完成
-        ElMessage.success('当前题目已全部批改完成')
+        // 真正检查当前题目是否全部批改完成
+        const allGraded = currentAnswers.every(a => a.currentScore !== null && a.currentScore !== undefined)
+        if (allGraded) {
+          ElMessage.success('当前题目已全部批改完成')
+        }
       }
     } else {
       ElMessage.error(response.message || '保存失败')
