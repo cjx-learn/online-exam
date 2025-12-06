@@ -264,10 +264,10 @@
                 <div ref="errorDistChart" class="chart-container-compact"></div>
               </div>
 
-              <!-- 题型正确率对比 -->
+              <!-- 题型数量分布 -->
               <div class="analysis-card-compact">
                 <div class="analysis-card-header">
-                  <h4>📝 题型对比</h4>
+                  <h4>📝 题型分布</h4>
                 </div>
                 <div ref="typeRateChart" class="chart-container-compact"></div>
               </div>
@@ -588,9 +588,9 @@ const highErrorQuestions = computed(() => {
     .sort((a, b) => a.correctRate - b.correctRate)
 })
 
-// 题型正确率数据
+// 题型数量统计
 const questionTypeStats = computed(() => {
-  if (questions.value.length === 0 || allAnswers.value.length === 0) return []
+  if (questions.value.length === 0) return []
   
   const typeMap = {
     1: '单选题',
@@ -602,25 +602,18 @@ const questionTypeStats = computed(() => {
   
   const stats = {}
   
+  // 统计各类型题目数量
   questions.value.forEach(question => {
     const typeName = typeMap[question.type] || '其他'
     if (!stats[typeName]) {
-      stats[typeName] = { total: 0, correct: 0 }
+      stats[typeName] = 0
     }
-    
-    const questionAnswers = allAnswers.value.filter(a => a.questionId === question.id)
-    const correctAnswers = questionAnswers.filter(a => a.score > 0)
-    
-    // 每道题的总人数 = 参加考试的总人数
-    stats[typeName].total += examRecords.value.length
-    stats[typeName].correct += correctAnswers.length
+    stats[typeName]++
   })
   
-  return Object.entries(stats).map(([type, data]) => ({
+  return Object.entries(stats).map(([type, count]) => ({
     type,
-    rate: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
-    total: data.total,
-    correct: data.correct
+    count
   }))
 })
 
@@ -897,7 +890,7 @@ const drawErrorDistChart = () => {
   chart.setOption(option)
 }
 
-// 绘制题型正确率对比图表（高级版-雷达图）
+// 绘制题型数量对比图表（柱状图）
 const drawTypeRateChart = () => {
   if (!typeRateChart.value) return
   
@@ -906,7 +899,7 @@ const drawTypeRateChart = () => {
   
   const option = {
     tooltip: {
-      trigger: 'item',
+      trigger: 'axis',
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderColor: '#667eea',
       borderWidth: 1,
@@ -914,72 +907,85 @@ const drawTypeRateChart = () => {
         color: '#333',
         fontSize: 12
       },
-      formatter: '{b}: <span style="color: #667eea; font-weight: bold;">{c}%</span>'
-    },
-    radar: {
-      indicator: data.map(d => ({
-        name: d.type,
-        max: 100
-      })),
-      shape: 'circle',
-      radius: '65%',
-      name: {
-        textStyle: {
-          color: '#666',
-          fontSize: 12,
-          fontWeight: 'bold'
+      axisPointer: {
+        type: 'shadow',
+        shadowStyle: {
+          color: 'rgba(102, 126, 234, 0.1)'
         }
       },
-      splitArea: {
-        areaStyle: {
-          color: ['rgba(102, 126, 234, 0.05)', 'rgba(102, 126, 234, 0.1)', 
-                  'rgba(102, 126, 234, 0.15)', 'rgba(102, 126, 234, 0.2)']
-        }
+      formatter: '{b}: <span style="color: #667eea; font-weight: bold;">{c}题</span>'
+    },
+    grid: {
+      left: '15%',
+      right: '5%',
+      top: '10%',
+      bottom: '15%'
+    },
+    xAxis: {
+      type: 'category',
+      data: data.map(d => d.type),
+      axisLabel: {
+        color: '#666',
+        fontSize: 11
       },
       axisLine: {
         lineStyle: {
-          color: 'rgba(102, 126, 234, 0.3)'
-        }
-      },
-      splitLine: {
-        lineStyle: {
-          color: 'rgba(102, 126, 234, 0.3)'
+          color: '#e0e0e0'
         }
       }
     },
-    series: [{
-      type: 'radar',
-      data: [{
-        value: data.map(d => d.rate),
-        name: '正确率',
-        symbol: 'circle',
-        symbolSize: 6,
+    yAxis: {
+      type: 'value',
+      name: '题目数量',
+      nameTextStyle: {
+        color: '#666',
+        fontSize: 12
+      },
+      axisLabel: {
+        color: '#666',
+        fontSize: 11,
+        formatter: '{value}题'
+      },
+      axisLine: {
+        show: false
+      },
+      splitLine: {
         lineStyle: {
-          width: 2,
-          color: '#667eea'
-        },
+          color: '#f0f0f0',
+          type: 'dashed'
+        }
+      },
+      minInterval: 1
+    },
+    series: [{
+      type: 'bar',
+      barWidth: '50%',
+      label: {
+        show: true,
+        position: 'top',
+        fontSize: 11,
+        color: '#667eea',
+        fontWeight: 'bold',
+        formatter: '{c}题'
+      },
+      itemStyle: {
+        borderRadius: [4, 4, 0, 0]
+      },
+      emphasis: {
         itemStyle: {
-          color: '#667eea',
-          borderColor: '#fff',
-          borderWidth: 2,
-          shadowBlur: 4,
-          shadowColor: 'rgba(102, 126, 234, 0.3)'
-        },
-        areaStyle: {
-          color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
-            { offset: 0, color: 'rgba(102, 126, 234, 0.4)' },
-            { offset: 1, color: 'rgba(102, 126, 234, 0.1)' }
+          shadowBlur: 10,
+          shadowColor: 'rgba(102, 126, 234, 0.5)'
+        }
+      },
+      data: data.map((d, index) => ({
+        value: d.count,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe'][index % 5] },
+            { offset: 1, color: ['#5a67d8', '#667eea', '#e879f9', '#3b82f6', '#06b6d4'][index % 5] }
           ])
         }
-      }],
-      emphasis: {
-        lineStyle: {
-          width: 3
-        },
-        itemStyle: {
-          shadowBlur: 10
-        }
-      }
+      }))
     }]
   }
   
