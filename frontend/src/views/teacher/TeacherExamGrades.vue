@@ -731,7 +731,7 @@ const drawCorrectRateChart = () => {
   chart.setOption(option)
 }
 
-// 绘制错误分布图表（高级版-漏斗图）
+// 绘制错题分布图表（柱状图）
 const drawErrorDistChart = () => {
   if (!errorDistChart.value) return
   
@@ -746,7 +746,7 @@ const drawErrorDistChart = () => {
     const questionAnswers = allAnswers.value.filter(a => a.questionId === q.id && a.score === 0)
     
     questionAnswers.forEach(answer => {
-      const key = `题${qIndex + 1}`
+      const key = `第${qIndex + 1}题`
       if (!errorOptions[key]) errorOptions[key] = 0
       errorOptions[key]++
     })
@@ -754,11 +754,11 @@ const drawErrorDistChart = () => {
   
   const sortedErrors = Object.entries(errorOptions)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
+    .slice(0, 10)
   
   const option = {
     tooltip: {
-      trigger: 'item',
+      trigger: 'axis',
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderColor: '#ef4444',
       borderWidth: 1,
@@ -766,46 +766,72 @@ const drawErrorDistChart = () => {
         color: '#333',
         fontSize: 12
       },
-      formatter: '{b}: <span style="color: #ef4444; font-weight: bold;">{c}人</span>'
+      axisPointer: {
+        type: 'shadow',
+        shadowStyle: {
+          color: 'rgba(239, 68, 68, 0.1)'
+        }
+      }
+    },
+    grid: {
+      left: '15%',
+      right: '5%',
+      top: '10%',
+      bottom: '15%'
+    },
+    xAxis: {
+      type: 'category',
+      data: sortedErrors.map(e => e[0]),
+      axisLabel: {
+        color: '#666',
+        fontSize: 11,
+        rotate: 30
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#ddd'
+        }
+      }
+    },
+    yAxis: {
+      type: 'value',
+      name: '错误人数',
+      nameTextStyle: {
+        color: '#666',
+        fontSize: 12
+      },
+      axisLabel: {
+        color: '#666',
+        fontSize: 11
+      },
+      axisLine: {
+        show: false
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#f0f0f0',
+          type: 'dashed'
+        }
+      }
     },
     series: [{
-      type: 'funnel',
-      left: '10%',
-      top: '5%',
-      bottom: '5%',
-      width: '80%',
-      min: 0,
-      max: sortedErrors.length > 0 ? sortedErrors[0][1] : 100,
-      minSize: '0%',
-      maxSize: '100%',
-      sort: 'descending',
-      gap: 2,
+      type: 'bar',
+      barWidth: '50%',
       label: {
         show: true,
-        position: 'inside',
-        fontSize: 12,
-        color: '#fff',
+        position: 'top',
+        fontSize: 11,
+        color: '#ef4444',
         fontWeight: 'bold',
-        formatter: '{b}: {c}'
-      },
-      labelLine: {
-        length: 10,
-        lineStyle: {
-          width: 1
-        }
+        formatter: '{c}人'
       },
       itemStyle: {
-        borderColor: '#fff',
-        borderWidth: 1,
-        shadowBlur: 5,
-        shadowOffsetY: 2,
-        shadowColor: 'rgba(0, 0, 0, 0.1)'
+        borderRadius: [4, 4, 0, 0]
       },
       emphasis: {
-        label: {
-          fontSize: 14,
-          shadowBlur: 3,
-          shadowColor: 'rgba(0, 0, 0, 0.3)'
+        itemStyle: {
+          shadowBlur: 10,
+          shadowColor: 'rgba(239, 68, 68, 0.5)'
         }
       },
       data: sortedErrors.map((e, index) => ({
@@ -813,8 +839,8 @@ const drawErrorDistChart = () => {
         name: e[0],
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: `rgba(239, 68, 68, ${1 - index * 0.1})` },
-            { offset: 1, color: `rgba(220, 38, 38, ${1 - index * 0.1})` }
+            { offset: 0, color: '#ef4444' },
+            { offset: 1, color: '#dc2626' }
           ])
         }
       }))
