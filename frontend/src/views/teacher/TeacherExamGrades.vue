@@ -431,14 +431,22 @@ const minScore = computed(() => {
   return Math.min(...examRecords.value.map(r => r.totalScore || 0))
 })
 
-// 成绩分布
+// 成绩分布（基于考试总分的百分比）
 const scoreRanges = computed(() => {
+  const totalScore = exam.totalScore || 100 // 考试总分，默认100
+  
+  // 根据考试总分计算分数段
+  const score90 = totalScore * 0.9
+  const score80 = totalScore * 0.8
+  const score70 = totalScore * 0.7
+  const score60 = totalScore * 0.6
+  
   const ranges = [
-    { label: '90-100', min: 90, max: 100, color: '#22c55e' },
-    { label: '80-89', min: 80, max: 89, color: '#3b82f6' },
-    { label: '70-79', min: 70, max: 79, color: '#f59e0b' },
-    { label: '60-69', min: 60, max: 69, color: '#f97316' },
-    { label: '0-59', min: 0, max: 59, color: '#ef4444' }
+    { label: `${score90.toFixed(0)}-${totalScore}`, min: score90, max: totalScore, color: '#22c55e', desc: '优秀(≥90%)' },
+    { label: `${score80.toFixed(0)}-${(score90 - 0.01).toFixed(0)}`, min: score80, max: score90 - 0.01, color: '#3b82f6', desc: '良好(80-89%)' },
+    { label: `${score70.toFixed(0)}-${(score80 - 0.01).toFixed(0)}`, min: score70, max: score80 - 0.01, color: '#f59e0b', desc: '中等(70-79%)' },
+    { label: `${score60.toFixed(0)}-${(score70 - 0.01).toFixed(0)}`, min: score60, max: score70 - 0.01, color: '#f97316', desc: '及格(60-69%)' },
+    { label: `0-${(score60 - 0.01).toFixed(0)}`, min: 0, max: score60 - 0.01, color: '#ef4444', desc: '不及格(<60%)' }
   ]
 
   const totalCount = examRecords.value.length
