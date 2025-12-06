@@ -24,6 +24,11 @@
           <span>课程管理</span>
         </el-menu-item>
         
+        <el-menu-item index="class">
+          <el-icon><School /></el-icon>
+          <span>班级管理</span>
+        </el-menu-item>
+        
         <el-menu-item index="teacher">
           <el-icon><User /></el-icon>
           <span>教师账号管理</span>
@@ -131,6 +136,10 @@
               <el-icon><Plus /></el-icon>
               添加课程
             </el-button>
+            <el-upload class="upload-btn" :action="uploadUrl + '/admin/import/course'" :show-file-list="false" :on-success="handleImportSuccess" :on-error="handleImportError" accept=".xlsx,.xls">
+              <el-button type="success"><el-icon><Upload /></el-icon>批量导入</el-button>
+            </el-upload>
+            <el-button type="info" text @click="downloadTemplate('course')">下载模板</el-button>
           </div>
           
           <el-table :data="courseList" border stripe>
@@ -151,6 +160,29 @@
           </el-table>
         </div>
         
+        <!-- 班级管理 -->
+        <div v-if="activeMenu === 'class'" class="class-management">
+          <el-table :data="classList" border stripe>
+            <el-table-column prop="id" label="班级ID" width="80" />
+            <el-table-column prop="name" label="班级名称" min-width="150" />
+            <el-table-column prop="code" label="课程代码" width="120" />
+            <el-table-column prop="inviteCode" label="邀请码" width="120" />
+            <el-table-column prop="semester" label="学期" width="150" />
+            <el-table-column prop="teacherName" label="授课教师" width="120" />
+            <el-table-column prop="studentCount" label="学生数" width="90" />
+            <el-table-column label="启用状态" width="100">
+              <template #default="{ row }">
+                <el-switch v-model="row.status" :active-value="1" :inactive-value="0" @change="updateClassStatus(row)" />
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="100" fixed="right">
+              <template #default="{ row }">
+                <el-button link type="danger" size="small" @click="deleteClass(row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        
         <!-- 教师账号管理 -->
         <div v-if="activeMenu === 'teacher'" class="teacher-management">
           <div class="toolbar">
@@ -158,6 +190,10 @@
               <el-icon><Plus /></el-icon>
               添加教师
             </el-button>
+            <el-upload class="upload-btn" :action="uploadUrl + '/admin/import/teacher'" :show-file-list="false" :on-success="handleImportSuccess" :on-error="handleImportError" accept=".xlsx,.xls">
+              <el-button type="success"><el-icon><Upload /></el-icon>批量导入</el-button>
+            </el-upload>
+            <el-button type="info" text @click="downloadTemplate('teacher')">下载模板</el-button>
           </div>
           
           <el-table :data="teacherList" border stripe>
@@ -196,6 +232,10 @@
               <el-icon><Plus /></el-icon>
               添加学生
             </el-button>
+            <el-upload class="upload-btn" :action="uploadUrl + '/admin/import/student'" :show-file-list="false" :on-success="handleImportSuccess" :on-error="handleImportError" accept=".xlsx,.xls">
+              <el-button type="success"><el-icon><Upload /></el-icon>批量导入</el-button>
+            </el-upload>
+            <el-button type="info" text @click="downloadTemplate('student')">下载模板</el-button>
           </div>
           
           <el-table :data="studentList" border stripe>
@@ -228,6 +268,43 @@
         </div>
       </div>
     </div>
+    
+    <!-- 个人信息对话框 -->
+    <el-dialog v-model="profileDialogVisible" title="个人信息" width="500px" :close-on-click-modal="false">
+      <el-form :model="userForm" label-width="80px">
+        <el-form-item label="用户名"><el-input v-model="userForm.username" disabled /></el-form-item>
+        <el-form-item label="真实姓名"><el-input v-model="userForm.realName" disabled /></el-form-item>
+        <el-divider content-position="left"><span style="color: #909399; font-size: 13px;">可修改信息</span></el-divider>
+        <el-form-item label="邮箱"><el-input v-model="userForm.email" placeholder="请输入邮箱" clearable /></el-form-item>
+        <el-form-item label="手机号"><el-input v-model="userForm.phone" placeholder="请输入手机号" maxlength="11" clearable /></el-form-item>
+      </el-form>
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ebeef5;">
+        <el-button @click="openPasswordDialog" type="primary" plain>修改密码</el-button>
+      </div>
+      <template #footer>
+        <el-button @click="profileDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveProfile">保存修改</el-button>
+      </template>
+    </el-dialog>
+    
+    <!-- 修改密码对话框 -->
+    <el-dialog v-model="passwordDialogVisible" title="修改密码" width="450px" :close-on-click-modal="false">
+      <el-form :model="passwordForm" :rules="passwordRules" ref="passwordFormRef" label-width="100px">
+        <el-form-item label="旧密码" prop="oldPassword">
+          <el-input v-model="passwordForm.oldPassword" type="password" placeholder="请输入旧密码" show-password clearable />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input v-model="passwordForm.newPassword" type="password" placeholder="请输入新密码（6-20位）" show-password clearable />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input v-model="passwordForm.confirmPassword" type="password" placeholder="请再次输入新密码" show-password clearable />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="closePasswordDialog">取消</el-button>
+        <el-button type="primary" @click="changePassword">确认修改</el-button>
+      </template>
+    </el-dialog>
     
     <!-- 课程对话框 -->
     <el-dialog
@@ -269,6 +346,65 @@
         <el-button type="primary" @click="saveCourse">保存</el-button>
       </template>
     </el-dialog>
+    
+    <!-- 教师对话框 -->
+    <el-dialog v-model="teacherDialogVisible" :title="teacherDialogTitle" width="500px">
+      <el-form :model="teacherForm" :rules="teacherRules" ref="teacherFormRef" label-width="80px">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="teacherForm.username" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item label="真实姓名" prop="realName">
+          <el-input v-model="teacherForm.realName" placeholder="请输入真实姓名" />
+        </el-form-item>
+        <el-form-item label="工号">
+          <el-input v-model="teacherForm.teacherNo" placeholder="请输入工号" />
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="teacherForm.email" placeholder="请输入邮箱" />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="teacherForm.phone" placeholder="请输入手机号" maxlength="11" />
+        </el-form-item>
+        <el-form-item label="院系">
+          <el-input v-model="teacherForm.department" placeholder="请输入院系" />
+        </el-form-item>
+        <el-form-item label="职称">
+          <el-input v-model="teacherForm.title" placeholder="请输入职称" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="teacherDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveTeacher">保存</el-button>
+      </template>
+    </el-dialog>
+    
+    <!-- 学生对话框 -->
+    <el-dialog v-model="studentDialogVisible" :title="studentDialogTitle" width="500px">
+      <el-form :model="studentForm" :rules="studentRules" ref="studentFormRef" label-width="80px">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="studentForm.username" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item label="真实姓名" prop="realName">
+          <el-input v-model="studentForm.realName" placeholder="请输入真实姓名" />
+        </el-form-item>
+        <el-form-item label="学号">
+          <el-input v-model="studentForm.studentNo" placeholder="请输入学号" />
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="studentForm.email" placeholder="请输入邮箱" />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="studentForm.phone" placeholder="请输入手机号" maxlength="11" />
+        </el-form-item>
+        <el-form-item label="专业">
+          <el-input v-model="studentForm.major" placeholder="请输入专业" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="studentDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveStudent">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -277,7 +413,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  HomeFilled, Reading, User, UserFilled, Document, Plus, ArrowDown, Setting, SwitchButton
+  HomeFilled, Reading, User, UserFilled, Document, Plus, ArrowDown, Setting, SwitchButton, School, Upload
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
@@ -297,9 +433,13 @@ const activeMenu = ref('dashboard')
 const menuTitles = {
   dashboard: '系统概览',
   course: '课程管理',
+  class: '班级管理',
   teacher: '教师账号管理',
   student: '学生账号管理'
 }
+
+// 上传URL
+const uploadUrl = 'http://localhost:8080/api'
 
 // 统计数据
 const stats = reactive({
@@ -311,6 +451,7 @@ const stats = reactive({
 
 // 数据列表
 const courseList = ref([])
+const classList = ref([])
 const teacherList = ref([])
 const studentList = ref([])
 
@@ -336,11 +477,48 @@ const courseRules = {
   category: [{ required: true, message: '请输入课程分类', trigger: 'blur' }]
 }
 
+// 教师对话框
+const teacherDialogVisible = ref(false)
+const teacherFormRef = ref(null)
+const teacherForm = reactive({
+  id: null,
+  username: '',
+  realName: '',
+  teacherNo: '',
+  email: '',
+  phone: '',
+  department: '',
+  title: ''
+})
+const teacherRules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }]
+}
+
+// 学生对话框
+const studentDialogVisible = ref(false)
+const studentFormRef = ref(null)
+const studentForm = reactive({
+  id: null,
+  username: '',
+  realName: '',
+  studentNo: '',
+  email: '',
+  phone: '',
+  major: ''
+})
+const studentRules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }]
+}
+
 // 菜单选择
 const handleMenuSelect = (index) => {
   activeMenu.value = index
   if (index === 'course') {
     loadCourseList()
+  } else if (index === 'class') {
+    loadClassList()
   } else if (index === 'teacher') {
     loadTeacherList()
   } else if (index === 'student') {
@@ -348,11 +526,62 @@ const handleMenuSelect = (index) => {
   }
 }
 
+// 个人信息对话框
+const profileDialogVisible = ref(false)
+const userForm = reactive({
+  id: '',
+  username: '',
+  realName: '',
+  email: '',
+  phone: ''
+})
+
+// 修改密码对话框
+const passwordDialogVisible = ref(false)
+const passwordFormRef = ref(null)
+const passwordForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+const passwordRules = {
+  oldPassword: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度为6-20位', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (value !== passwordForm.newPassword) {
+          callback(new Error('两次输入的密码不一致'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
+}
+
 // 用户菜单命令
 const handleCommand = (command) => {
   switch (command) {
     case 'profile':
-      ElMessage.info('个人信息功能开发中...')
+      const storedUserInfo = localStorage.getItem('userInfo')
+      if (storedUserInfo) {
+        const parsed = JSON.parse(storedUserInfo)
+        Object.assign(userForm, {
+          id: parsed.userId,
+          username: parsed.username,
+          realName: parsed.realName,
+          email: parsed.email || '',
+          phone: parsed.phone || ''
+        })
+      }
+      profileDialogVisible.value = true
       break
     case 'settings':
       ElMessage.info('设置功能开发中...')
@@ -369,6 +598,104 @@ const handleCommand = (command) => {
       }).catch(() => {})
       break
   }
+}
+
+// 保存个人信息
+const saveProfile = async () => {
+  try {
+    const response = await request.post('/user/update', {
+      id: userForm.id,
+      email: userForm.email,
+      phone: userForm.phone,
+      role: 2
+    })
+    if (response.code === 200) {
+      ElMessage.success('个人信息已保存')
+      profileDialogVisible.value = false
+      const storedUserInfo = localStorage.getItem('userInfo')
+      if (storedUserInfo) {
+        const parsed = JSON.parse(storedUserInfo)
+        parsed.email = userForm.email
+        parsed.phone = userForm.phone
+        localStorage.setItem('userInfo', JSON.stringify(parsed))
+      }
+    } else {
+      ElMessage.error(response.message || '保存失败')
+    }
+  } catch (error) {
+    ElMessage.error('网络错误，无法保存')
+  }
+}
+
+const openPasswordDialog = () => { passwordDialogVisible.value = true }
+const closePasswordDialog = () => {
+  passwordDialogVisible.value = false
+  passwordForm.oldPassword = ''
+  passwordForm.newPassword = ''
+  passwordForm.confirmPassword = ''
+}
+
+const changePassword = async () => {
+  if (!passwordFormRef.value) return
+  await passwordFormRef.value.validate(async (valid) => {
+    if (!valid) return
+    try {
+      const response = await request.post('/user/changePassword', {
+        id: userForm.id,
+        oldPassword: passwordForm.oldPassword,
+        newPassword: passwordForm.newPassword,
+        role: 2
+      })
+      if (response.code === 200) {
+        ElMessage.success('密码修改成功，请重新登录')
+        closePasswordDialog()
+        profileDialogVisible.value = false
+        setTimeout(() => {
+          localStorage.clear()
+          router.push('/login')
+        }, 1500)
+      } else {
+        ElMessage.error(response.message || '密码修改失败')
+      }
+    } catch (error) {
+      ElMessage.error('网络错误，无法修改密码')
+    }
+  })
+}
+
+// 导入成功处理
+const handleImportSuccess = (response) => {
+  if (response.code === 200) {
+    const data = response.data
+    ElMessage.success(`导入完成！成功: ${data.successCount} 条，失败: ${data.errorCount} 条`)
+    if (data.errors && data.errors.length > 0) {
+      ElMessageBox.alert(data.errors.slice(0, 10).join('<br>'), '导入错误详情', { dangerouslyUseHTMLString: true, type: 'warning' })
+    }
+    if (activeMenu.value === 'course') loadCourseList()
+    else if (activeMenu.value === 'teacher') loadTeacherList()
+    else if (activeMenu.value === 'student') loadStudentList()
+  } else {
+    ElMessage.error(response.message || '导入失败')
+  }
+}
+
+const handleImportError = () => { ElMessage.error('文件上传失败，请检查文件格式') }
+
+// 下载模板
+const downloadTemplate = (type) => {
+  const templates = {
+    course: ['课程代码(必填)', '课程名称(必填)', '分类', '学分', '学时', '院系', '描述'],
+    teacher: ['用户名(必填)', '真实姓名', '工号', '邮箱', '手机号', '院系', '职称'],
+    student: ['用户名(必填)', '真实姓名', '学号', '邮箱', '手机号']
+  }
+  const headers = templates[type]
+  import('xlsx').then((XLSX) => {
+    const ws = XLSX.utils.aoa_to_sheet([headers])
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+    XLSX.writeFile(wb, `${type}_template.xlsx`)
+    ElMessage.success('模板已下载')
+  })
 }
 
 // 加载统计数据
@@ -393,6 +720,55 @@ const loadCourseList = async () => {
   } catch (error) {
     console.error('加载课程列表失败:', error)
     ElMessage.error('加载课程列表失败')
+  }
+}
+
+// 加载班级列表
+const loadClassList = async () => {
+  try {
+    const response = await request.get('/class/all')
+    if (response.code === 200) {
+      classList.value = response.data || []
+    }
+  } catch (error) {
+    console.error('加载班级列表失败:', error)
+    ElMessage.error('加载班级列表失败')
+  }
+}
+
+// 删除班级
+const deleteClass = (row) => {
+  ElMessageBox.confirm(`确定要删除班级"${row.name}"吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      const response = await request.delete(`/class/${row.id}`)
+      if (response.code === 200) {
+        ElMessage.success('删除成功')
+        loadClassList()
+      } else {
+        ElMessage.error(response.message || '删除失败')
+      }
+    } catch (error) {
+      ElMessage.error('删除失败')
+    }
+  }).catch(() => {})
+}
+
+// 更新班级状态
+const updateClassStatus = async (row) => {
+  try {
+    const response = await request.post('/admin/class/status', { id: row.id, status: row.status })
+    if (response.code === 200) {
+      ElMessage.success('状态更新成功')
+    } else {
+      ElMessage.error(response.message || '更新失败')
+      row.status = row.status === 1 ? 0 : 1
+    }
+  } catch (error) {
+    row.status = row.status === 1 ? 0 : 1
   }
 }
 
@@ -549,29 +925,127 @@ const resetPassword = async (row, type) => {
   }).catch(() => {})
 }
 
-// 临时方法（待实现完整功能）
+// 教师对话框标题
+const teacherDialogTitle = ref('添加教师')
+
 const showAddTeacherDialog = () => {
-  ElMessage.info('添加教师功能开发中')
+  teacherDialogTitle.value = '添加教师'
+  Object.assign(teacherForm, { id: null, username: '', realName: '', teacherNo: '', email: '', phone: '', department: '', title: '' })
+  teacherDialogVisible.value = true
+}
+
+const saveTeacher = async () => {
+  try {
+    await teacherFormRef.value.validate()
+    const url = teacherForm.id ? '/admin/teacher/update' : '/admin/teacher/add'
+    const method = teacherForm.id ? 'put' : 'post'
+    const response = await request[method](url, teacherForm)
+    if (response.code === 200) {
+      ElMessage.success(response.message || (teacherForm.id ? '修改成功' : '添加成功'))
+      teacherDialogVisible.value = false
+      loadTeacherList()
+    } else {
+      ElMessage.error(response.message || '操作失败')
+    }
+  } catch (error) {
+    if (!error.errors) ElMessage.error('操作失败')
+  }
 }
 
 const editTeacher = (row) => {
-  ElMessage.info('编辑教师功能开发中')
+  teacherDialogTitle.value = '编辑教师'
+  Object.assign(teacherForm, {
+    id: row.id,
+    username: row.username,
+    realName: row.realName,
+    teacherNo: row.teacherNo,
+    email: row.email,
+    phone: row.phone,
+    department: row.department,
+    title: row.title
+  })
+  teacherDialogVisible.value = true
 }
 
 const deleteTeacher = (row) => {
-  ElMessage.info('删除教师功能开发中')
+  ElMessageBox.confirm(`确定要删除教师"${row.realName}"吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      const response = await request.delete(`/admin/teacher/${row.id}`)
+      if (response.code === 200) {
+        ElMessage.success('删除成功')
+        loadTeacherList()
+      } else {
+        ElMessage.error(response.message || '删除失败')
+      }
+    } catch (error) {
+      ElMessage.error('删除失败')
+    }
+  }).catch(() => {})
 }
 
+// 学生对话框标题
+const studentDialogTitle = ref('添加学生')
+
 const showAddStudentDialog = () => {
-  ElMessage.info('添加学生功能开发中')
+  studentDialogTitle.value = '添加学生'
+  Object.assign(studentForm, { id: null, username: '', realName: '', studentNo: '', email: '', phone: '', major: '' })
+  studentDialogVisible.value = true
+}
+
+const saveStudent = async () => {
+  try {
+    await studentFormRef.value.validate()
+    const url = studentForm.id ? '/admin/student/update' : '/admin/student/add'
+    const method = studentForm.id ? 'put' : 'post'
+    const response = await request[method](url, studentForm)
+    if (response.code === 200) {
+      ElMessage.success(response.message || (studentForm.id ? '修改成功' : '添加成功'))
+      studentDialogVisible.value = false
+      loadStudentList()
+    } else {
+      ElMessage.error(response.message || '操作失败')
+    }
+  } catch (error) {
+    if (!error.errors) ElMessage.error('操作失败')
+  }
 }
 
 const editStudent = (row) => {
-  ElMessage.info('编辑学生功能开发中')
+  studentDialogTitle.value = '编辑学生'
+  Object.assign(studentForm, {
+    id: row.id,
+    username: row.username,
+    realName: row.realName,
+    studentNo: row.studentNo,
+    email: row.email,
+    phone: row.phone,
+    major: row.major
+  })
+  studentDialogVisible.value = true
 }
 
 const deleteStudent = (row) => {
-  ElMessage.info('删除学生功能开发中')
+  ElMessageBox.confirm(`确定要删除学生"${row.realName}"吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      const response = await request.delete(`/admin/student/${row.id}`)
+      if (response.code === 200) {
+        ElMessage.success('删除成功')
+        loadStudentList()
+      } else {
+        ElMessage.error(response.message || '删除失败')
+      }
+    } catch (error) {
+      ElMessage.error('删除失败')
+    }
+  }).catch(() => {})
 }
 
 onMounted(() => {
@@ -907,6 +1381,23 @@ onMounted(() => {
 /* 工具栏 */
 .toolbar {
   margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.upload-btn {
+  display: inline-block;
+}
+
+/* 内容面板样式 - 添加班级管理 */
+.class-management {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.08);
+  min-height: calc(100vh - 140px);
 }
 
 /* 表格 */

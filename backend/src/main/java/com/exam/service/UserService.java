@@ -61,7 +61,7 @@ public class UserService {
             result.put("realName", student.getRealName());
             result.put("role", 0);
             result.put("studentNo", student.getStudentNo());
-            result.put("className", student.getClassName());
+            result.put("major", student.getMajor());
             return result;
             
         } else if (role == 1) {
@@ -111,6 +111,8 @@ public class UserService {
             result.put("realName", admin.getRealName());
             result.put("role", 2);
             result.put("superAdmin", admin.getSuperAdmin());
+            result.put("email", admin.getEmail());
+            result.put("phone", admin.getPhone());
             return result;
             
         } else {
@@ -120,34 +122,41 @@ public class UserService {
     
     /**
      * 更新用户信息（邮箱、手机号）
-     * 根据用户ID从学生、教师、管理员表中查找并更新
+     * 根据角色和用户ID更新对应表
      */
-    public void updateUser(Long userId, String email, String phone) {
-        // 先尝试从学生表更新
-        Student student = studentMapper.selectById(userId);
-        if (student != null) {
-            student.setEmail(email);
-            student.setPhone(phone);
-            studentMapper.update(student);
-            return;
+    public void updateUser(Long userId, String email, String phone, Integer role) {
+        if (role == null) {
+            // 兼容旧逻辑，依次查找
+            role = findUserRole(userId);
         }
         
-        // 尝试从教师表更新
-        Teacher teacher = teacherMapper.selectById(userId);
-        if (teacher != null) {
-            teacher.setEmail(email);
-            teacher.setPhone(phone);
-            teacherMapper.update(teacher);
-            return;
-        }
-        
-        // 尝试从管理员表更新
-        Admin admin = adminMapper.selectById(userId);
-        if (admin != null) {
-            admin.setEmail(email);
-            admin.setPhone(phone);
-            adminMapper.update(admin);
-            return;
+        if (role == 0) {
+            // 学生
+            Student student = studentMapper.selectById(userId);
+            if (student != null) {
+                student.setEmail(email);
+                student.setPhone(phone);
+                studentMapper.update(student);
+                return;
+            }
+        } else if (role == 1) {
+            // 教师
+            Teacher teacher = teacherMapper.selectById(userId);
+            if (teacher != null) {
+                teacher.setEmail(email);
+                teacher.setPhone(phone);
+                teacherMapper.update(teacher);
+                return;
+            }
+        } else if (role == 2) {
+            // 管理员
+            Admin admin = adminMapper.selectById(userId);
+            if (admin != null) {
+                admin.setEmail(email);
+                admin.setPhone(phone);
+                adminMapper.update(admin);
+                return;
+            }
         }
         
         throw new RuntimeException("用户不存在");
@@ -155,52 +164,63 @@ public class UserService {
     
     /**
      * 修改密码
-     * 根据用户ID从学生、教师、管理员表中查找并修改密码
+     * 根据角色和用户ID修改对应表的密码
      */
-    public boolean changePassword(Long userId, String oldPassword, String newPassword) {
-        // 先尝试从学生表查找
-        Student student = studentMapper.selectById(userId);
-        if (student != null) {
-            // 验证旧密码
-            if (!PasswordUtil.matches(oldPassword, student.getPassword())) {
-                return false;
-            }
-            // 加密新密码
-            String encryptedPassword = PasswordUtil.encode(newPassword);
-            student.setPassword(encryptedPassword);
-            studentMapper.update(student);
-            return true;
+    public boolean changePassword(Long userId, String oldPassword, String newPassword, Integer role) {
+        if (role == null) {
+            // 兼容旧逻辑，依次查找
+            role = findUserRole(userId);
         }
         
-        // 尝试从教师表查找
-        Teacher teacher = teacherMapper.selectById(userId);
-        if (teacher != null) {
-            // 验证旧密码
-            if (!PasswordUtil.matches(oldPassword, teacher.getPassword())) {
-                return false;
+        if (role == 0) {
+            // 学生
+            Student student = studentMapper.selectById(userId);
+            if (student != null) {
+                if (!PasswordUtil.matches(oldPassword, student.getPassword())) {
+                    return false;
+                }
+                String encryptedPassword = PasswordUtil.encode(newPassword);
+                student.setPassword(encryptedPassword);
+                studentMapper.update(student);
+                return true;
             }
-            // 加密新密码
-            String encryptedPassword = PasswordUtil.encode(newPassword);
-            teacher.setPassword(encryptedPassword);
-            teacherMapper.update(teacher);
-            return true;
-        }
-        
-        // 尝试从管理员表查找
-        Admin admin = adminMapper.selectById(userId);
-        if (admin != null) {
-            // 验证旧密码
-            if (!PasswordUtil.matches(oldPassword, admin.getPassword())) {
-                return false;
+        } else if (role == 1) {
+            // 教师
+            Teacher teacher = teacherMapper.selectById(userId);
+            if (teacher != null) {
+                if (!PasswordUtil.matches(oldPassword, teacher.getPassword())) {
+                    return false;
+                }
+                String encryptedPassword = PasswordUtil.encode(newPassword);
+                teacher.setPassword(encryptedPassword);
+                teacherMapper.update(teacher);
+                return true;
             }
-            // 加密新密码
-            String encryptedPassword = PasswordUtil.encode(newPassword);
-            admin.setPassword(encryptedPassword);
-            adminMapper.update(admin);
-            return true;
+        } else if (role == 2) {
+            // 管理员
+            Admin admin = adminMapper.selectById(userId);
+            if (admin != null) {
+                if (!PasswordUtil.matches(oldPassword, admin.getPassword())) {
+                    return false;
+                }
+                String encryptedPassword = PasswordUtil.encode(newPassword);
+                admin.setPassword(encryptedPassword);
+                adminMapper.update(admin);
+                return true;
+            }
         }
         
         throw new RuntimeException("用户不存在");
+    }
+    
+    /**
+     * 查找用户角色（兼容旧逻辑）
+     */
+    private Integer findUserRole(Long userId) {
+        if (studentMapper.selectById(userId) != null) return 0;
+        if (teacherMapper.selectById(userId) != null) return 1;
+        if (adminMapper.selectById(userId) != null) return 2;
+        return null;
     }
 }
 

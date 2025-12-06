@@ -7,9 +7,11 @@ import com.exam.mapper.ClassMapper;
 import com.exam.mapper.CourseMapper;
 import com.exam.mapper.StudentMapper;
 import com.exam.mapper.TeacherMapper;
+import com.exam.service.ExcelImportService;
 import com.exam.util.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +30,9 @@ public class AdminController {
     
     @Autowired
     private TeacherMapper teacherMapper;
+    
+    @Autowired
+    private ExcelImportService excelImportService;
     
     @Autowired
     private StudentMapper studentMapper;
@@ -197,5 +202,198 @@ public class AdminController {
             return Result.error("密码重置失败：" + e.getMessage());
         }
     }
+    
+    /**
+     * 更新班级状态
+     * POST /admin/class/status
+     */
+    @PostMapping("/class/status")
+    public Result updateClassStatus(@RequestBody Map<String, Object> params) {
+        try {
+            Long id = Long.valueOf(params.get("id").toString());
+            Integer status = Integer.valueOf(params.get("status").toString());
+            
+            com.exam.entity.Class classEntity = new com.exam.entity.Class();
+            classEntity.setId(id);
+            classEntity.setStatus(status);
+            
+            int result = classMapper.update(classEntity);
+            if (result > 0) {
+                return Result.success("状态更新成功");
+            } else {
+                return Result.error("状态更新失败");
+            }
+        } catch (Exception e) {
+            return Result.error("状态更新失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 批量导入课程
+     * POST /admin/import/course
+     */
+    @PostMapping("/import/course")
+    public Result importCourses(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return Result.error("请选择文件");
+            }
+            Map<String, Object> result = excelImportService.importCourses(file);
+            return Result.success("导入完成", result);
+        } catch (Exception e) {
+            return Result.error("导入失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 批量导入学生
+     * POST /admin/import/student
+     */
+    @PostMapping("/import/student")
+    public Result importStudents(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return Result.error("请选择文件");
+            }
+            Map<String, Object> result = excelImportService.importStudents(file);
+            return Result.success("导入完成", result);
+        } catch (Exception e) {
+            return Result.error("导入失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 批量导入教师
+     * POST /admin/import/teacher
+     */
+    @PostMapping("/import/teacher")
+    public Result importTeachers(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return Result.error("请选择文件");
+            }
+            Map<String, Object> result = excelImportService.importTeachers(file);
+            return Result.success("导入完成", result);
+        } catch (Exception e) {
+            return Result.error("导入失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 添加教师
+     * POST /admin/teacher/add
+     */
+    @PostMapping("/teacher/add")
+    public Result addTeacher(@RequestBody Teacher teacher) {
+        try {
+            // 检查用户名是否已存在
+            if (teacherMapper.selectByUsername(teacher.getUsername()) != null) {
+                return Result.error("用户名已存在");
+            }
+            // 设置默认密码
+            teacher.setPassword(PasswordUtil.encode("123456"));
+            teacher.setStatus(1);
+            teacherMapper.insert(teacher);
+            return Result.success("添加成功，默认密码为123456");
+        } catch (Exception e) {
+            return Result.error("添加失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 添加学生
+     * POST /admin/student/add
+     */
+    @PostMapping("/student/add")
+    public Result addStudent(@RequestBody Student student) {
+        try {
+            // 检查用户名是否已存在
+            if (studentMapper.selectByUsername(student.getUsername()) != null) {
+                return Result.error("用户名已存在");
+            }
+            // 设置默认密码
+            student.setPassword(PasswordUtil.encode("123456"));
+            student.setStatus(1);
+            studentMapper.insert(student);
+            return Result.success("添加成功，默认密码为123456");
+        } catch (Exception e) {
+            return Result.error("添加失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 更新教师信息
+     * PUT /admin/teacher/update
+     */
+    @PutMapping("/teacher/update")
+    public Result updateTeacher(@RequestBody Teacher teacher) {
+        try {
+            // 不更新密码
+            teacher.setPassword(null);
+            int result = teacherMapper.update(teacher);
+            if (result > 0) {
+                return Result.success("更新成功");
+            } else {
+                return Result.error("更新失败");
+            }
+        } catch (Exception e) {
+            return Result.error("更新失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 更新学生信息
+     * PUT /admin/student/update
+     */
+    @PutMapping("/student/update")
+    public Result updateStudent(@RequestBody Student student) {
+        try {
+            // 不更新密码
+            student.setPassword(null);
+            int result = studentMapper.update(student);
+            if (result > 0) {
+                return Result.success("更新成功");
+            } else {
+                return Result.error("更新失败");
+            }
+        } catch (Exception e) {
+            return Result.error("更新失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 删除教师
+     * DELETE /admin/teacher/{id}
+     */
+    @DeleteMapping("/teacher/{id}")
+    public Result deleteTeacher(@PathVariable Long id) {
+        try {
+            int result = teacherMapper.deleteById(id);
+            if (result > 0) {
+                return Result.success("删除成功");
+            } else {
+                return Result.error("删除失败");
+            }
+        } catch (Exception e) {
+            return Result.error("删除失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 删除学生
+     * DELETE /admin/student/{id}
+     */
+    @DeleteMapping("/student/{id}")
+    public Result deleteStudent(@PathVariable Long id) {
+        try {
+            int result = studentMapper.deleteById(id);
+            if (result > 0) {
+                return Result.success("删除成功");
+            } else {
+                return Result.error("删除失败");
+            }
+        } catch (Exception e) {
+            return Result.error("删除失败：" + e.getMessage());
+        }
+    }
 }
-

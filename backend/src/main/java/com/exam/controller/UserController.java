@@ -67,7 +67,7 @@ public class UserController {
     @PostMapping("/update")
     public Result<?> updateUser(@RequestBody UpdateUserRequest request) {
         try {
-            userService.updateUser(request.getId(), request.getEmail(), request.getPhone());
+            userService.updateUser(request.getId(), request.getEmail(), request.getPhone(), request.getRole());
             return Result.success("更新成功");
         } catch (Exception e) {
             return Result.error(e.getMessage());
@@ -83,7 +83,8 @@ public class UserController {
             boolean success = userService.changePassword(
                 request.getId(), 
                 request.getOldPassword(), 
-                request.getNewPassword()
+                request.getNewPassword(),
+                request.getRole()
             );
             if (success) {
                 return Result.success("密码修改成功");
@@ -114,6 +115,7 @@ public class UserController {
         private Long id;
         private String email;
         private String phone;
+        private Integer role;  // 0-学生 1-教师 2-管理员
     }
     
     /**
@@ -124,6 +126,7 @@ public class UserController {
         private Long id;
         private String oldPassword;
         private String newPassword;
+        private Integer role;  // 0-学生 1-教师 2-管理员
     }
 }
 

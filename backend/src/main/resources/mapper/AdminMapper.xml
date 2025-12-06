@@ -31,13 +31,15 @@
 
     <update id="update">
         UPDATE admin
-        SET username = #{username},
-            password = #{password},
-            real_name = #{realName},
-            email = #{email},
-            phone = #{phone},
-            super_admin = #{superAdmin},
-            status = #{status}
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="superAdmin != null">super_admin = #{superAdmin},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
         WHERE id = #{id}
     </update>
 

@@ -9,7 +9,7 @@
         <result column="password" property="password"/>
         <result column="real_name" property="realName"/>
         <result column="student_no" property="studentNo"/>
-        <result column="class_name" property="className"/>
+        <result column="major" property="major"/>
         <result column="email" property="email"/>
         <result column="phone" property="phone"/>
         <result column="status" property="status"/>
@@ -39,8 +39,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO student (username, password, real_name, student_no, class_name, email, phone, status)
-        VALUES (#{username}, #{password}, #{realName}, #{studentNo}, #{className}, #{email}, #{phone}, #{status})
+        INSERT INTO student (username, password, real_name, student_no, major, email, phone, status)
+        VALUES (#{username}, #{password}, #{realName}, #{studentNo}, #{major}, #{email}, #{phone}, #{status})
     </insert>
 
     <update id="update">
@@ -50,7 +50,7 @@
             <if test="password != null">password = #{password},</if>
             <if test="realName != null">real_name = #{realName},</if>
             <if test="studentNo != null">student_no = #{studentNo},</if>
-            <if test="className != null">class_name = #{className},</if>
+            <if test="major != null">major = #{major},</if>
             <if test="email != null">email = #{email},</if>
             <if test="phone != null">phone = #{phone},</if>
             <if test="status != null">status = #{status},</if>

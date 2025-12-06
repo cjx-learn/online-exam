@@ -17,7 +17,7 @@ public class Student implements Serializable {
     private String password;
     private String realName;
     private String studentNo;  // 学号
-    private String className;  // 班级
+    private String major;      // 专业
     private String email;
     private String phone;
     private Integer status;    // 0-禁用 1-启用
