@@ -1654,30 +1654,30 @@ onMounted(() => {
 /* 知识点列表 */
 .knowledge-list {
   background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .knowledge-title {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
   color: #1e293b;
-  margin: 0 0 20px 0;
+  margin: 0 0 14px 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .knowledge-items {
   display: grid;
-  gap: 16px;
+  gap: 10px;
 }
 
 .knowledge-item {
-  padding: 16px;
+  padding: 12px 14px;
   background: rgba(249, 250, 251, 0.6);
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid rgba(226, 232, 240, 0.8);
   transition: all 0.3s ease;
 }
@@ -1685,44 +1685,44 @@ onMounted(() => {
 .knowledge-item:hover {
   background: rgba(249, 250, 251, 1);
   border-color: rgba(79, 172, 254, 0.3);
-  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.1);
+  box-shadow: 0 3px 10px rgba(79, 172, 254, 0.08);
 }
 
 .knowledge-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .knowledge-name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #1e293b;
 }
 
 .knowledge-percentage {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
 }
 
 .knowledge-progress {
-  height: 8px;
+  height: 6px;
   background: #e5e7eb;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .knowledge-progress-bar {
   height: 100%;
-  border-radius: 10px;
+  border-radius: 8px;
   transition: width 1s ease-out;
   background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
 }
 
 .knowledge-score {
-  font-size: 13px;
+  font-size: 12px;
   color: #6b7280;
   text-align: right;
 }
