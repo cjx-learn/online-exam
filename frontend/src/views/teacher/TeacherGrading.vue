@@ -91,7 +91,7 @@
               class="student-answer-card"
               :class="{ 
                 'is-current': currentAnswerIndex === index,
-                'is-graded': answer.currentScore !== null
+                'is-graded': isAnswerSaved(answer)
               }"
               @click="selectAnswer(index)"
             >
@@ -135,6 +135,7 @@
                     :precision="0"
                     controls-position="right"
                     class="score-input"
+                    @change="hasUnsavedChanges = true"
                   />
                   <span class="score-max">/ {{ currentQuestion.score }}</span>
                 </div>
@@ -149,6 +150,7 @@
                   :rows="3"
                   placeholder="请输入批改意见..."
                   class="comment-input"
+                  @input="hasUnsavedChanges = true"
                 />
               </div>
             </div>
@@ -224,6 +226,8 @@ const currentQuestionId = ref(null)
 const currentAnswerIndex = ref(0)
 const currentAnswerData = ref(null) // 直接存储当前答案的引用
 const loading = ref(true)
+const hasUnsavedChanges = ref(false) // 是否有未保存的修改
+const savedAnswers = ref(new Set()) // 已保存的答案ID集合
 
 // 从所有学生答案中提取所有主观题
 const allQuestions = computed(() => {
@@ -281,6 +285,7 @@ const currentAnswer = computed(() => {
 const updateCurrentAnswer = () => {
   if (!currentQuestion.value) {
     currentAnswerData.value = null
+    hasUnsavedChanges.value = false
     return
   }
   
@@ -290,6 +295,9 @@ const updateCurrentAnswer = () => {
   } else {
     currentAnswerData.value = null
   }
+  
+  // 切换答案时重置未保存标记
+  hasUnsavedChanges.value = false
 }
 
 const hasPreviousAnswer = computed(() => {
@@ -355,6 +363,13 @@ const getQuestionProgressText = (question) => {
   return `${gradedCount}/${totalCount}`
 }
 
+// 判断答案是否已保存
+const isAnswerSaved = (answer) => {
+  if (!answer || !currentQuestion.value) return false
+  const answerId = `${answer.examRecordId}-${currentQuestion.value.questionId}`
+  return savedAnswers.value.has(answerId)
+}
+
 const loadExamInfo = async () => {
   try {
     const response = await request.get(`/exam/${examId.value}`)
@@ -373,6 +388,18 @@ const loadStudentAnswers = async () => {
     const response = await request.get(`/grading/exam/${examId.value}/class/${classId.value}`)
     if (response.code === 200) {
       studentAnswers.value = response.data || []
+      
+      // 初始化已保存的答案集合
+      savedAnswers.value = new Set()
+      for (const student of studentAnswers.value) {
+        for (const question of student.subjectiveQuestions) {
+          if (question.currentScore !== null && question.currentScore !== undefined) {
+            const answerId = `${student.examRecordId}-${question.questionId}`
+            savedAnswers.value.add(answerId)
+          }
+        }
+      }
+      
       if (allQuestions.value.length > 0) {
         currentQuestionId.value = allQuestions.value[0].questionId
         updateCurrentAnswer()
@@ -402,29 +429,101 @@ const loadStudentAnswers = async () => {
   }
 }
 
-const selectQuestion = (question) => {
+const selectQuestion = async (question) => {
+  // 检查是否有未保存的修改
+  if (hasUnsavedChanges.value) {
+    try {
+      await ElMessageBox.confirm(
+        '当前有未保存的批改内容，是否放弃修改？',
+        '提示',
+        {
+          confirmButtonText: '放弃',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+      hasUnsavedChanges.value = false
+    } catch {
+      return // 用户取消，不切换
+    }
+  }
+  
   currentQuestionId.value = question.questionId
   currentAnswerIndex.value = 0
   updateCurrentAnswer()
 }
 
-const selectAnswer = (index) => {
+const selectAnswer = async (index) => {
+  // 检查是否有未保存的修改
+  if (hasUnsavedChanges.value) {
+    try {
+      await ElMessageBox.confirm(
+        '当前有未保存的批改内容，是否放弃修改？',
+        '提示',
+        {
+          confirmButtonText: '放弃',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+      hasUnsavedChanges.value = false
+    } catch {
+      return // 用户取消，不切换
+    }
+  }
+  
   currentAnswerIndex.value = index
   updateCurrentAnswer()
 }
 
-const goToPreviousAnswer = () => {
-  if (hasPreviousAnswer.value) {
-    currentAnswerIndex.value--
-    updateCurrentAnswer()
+const goToPreviousAnswer = async () => {
+  if (!hasPreviousAnswer.value) return
+  
+  // 检查是否有未保存的修改
+  if (hasUnsavedChanges.value) {
+    try {
+      await ElMessageBox.confirm(
+        '当前有未保存的批改内容，是否放弃修改？',
+        '提示',
+        {
+          confirmButtonText: '放弃',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+      hasUnsavedChanges.value = false
+    } catch {
+      return // 用户取消
+    }
   }
+  
+  currentAnswerIndex.value--
+  updateCurrentAnswer()
 }
 
-const goToNextAnswer = () => {
-  if (hasNextAnswer.value) {
-    currentAnswerIndex.value++
-    updateCurrentAnswer()
+const goToNextAnswer = async () => {
+  if (!hasNextAnswer.value) return
+  
+  // 检查是否有未保存的修改
+  if (hasUnsavedChanges.value) {
+    try {
+      await ElMessageBox.confirm(
+        '当前有未保存的批改内容，是否放弃修改？',
+        '提示',
+        {
+          confirmButtonText: '放弃',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+      hasUnsavedChanges.value = false
+    } catch {
+      return // 用户取消
+    }
   }
+  
+  currentAnswerIndex.value++
+  updateCurrentAnswer()
 }
 
 const saveCurrentAnswer = async () => {
@@ -449,6 +548,13 @@ const saveCurrentAnswer = async () => {
     const response = await request.post('/grading/save', gradingData)
     if (response.code === 200) {
       ElMessage.success('批改保存成功')
+      
+      // 清除未保存标记
+      hasUnsavedChanges.value = false
+      
+      // 添加到已保存集合
+      const answerId = `${currentAnswer.value.examRecordId}-${currentQuestion.value.questionId}`
+      savedAnswers.value.add(answerId)
       
       // 因为我们直接修改的是原始数据，所以不需要额外更新
       // 数据已经自动更新了
