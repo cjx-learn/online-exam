@@ -989,127 +989,35 @@ onMounted(loadData)
 
 /* 教师批改意见 */
 .comment-item {
-  background: linear-gradient(135deg, 
-    rgba(147, 51, 234, 0.08) 0%, 
-    rgba(168, 85, 247, 0.06) 50%,
-    rgba(192, 132, 252, 0.04) 100%
-  );
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  position: relative;
-  padding: 18px 20px;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.12);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: commentFadeIn 0.6s ease-out;
-}
-
-.comment-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 16px;
-  padding: 2px;
-  background: linear-gradient(135deg, #a855f7, #c084fc, #e9d5ff);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0.4;
-  transition: opacity 0.3s ease;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  padding: 12px 14px;
 }
 
 .comment-item:hover {
-  background: linear-gradient(135deg, 
-    rgba(147, 51, 234, 0.12) 0%, 
-    rgba(168, 85, 247, 0.10) 50%,
-    rgba(192, 132, 252, 0.08) 100%
-  );
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2), 
-              0 0 0 1px rgba(168, 85, 247, 0.1);
-  transform: translateY(-2px);
-}
-
-.comment-item:hover::before {
-  opacity: 0.7;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+  border-color: rgba(139, 92, 246, 0.25);
 }
 
 .comment-item .detail-label {
-  color: #9333ea;
+  color: #8b5cf6;
   display: flex;
   align-items: center;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 4px;
-  position: relative;
-}
-
-.comment-item .detail-label .el-icon {
-  font-size: 18px;
-  margin-right: 6px;
-  animation: iconPulse 2s ease-in-out infinite;
+  margin-bottom: 6px;
 }
 
 .teacher-comment {
-  color: #581c87;
+  color: #6b21a8;
   font-weight: 500;
-  line-height: 1.8;
-  padding: 14px 16px;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.95) 0%, 
-    rgba(250, 245, 255, 0.95) 100%
-  );
-  border-radius: 12px;
-  border-left: 4px solid #a855f7;
-  margin-top: 10px;
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.08);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.teacher-comment::before {
-  content: '"';
-  position: absolute;
-  top: -5px;
-  left: 8px;
-  font-size: 48px;
-  color: rgba(168, 85, 247, 0.1);
-  font-family: Georgia, serif;
-  line-height: 1;
-}
-
-.teacher-comment:hover {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 1) 0%, 
-    rgba(250, 245, 255, 1) 100%
-  );
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
-  border-left-color: #9333ea;
-}
-
-@keyframes commentFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes iconPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
+  line-height: 1.5;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  border-left: 3px solid #8b5cf6;
+  margin-top: 0;
+  font-size: 13px;
 }
 
 /* ============ 动画 ============ */
