@@ -446,7 +446,30 @@ public class ExamRecordServiceImpl implements ExamRecordService {
             knowledgePoints.add(point);
         }
         
-        // 7. 组装返回数据
+        // 7. 生成班级排名列表（按分数降序排列）
+        List<Map<String, Object>> rankingList = new java.util.ArrayList<>();
+        if (allRecords != null && !allRecords.isEmpty()) {
+            // 按总分降序排序
+            List<ExamRecord> sortedRecords = new java.util.ArrayList<>(allRecords);
+            sortedRecords.sort((a, b) -> {
+                BigDecimal scoreA = a.getTotalScore() != null ? a.getTotalScore() : BigDecimal.ZERO;
+                BigDecimal scoreB = b.getTotalScore() != null ? b.getTotalScore() : BigDecimal.ZERO;
+                return scoreB.compareTo(scoreA);
+            });
+            
+            // 构建排名列表
+            for (ExamRecord record : sortedRecords) {
+                Map<String, Object> rankItem = new HashMap<>();
+                rankItem.put("studentId", record.getStudentId());
+                rankItem.put("studentName", record.getStudentName() != null ? record.getStudentName() : "学生" + record.getStudentId());
+                rankItem.put("totalScore", record.getTotalScore() != null ? record.getTotalScore() : BigDecimal.ZERO);
+                rankItem.put("objectiveScore", record.getObjectiveScore() != null ? record.getObjectiveScore() : BigDecimal.ZERO);
+                rankItem.put("subjectiveScore", record.getSubjectiveScore() != null ? record.getSubjectiveScore() : BigDecimal.ZERO);
+                rankingList.add(rankItem);
+            }
+        }
+        
+        // 8. 组装返回数据
         result.put("studentScore", studentScore);
         result.put("classAverage", classAverage);
         result.put("rank", rank);
@@ -456,6 +479,7 @@ public class ExamRecordServiceImpl implements ExamRecordService {
         result.put("passScore", exam.getPassScore());
         result.put("objectiveScore", studentRecord.getObjectiveScore());
         result.put("subjectiveScore", studentRecord.getSubjectiveScore());
+        result.put("rankingList", rankingList);
         
         return result;
     }

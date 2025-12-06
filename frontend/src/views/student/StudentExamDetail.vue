@@ -134,6 +134,43 @@
             </div>
           </div>
 
+          <!-- 班级排名表格 -->
+          <div class="ranking-table-container">
+            <h3 class="ranking-table-title">📊 班级成绩排名</h3>
+            <div class="ranking-table-wrapper">
+              <table class="ranking-table">
+                <thead>
+                  <tr>
+                    <th>排名</th>
+                    <th>学生姓名</th>
+                    <th>总分</th>
+                    <th>客观题</th>
+                    <th>主观题</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr 
+                    v-for="(student, index) in rankingList" 
+                    :key="index"
+                    :class="{ 'current-student': student.isCurrent }"
+                  >
+                    <td class="rank-col">
+                      <span v-if="index < 3" class="rank-medal">{{ ['🥇', '🥈', '🥉'][index] }}</span>
+                      <span v-else class="rank-number">{{ index + 1 }}</span>
+                    </td>
+                    <td class="name-col">
+                      {{ student.studentName }}
+                      <span v-if="student.isCurrent" class="current-badge">我</span>
+                    </td>
+                    <td class="score-col total-score">{{ student.totalScore }}</td>
+                    <td class="score-col">{{ student.objectiveScore || 0 }}</td>
+                    <td class="score-col">{{ student.subjectiveScore || 0 }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <!-- 知识点详细列表 -->
           <div v-if="analysisData.knowledgePoints && analysisData.knowledgePoints.length > 0" class="knowledge-list">
             <h3 class="knowledge-title">📚 知识点详细分析</h3>
@@ -342,6 +379,15 @@ const objectiveScoreText = computed(() => {
 const subjectiveScoreText = computed(() => {
   if (!examRecord.value || examRecord.value.subjectiveScore == null) return '-'
   return `${examRecord.value.subjectiveScore} 分`
+})
+
+// 班级排名列表
+const rankingList = computed(() => {
+  if (!analysisData.value || !analysisData.value.rankingList) return []
+  return analysisData.value.rankingList.map(student => ({
+    ...student,
+    isCurrent: student.studentId === examRecord.value?.studentId
+  }))
 })
 
 const loadData = async () => {
@@ -1649,6 +1695,125 @@ onMounted(() => {
 
 .compare-value.negative {
   color: #ef4444;
+}
+
+/* 班级排名表格 */
+.ranking-table-container {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.ranking-table-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ranking-table-wrapper {
+  overflow-x: auto;
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.ranking-table thead {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.ranking-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  white-space: nowrap;
+}
+
+.ranking-table th:first-child {
+  border-top-left-radius: 8px;
+  text-align: center;
+  width: 80px;
+}
+
+.ranking-table th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.ranking-table tbody tr {
+  border-bottom: 1px solid #f1f3f5;
+  transition: all 0.2s ease;
+}
+
+.ranking-table tbody tr:hover {
+  background: rgba(102, 126, 234, 0.03);
+}
+
+.ranking-table tbody tr.current-student {
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  font-weight: 600;
+}
+
+.ranking-table tbody tr.current-student:hover {
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+}
+
+.ranking-table td {
+  padding: 12px 16px;
+  color: #495057;
+}
+
+.rank-col {
+  text-align: center;
+  font-weight: 600;
+}
+
+.rank-medal {
+  font-size: 20px;
+  display: inline-block;
+}
+
+.rank-number {
+  color: #6c757d;
+  font-size: 15px;
+}
+
+.name-col {
+  font-weight: 500;
+  color: #212529;
+  position: relative;
+}
+
+.current-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.score-col {
+  text-align: center;
+  font-weight: 500;
+  color: #495057;
+}
+
+.total-score {
+  color: #667eea;
+  font-weight: 700;
+  font-size: 15px;
 }
 
 /* 知识点列表 */
