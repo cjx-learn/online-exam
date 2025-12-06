@@ -480,12 +480,11 @@ const downloadPDF = async () => {
     
     // 创建临时元素并填充实际数据
     const tempDiv = document.createElement('div')
-    tempDiv.style.padding = '40px 60px'
+    tempDiv.style.padding = '40px'
     tempDiv.style.fontFamily = 'Arial, Microsoft YaHei, sans-serif'
     tempDiv.style.background = 'white'
-    tempDiv.style.width = '900px'
+    tempDiv.style.width = '800px'
     tempDiv.style.minHeight = '500px'
-    tempDiv.style.boxSizing = 'border-box'
     
     tempDiv.innerHTML = `
       <div style="text-align: center; margin-bottom: 30px;">
@@ -502,7 +501,7 @@ const downloadPDF = async () => {
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">班级排名：</strong>第 ${analysisData.value.rank || '-'} 名 / 共 ${analysisData.value.totalStudents || 0} 人</p>
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">班级平均分：</strong>${analysisData.value.classAverage || 0} 分</p>
         </div>
-        <div style="margin-top: 60px; text-align: right; color: #666; font-size: 14px;">
+        <div style="margin-top: 60px; text-align: left; color: #666; font-size: 14px;">
           <p style="margin: 0;">生成日期：${formattedDate}</p>
         </div>
       </div>
