@@ -440,6 +440,11 @@ const loadAnalysisData = async () => {
 
 // 下载PDF成绩证明
 const downloadPDF = () => {
+  if (!analysisData.value) {
+    ElMessage.error('数据未加载')
+    return
+  }
+  
   const element = document.getElementById('certificateContent')
   if (!element) {
     ElMessage.error('内容加载失败')
@@ -448,9 +453,15 @@ const downloadPDF = () => {
   
   ElMessage.info('正在生成PDF，请稍候...')
   
+  // 临时显示元素以便html2canvas渲染
+  element.style.display = 'block'
+  element.style.position = 'absolute'
+  element.style.left = '-9999px'
+  element.style.top = '0'
+  
   const opt = {
     margin: [10, 10],
-    filename: `成绩证明_${exam.title || '考试'}_${new Date().getTime()}.pdf`,
+    filename: `成绩证明_${analysisData.value.examTitle || exam.title || '考试'}_${new Date().getTime()}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -458,8 +469,19 @@ const downloadPDF = () => {
   
   html2pdf().set(opt).from(element).save().then(() => {
     ElMessage.success('PDF下载成功')
-  }).catch(() => {
+    // 恢复隐藏
+    element.style.display = 'none'
+    element.style.position = ''
+    element.style.left = ''
+    element.style.top = ''
+  }).catch((err) => {
+    console.error('PDF生成失败:', err)
     ElMessage.error('PDF生成失败')
+    // 恢复隐藏
+    element.style.display = 'none'
+    element.style.position = ''
+    element.style.left = ''
+    element.style.top = ''
   })
 }
 
