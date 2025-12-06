@@ -132,24 +132,6 @@
                 <div class="rank-sub">班级平均: {{ analysisData.classAverage }} 分</div>
               </div>
             </div>
-
-            <div class="rank-card rank-card-3">
-              <div class="rank-icon">⭐</div>
-              <div class="rank-info">
-                <div class="rank-label">成绩水平</div>
-                <div class="rank-value">
-                  <span :class="['level-badge', getScoreLevel(analysisData.studentScore, analysisData.passScore)]">
-                    {{ getScoreLevelText(analysisData.studentScore, analysisData.passScore) }}
-                  </span>
-                </div>
-                <div class="rank-sub">及格线: {{ analysisData.passScore }} 分</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 知识点雷达图 -->
-          <div v-if="analysisData.knowledgePoints && analysisData.knowledgePoints.length > 0" class="radar-container">
-            <div id="radarChart" class="radar-chart"></div>
           </div>
 
           <!-- 知识点详细列表 -->
@@ -343,7 +325,6 @@ const currentQuestionId = ref(null)
 // 学情分析数据
 const analysisData = ref(null)
 const analysisLoading = ref(false)
-const radarChart = ref(null)
 
 // 视图切换：'report' - 学情报告, 'detail' - 试卷详情
 const currentView = ref('report')
@@ -403,133 +384,12 @@ const loadAnalysisData = async () => {
     const res = await request.get(`/examRecord/${recordId.value}/analysis`)
     if (res && res.data) {
       analysisData.value = res.data
-      // 渲染雷达图
-      await nextTick()
-      renderRadarChart()
     }
   } catch (e) {
     console.error('加载学情分析失败:', e)
   } finally {
     analysisLoading.value = false
   }
-}
-
-// 渲染雷达图
-const renderRadarChart = () => {
-  if (!analysisData.value || !analysisData.value.knowledgePoints) return
-  
-  const chartDom = document.getElementById('radarChart')
-  if (!chartDom) return
-  
-  // 销毁旧图表
-  if (radarChart.value) {
-    radarChart.value.dispose()
-  }
-  
-  radarChart.value = echarts.init(chartDom)
-  
-  const knowledgePoints = analysisData.value.knowledgePoints
-  const indicator = knowledgePoints.map(item => ({
-    name: item.name,
-    max: 100
-  }))
-  
-  const values = knowledgePoints.map(item => item.percentage)
-  
-  const option = {
-    title: {
-      text: '知识点掌握度分析',
-      left: 'center',
-      textStyle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333'
-      }
-    },
-    tooltip: {
-      trigger: 'item',
-      formatter: (params) => {
-        let result = '<div style="padding: 5px;">'
-        params.value.forEach((val, idx) => {
-          const point = knowledgePoints[idx]
-          result += `<div style="margin: 3px 0;">
-            <strong>${point.name}</strong>: ${val}% <br/>
-            <span style="color: #666; font-size: 12px;">
-              得分: ${point.score}/${point.total}
-            </span>
-          </div>`
-        })
-        result += '</div>'
-        return result
-      }
-    },
-    radar: {
-      indicator: indicator,
-      radius: '65%',
-      splitNumber: 4,
-      name: {
-        textStyle: {
-          color: '#666',
-          fontSize: 12
-        }
-      },
-      splitLine: {
-        lineStyle: {
-          color: ['#e0e6f1', '#e5e8ef', '#ebeef5', '#f2f3f5']
-        }
-      },
-      splitArea: {
-        areaStyle: {
-          color: ['rgba(114, 172, 209, 0.05)', 'rgba(114, 172, 209, 0.1)'],
-          shadowColor: 'rgba(0, 0, 0, 0.2)',
-          shadowBlur: 5
-        }
-      },
-      axisLine: {
-        lineStyle: {
-          color: '#d0d0d0'
-        }
-      }
-    },
-    series: [{
-      name: '知识点掌握度',
-      type: 'radar',
-      data: [{
-        value: values,
-        name: '我的掌握度',
-        symbol: 'circle',
-        symbolSize: 6,
-        lineStyle: {
-          width: 2,
-          color: '#4facfe'
-        },
-        areaStyle: {
-          color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
-            {
-              color: 'rgba(79, 172, 254, 0.3)',
-              offset: 0
-            },
-            {
-              color: 'rgba(79, 172, 254, 0.1)',
-              offset: 1
-            }
-          ])
-        },
-        itemStyle: {
-          color: '#4facfe',
-          borderColor: '#fff',
-          borderWidth: 2
-        }
-      }]
-    }]
-  }
-  
-  radarChart.value.setOption(option)
-  
-  // 响应式调整
-  window.addEventListener('resize', () => {
-    radarChart.value && radarChart.value.resize()
-  })
 }
 
 // 下载PDF成绩证明
@@ -1705,7 +1565,7 @@ onMounted(() => {
 /* 排名卡片 */
 .rank-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   margin-bottom: 30px;
 }
@@ -1743,15 +1603,6 @@ onMounted(() => {
 .rank-card-2:hover {
   border-color: rgba(59, 130, 246, 0.6);
   background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
-}
-
-.rank-card-3 {
-  border-color: rgba(168, 85, 247, 0.3);
-}
-
-.rank-card-3:hover {
-  border-color: rgba(168, 85, 247, 0.6);
-  background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%);
 }
 
 .rank-icon {
@@ -1798,48 +1649,6 @@ onMounted(() => {
 
 .compare-value.negative {
   color: #ef4444;
-}
-
-.level-badge {
-  display: inline-block;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.level-badge.excellent {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-}
-
-.level-badge.good {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-}
-
-.level-badge.pass {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-}
-
-.level-badge.fail {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-}
-
-/* 雷达图 */
-.radar-container {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-}
-
-.radar-chart {
-  width: 100%;
-  height: 400px;
 }
 
 /* 知识点列表 */
