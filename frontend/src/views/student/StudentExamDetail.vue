@@ -132,24 +132,24 @@
                 <div class="rank-sub">班级平均: {{ analysisData.classAverage }} 分</div>
               </div>
             </div>
-
-            <div class="rank-card rank-card-3">
-              <div class="rank-icon">⭐</div>
-              <div class="rank-info">
-                <div class="rank-label">成绩水平</div>
-                <div class="rank-value">
-                  <span :class="['level-badge', getScoreLevel(analysisData.studentScore, analysisData.passScore)]">
-                    {{ getScoreLevelText(analysisData.studentScore, analysisData.passScore) }}
-                  </span>
-                </div>
-                <div class="rank-sub">及格线: {{ analysisData.passScore }} 分</div>
-              </div>
-            </div>
           </div>
 
-          <!-- 知识点雷达图 -->
-          <div v-if="analysisData.knowledgePoints && analysisData.knowledgePoints.length > 0" class="radar-container">
-            <div id="radarChart" class="radar-chart"></div>
+          <!-- 图表区域 -->
+          <div class="charts-grid">
+            <!-- 知识点雷达图 -->
+            <div v-if="analysisData.knowledgePoints && analysisData.knowledgePoints.length > 0" class="chart-container">
+              <div id="radarChart" class="chart-box"></div>
+            </div>
+
+            <!-- 客观题与主观题得分对比图 -->
+            <div class="chart-container">
+              <div id="scoreComparisonChart" class="chart-box"></div>
+            </div>
+
+            <!-- 知识点得分柱状图 -->
+            <div v-if="analysisData.knowledgePoints && analysisData.knowledgePoints.length > 0" class="chart-container chart-full">
+              <div id="knowledgeBarChart" class="chart-box"></div>
+            </div>
           </div>
 
           <!-- 知识点详细列表 -->
@@ -344,6 +344,8 @@ const currentQuestionId = ref(null)
 const analysisData = ref(null)
 const analysisLoading = ref(false)
 const radarChart = ref(null)
+const scoreComparisonChart = ref(null)
+const knowledgeBarChart = ref(null)
 
 // 视图切换：'report' - 学情报告, 'detail' - 试卷详情
 const currentView = ref('report')
@@ -403,9 +405,11 @@ const loadAnalysisData = async () => {
     const res = await request.get(`/examRecord/${recordId.value}/analysis`)
     if (res && res.data) {
       analysisData.value = res.data
-      // 渲染雷达图
+      // 渲染所有图表
       await nextTick()
       renderRadarChart()
+      renderScoreComparisonChart()
+      renderKnowledgeBarChart()
     }
   } catch (e) {
     console.error('加载学情分析失败:', e)
@@ -529,6 +533,202 @@ const renderRadarChart = () => {
   // 响应式调整
   window.addEventListener('resize', () => {
     radarChart.value && radarChart.value.resize()
+  })
+}
+
+// 渲染客观题与主观题得分对比图
+const renderScoreComparisonChart = () => {
+  if (!analysisData.value) return
+  
+  const chartDom = document.getElementById('scoreComparisonChart')
+  if (!chartDom) return
+  
+  if (scoreComparisonChart.value) {
+    scoreComparisonChart.value.dispose()
+  }
+  
+  scoreComparisonChart.value = echarts.init(chartDom)
+  
+  const objectiveScore = analysisData.value.objectiveScore || 0
+  const subjectiveScore = analysisData.value.subjectiveScore || 0
+  const totalScore = analysisData.value.studentScore || 0
+  
+  const option = {
+    title: {
+      text: '得分构成分析',
+      left: 'center',
+      textStyle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333'
+      }
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      }
+    },
+    legend: {
+      data: ['得分', '满分'],
+      bottom: 10
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '15%',
+      top: '20%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: ['客观题', '主观题', '总分'],
+      axisLabel: {
+        fontSize: 13,
+        fontWeight: 'bold'
+      }
+    },
+    yAxis: {
+      type: 'value',
+      name: '分数'
+    },
+    series: [
+      {
+        name: '得分',
+        type: 'bar',
+        data: [objectiveScore, subjectiveScore, totalScore],
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#4facfe' },
+            { offset: 1, color: '#00f2fe' }
+          ]),
+          borderRadius: [8, 8, 0, 0]
+        },
+        label: {
+          show: true,
+          position: 'top',
+          formatter: '{c} 分',
+          fontWeight: 'bold'
+        },
+        barWidth: '40%'
+      }
+    ]
+  }
+  
+  scoreComparisonChart.value.setOption(option)
+  
+  window.addEventListener('resize', () => {
+    scoreComparisonChart.value && scoreComparisonChart.value.resize()
+  })
+}
+
+// 渲染知识点得分柱状图
+const renderKnowledgeBarChart = () => {
+  if (!analysisData.value || !analysisData.value.knowledgePoints) return
+  
+  const chartDom = document.getElementById('knowledgeBarChart')
+  if (!chartDom) return
+  
+  if (knowledgeBarChart.value) {
+    knowledgeBarChart.value.dispose()
+  }
+  
+  knowledgeBarChart.value = echarts.init(chartDom)
+  
+  const knowledgePoints = analysisData.value.knowledgePoints
+  const categories = knowledgePoints.map(item => item.name)
+  const percentages = knowledgePoints.map(item => item.percentage)
+  const scores = knowledgePoints.map(item => item.score)
+  const totals = knowledgePoints.map(item => item.total)
+  
+  const option = {
+    title: {
+      text: '知识点掌握度柱状图',
+      left: 'center',
+      textStyle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333'
+      }
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      },
+      formatter: (params) => {
+        const index = params[0].dataIndex
+        return `<div style="padding: 5px;">
+          <strong>${categories[index]}</strong><br/>
+          掌握度: ${percentages[index]}%<br/>
+          得分: ${scores[index]}/${totals[index]}
+        </div>`
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      top: '15%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: categories,
+      axisLabel: {
+        fontSize: 12,
+        interval: 0,
+        rotate: categories.length > 5 ? 30 : 0
+      }
+    },
+    yAxis: {
+      type: 'value',
+      name: '掌握度(%)',
+      max: 100,
+      axisLabel: {
+        formatter: '{value}%'
+      }
+    },
+    series: [{
+      name: '掌握度',
+      type: 'bar',
+      data: percentages,
+      itemStyle: {
+        color: (params) => {
+          const value = params.value
+          if (value >= 90) return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#10b981' },
+            { offset: 1, color: '#059669' }
+          ])
+          if (value >= 75) return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#3b82f6' },
+            { offset: 1, color: '#2563eb' }
+          ])
+          if (value >= 60) return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#f59e0b' },
+            { offset: 1, color: '#d97706' }
+          ])
+          return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#ef4444' },
+            { offset: 1, color: '#dc2626' }
+          ])
+        },
+        borderRadius: [8, 8, 0, 0]
+      },
+      label: {
+        show: true,
+        position: 'top',
+        formatter: '{c}%',
+        fontWeight: 'bold'
+      },
+      barWidth: '50%'
+    }]
+  }
+  
+  knowledgeBarChart.value.setOption(option)
+  
+  window.addEventListener('resize', () => {
+    knowledgeBarChart.value && knowledgeBarChart.value.resize()
   })
 }
 
@@ -1705,7 +1905,7 @@ onMounted(() => {
 /* 排名卡片 */
 .rank-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   margin-bottom: 30px;
 }
@@ -1743,15 +1943,6 @@ onMounted(() => {
 .rank-card-2:hover {
   border-color: rgba(59, 130, 246, 0.6);
   background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
-}
-
-.rank-card-3 {
-  border-color: rgba(168, 85, 247, 0.3);
-}
-
-.rank-card-3:hover {
-  border-color: rgba(168, 85, 247, 0.6);
-  background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%);
 }
 
 .rank-icon {
@@ -1800,46 +1991,34 @@ onMounted(() => {
   color: #ef4444;
 }
 
-.level-badge {
-  display: inline-block;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
+/* 图表网格 */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
-.level-badge.excellent {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-}
-
-.level-badge.good {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-}
-
-.level-badge.pass {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-}
-
-.level-badge.fail {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-}
-
-/* 雷达图 */
-.radar-container {
+.chart-container {
   background: white;
   border-radius: 16px;
   padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
 }
 
-.radar-chart {
+.chart-container:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.chart-container.chart-full {
+  grid-column: 1 / -1;
+}
+
+.chart-box {
   width: 100%;
-  height: 400px;
+  height: 350px;
 }
 
 /* 知识点列表 */
