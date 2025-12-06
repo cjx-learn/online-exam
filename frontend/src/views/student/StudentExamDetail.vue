@@ -211,7 +211,40 @@
         </div>
       </aside>
 
-      <!-- 主内容区域（试题详情） -->
+      <!-- 主内容区域 -->
+      <div class="detail-content">
+        <!-- 统计卡片区域 -->
+        <div class="stats-section">
+        <div class="stat-card total-card">
+          <div class="stat-icon">
+            <span class="icon-bg">📊</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">总分</div>
+            <div class="stat-value">{{ totalScoreText }}</div>
+          </div>
+        </div>
+        <div class="stat-card objective-card">
+          <div class="stat-icon">
+            <span class="icon-bg">✓</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">客观题得分</div>
+            <div class="stat-value">{{ objectiveScoreText }}</div>
+          </div>
+        </div>
+        <div class="stat-card subjective-card">
+          <div class="stat-icon">
+            <span class="icon-bg">✎</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">主观题得分</div>
+            <div class="stat-value">{{ subjectiveScoreText }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 试题详情区域 -->
       <div class="questions-section">
         <div v-if="questions.length === 0" class="empty-state">
           <div class="empty-icon">📝</div>
@@ -281,8 +314,11 @@
           </div>
         </div>
       </div>
+      <!-- 关闭试题详情区域 questions-section -->
       </div>
-      <!-- 关闭试卷详情视图 -->
+      <!-- 关闭主内容区域 detail-content -->
+      </div>
+      <!-- 关闭试卷详情视图 detail-view -->
     </div>
     <!-- 关闭主要内容 detail-body -->
   </div>
