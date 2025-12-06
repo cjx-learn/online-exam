@@ -450,9 +450,21 @@ public class ExamRecordServiceImpl implements ExamRecordService {
         }
         
         // 7. 获取学生信息
-        com.exam.entity.User student = userMapper.selectById(studentRecord.getStudentId());
-        String studentName = student != null ? (student.getRealName() != null ? student.getRealName() : student.getUsername()) : "未知";
-        String studentIdStr = student != null ? student.getId().toString() : "未知";
+        String studentName = "未知";
+        String studentIdStr = "未知";
+        try {
+            if (studentRecord.getStudentId() != null) {
+                com.exam.entity.User student = userMapper.selectById(studentRecord.getStudentId());
+                if (student != null) {
+                    studentName = (student.getRealName() != null && !student.getRealName().isEmpty()) 
+                                  ? student.getRealName() 
+                                  : (student.getUsername() != null ? student.getUsername() : "未知");
+                    studentIdStr = student.getId() != null ? student.getId().toString() : "未知";
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("获取学生信息失败: " + e.getMessage());
+        }
         
         // 8. 组装返回数据
         result.put("studentScore", studentScore);

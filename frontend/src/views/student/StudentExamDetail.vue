@@ -406,16 +406,22 @@ const loadAnalysisData = async () => {
   analysisLoading.value = true
   try {
     const res = await request.get(`/examRecord/${recordId.value}/analysis`)
+    console.log('学情分析响应:', res)
     if (res && res.data) {
       analysisData.value = res.data
+      console.log('学情分析数据:', analysisData.value)
       // 渲染所有图表
       await nextTick()
       renderRadarChart()
       renderScoreComparisonChart()
       renderKnowledgeBarChart()
+    } else {
+      console.error('学情分析响应数据为空')
+      ElMessage.error('获取学情分析数据失败')
     }
   } catch (e) {
     console.error('加载学情分析失败:', e)
+    ElMessage.error('加载学情分析失败: ' + (e.message || '未知错误'))
   } finally {
     analysisLoading.value = false
   }
