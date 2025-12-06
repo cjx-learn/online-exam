@@ -262,7 +262,17 @@ const parseOptions = (options, type) => {
 
 const perQuestionScore = (q) => {
   const answer = answerMap[q.id]
-  const scoreText = (answer && answer.score != null) ? `${answer.score} 分` : '-'
+  
+  // 得分显示逻辑
+  let scoreText = '-'
+  if (answer && answer.score != null) {
+    // 如果有评分记录，显示分数
+    scoreText = `${answer.score} 分`
+  } else if (q.type === 1 || q.type === 2 || q.type === 3) {
+    // 客观题（单选、多选、判断）未作答时显示 0 分
+    scoreText = '0 分'
+  }
+  
   const userAnswerText = answer && answer.userAnswer
     ? formatAnswerText(q, answer.userAnswer)
     : '未作答'
