@@ -4,10 +4,12 @@ import com.exam.entity.Exam;
 import com.exam.entity.ExamAnswer;
 import com.exam.entity.ExamRecord;
 import com.exam.entity.Question;
+import com.exam.entity.User;
 import com.exam.mapper.ExamAnswerMapper;
 import com.exam.mapper.ExamMapper;
 import com.exam.mapper.ExamQuestionMapper;
 import com.exam.mapper.ExamRecordMapper;
+import com.exam.mapper.UserMapper;
 import com.exam.service.ExamRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,10 +37,21 @@ public class ExamRecordServiceImpl implements ExamRecordService {
     private ExamQuestionMapper examQuestionMapper;
     @Autowired
     private ExamAnswerMapper examAnswerMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public ExamRecord getExamRecordById(Long id) {
-        return examRecordMapper.selectById(id);
+        ExamRecord record = examRecordMapper.selectById(id);
+        if (record != null && record.getStudentId() != null) {
+            // 填充学生信息
+            User student = userMapper.selectById(record.getStudentId());
+            if (student != null) {
+                record.setStudentName(student.getUsername()); // 使用username作为学生姓名
+                record.setStudentNo(student.getId().toString()); // 使用id作为学号
+            }
+        }
+        return record;
     }
 
     @Override

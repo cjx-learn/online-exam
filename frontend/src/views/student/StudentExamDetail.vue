@@ -95,7 +95,7 @@
             <h1 style="text-align: center; margin-bottom: 30px; color: #333;">成绩证明</h1>
             <div style="margin: 20px 0; line-height: 2;">
               <p><strong>学生姓名：</strong>{{ examRecord?.studentName }}</p>
-              <p><strong>学号：</strong>{{ examRecord?.studentId }}</p>
+              <p><strong>学号：</strong>{{ examRecord?.studentNo }}</p>
               <p><strong>考试名称：</strong>{{ analysisData.examTitle }}</p>
               <p><strong>总分：</strong>{{ analysisData.studentScore }} 分</p>
               <p><strong>客观题得分：</strong>{{ analysisData.objectiveScore || 0 }} 分</p>
@@ -456,7 +456,7 @@ const downloadPDF = async () => {
     
     // 获取学生姓名和学号
     const studentName = examRecord.value?.studentName || '未知'
-    const studentId = examRecord.value?.studentId || '-'
+    const studentNo = examRecord.value?.studentNo || examRecord.value?.studentId || '-'
     
     // 创建临时元素并填充实际数据
     const tempDiv = document.createElement('div')
@@ -473,7 +473,7 @@ const downloadPDF = async () => {
       <div style="border-top: 2px solid #ccc; padding-top: 30px;">
         <div style="margin: 20px 0; line-height: 2.5; font-size: 16px;">
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">学生姓名：</strong>${studentName}</p>
-          <p style="margin: 10px 0;"><strong style="font-weight: bold;">学号：</strong>${studentId}</p>
+          <p style="margin: 10px 0;"><strong style="font-weight: bold;">学号：</strong>${studentNo}</p>
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">考试名称：</strong>${analysisData.value.examTitle || exam.title || '-'}</p>
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">总分：</strong>${analysisData.value.studentScore || 0} 分</p>
           <p style="margin: 10px 0;"><strong style="font-weight: bold;">客观题得分：</strong>${analysisData.value.objectiveScore || 0} 分</p>
