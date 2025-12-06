@@ -439,7 +439,7 @@ const loadAnalysisData = async () => {
 }
 
 // 下载PDF成绩证明
-const downloadPDF = () => {
+const downloadPDF = async () => {
   if (!analysisData.value) {
     ElMessage.error('数据未加载')
     return
@@ -447,55 +447,70 @@ const downloadPDF = () => {
   
   ElMessage.info('正在生成PDF，请稍候...')
   
-  // 创建临时元素并填充实际数据
-  const tempDiv = document.createElement('div')
-  tempDiv.style.padding = '40px'
-  tempDiv.style.fontFamily = '微软雅黑, sans-serif'
-  tempDiv.style.background = 'white'
-  tempDiv.style.width = '800px'
-  
-  const currentDate = new Date().toLocaleDateString('zh-CN', { 
-    year: 'numeric', 
-    month: '2-digit', 
-    day: '2-digit' 
-  })
-  
-  tempDiv.innerHTML = `
-    <h1 style="text-align: center; margin-bottom: 30px; color: #333; font-size: 28px;">成绩证明</h1>
-    <div style="margin: 20px 0; line-height: 2.5; font-size: 16px;">
-      <p><strong>考试名称：</strong>${analysisData.value.examTitle || exam.title || '-'}</p>
-      <p><strong>总分：</strong>${analysisData.value.studentScore || 0} 分</p>
-      <p><strong>客观题得分：</strong>${analysisData.value.objectiveScore || 0} 分</p>
-      <p><strong>主观题得分：</strong>${analysisData.value.subjectiveScore || 0} 分</p>
-      <p><strong>及格分：</strong>${analysisData.value.passScore || 0} 分</p>
-      <p><strong>班级排名：</strong>第 ${analysisData.value.rank || '-'} 名 / 共 ${analysisData.value.totalStudents || 0} 人</p>
-      <p><strong>班级平均分：</strong>${analysisData.value.classAverage || 0} 分</p>
-      <p style="margin-top: 40px; text-align: right; color: #666;">生成日期：${currentDate}</p>
-    </div>
-  `
-  
-  // 临时添加到页面（屏幕外）
-  tempDiv.style.position = 'absolute'
-  tempDiv.style.left = '-9999px'
-  tempDiv.style.top = '0'
-  document.body.appendChild(tempDiv)
-  
-  const opt = {
-    margin: [10, 10],
-    filename: `成绩证明_${analysisData.value.examTitle || exam.title || '考试'}_${new Date().getTime()}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }
-  
-  html2pdf().set(opt).from(tempDiv).save().then(() => {
-    ElMessage.success('PDF下载成功')
+  try {
+    const currentDate = new Date().toLocaleDateString('zh-CN', { 
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit' 
+    })
+    
+    // 创建临时元素并填充实际数据
+    const tempDiv = document.createElement('div')
+    tempDiv.style.padding = '40px'
+    tempDiv.style.fontFamily = 'Arial, Microsoft YaHei, sans-serif'
+    tempDiv.style.background = 'white'
+    tempDiv.style.width = '800px'
+    tempDiv.style.minHeight = '500px'
+    
+    tempDiv.innerHTML = `
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #333; font-size: 32px; margin: 0;">成绩证明</h1>
+      </div>
+      <div style="border-top: 2px solid #ccc; padding-top: 30px;">
+        <div style="margin: 20px 0; line-height: 2.5; font-size: 16px;">
+          <p style="margin: 10px 0;"><strong style="font-weight: bold;">考试名称：</strong>${analysisData.value.examTitle || exam.title || '-'}</p>
+          <p style="margin: 10px 0;"><strong style="font-weight: bold;">总分：</strong>${analysisData.value.studentScore || 0} 分</p>
+          <p style="margin: 10px 0;"><strong style="font-weight: bold;">客观题得分：</strong>${analysisData.value.objectiveScore || 0} 分</p>
+          <p style="margin: 10px 0;"><strong style="font-weight: bold;">主观题得分：</strong>${analysisData.value.subjectiveScore || 0} 分</p>
+          <p style="margin: 10px 0;"><strong style="font-weight: bold;">及格分：</strong>${analysisData.value.passScore || 0} 分</p>
+          <p style="margin: 10px 0;"><strong style="font-weight: bold;">班级排名：</strong>第 ${analysisData.value.rank || '-'} 名 / 共 ${analysisData.value.totalStudents || 0} 人</p>
+          <p style="margin: 10px 0;"><strong style="font-weight: bold;">班级平均分：</strong>${analysisData.value.classAverage || 0} 分</p>
+        </div>
+        <div style="margin-top: 60px; text-align: right; color: #666; font-size: 14px;">
+          <p>生成日期：${currentDate}</p>
+        </div>
+      </div>
+    `
+    
+    // 添加到body中（可见）
+    document.body.appendChild(tempDiv)
+    
+    // 等待渲染完成
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: `成绩证明_${analysisData.value.examTitle || exam.title || '考试'}_${new Date().getTime()}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        letterRendering: true,
+        logging: true
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }
+    
+    await html2pdf().set(opt).from(tempDiv).save()
+    
+    // 移除临时元素
     document.body.removeChild(tempDiv)
-  }).catch((err) => {
+    
+    ElMessage.success('PDF下载成功')
+  } catch (err) {
     console.error('PDF生成失败:', err)
     ElMessage.error('PDF生成失败')
-    document.body.removeChild(tempDiv)
-  })
+  }
 }
 
 const goBack = () => {
