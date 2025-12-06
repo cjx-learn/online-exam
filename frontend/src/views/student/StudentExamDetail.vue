@@ -454,8 +454,6 @@ const downloadPDF = async () => {
     const day = String(currentDate.getDate()).padStart(2, '0')
     const formattedDate = `${year}年${month}月${day}日`
     
-    console.log('生成日期:', formattedDate)
-    
     // 从localStorage获取当前登录学生的个人信息
     let studentName = '未知'
     let studentId = '-'
@@ -482,11 +480,12 @@ const downloadPDF = async () => {
     
     // 创建临时元素并填充实际数据
     const tempDiv = document.createElement('div')
-    tempDiv.style.padding = '40px'
+    tempDiv.style.padding = '40px 60px'
     tempDiv.style.fontFamily = 'Arial, Microsoft YaHei, sans-serif'
     tempDiv.style.background = 'white'
-    tempDiv.style.width = '800px'
+    tempDiv.style.width = '900px'
     tempDiv.style.minHeight = '500px'
+    tempDiv.style.boxSizing = 'border-box'
     
     tempDiv.innerHTML = `
       <div style="text-align: center; margin-bottom: 30px;">
