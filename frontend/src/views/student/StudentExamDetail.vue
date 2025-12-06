@@ -930,7 +930,7 @@ onMounted(() => {
 /* ============ 主要内容区域 ============ */
 .detail-body {
   flex: 1;
-  max-width: 1600px;
+  max-width: 1280px;
   width: 100%;
   margin: 0 auto;
   padding: 32px 24px;
