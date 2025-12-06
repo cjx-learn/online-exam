@@ -139,6 +139,14 @@
                 <span class="detail-label">你的答案</span>
                 <span class="detail-value user-answer">{{ perQuestionScore(q).userAnswerText }}</span>
               </div>
+              <!-- 教师批改意见 -->
+              <div v-if="perQuestionScore(q).comment" class="detail-item comment-item">
+                <span class="detail-label">
+                  <el-icon style="margin-right: 4px;"><Edit /></el-icon>
+                  教师批改意见
+                </span>
+                <div class="detail-value teacher-comment">{{ perQuestionScore(q).comment }}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -152,7 +160,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, Loading } from '@element-plus/icons-vue'
+import { ArrowLeft, Loading, Edit } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -257,7 +265,8 @@ const perQuestionScore = (q) => {
   const userAnswerText = answer && answer.userAnswer
     ? formatAnswerText(q, answer.userAnswer)
     : '未作答'
-  return { scoreText, userAnswerText }
+  const comment = answer && answer.comment ? answer.comment : ''
+  return { scoreText, userAnswerText, comment }
 }
 
 const formatAnswerText = (q, raw) => {
@@ -960,6 +969,37 @@ onMounted(loadData)
 
 .user-answer-item .detail-value {
   color: #f97316;
+}
+
+/* 教师批改意见 */
+.comment-item {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  padding: 16px 18px;
+}
+
+.comment-item:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+  border-color: rgba(139, 92, 246, 0.25);
+}
+
+.comment-item .detail-label {
+  color: #8b5cf6;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.teacher-comment {
+  color: #6b21a8;
+  font-weight: 500;
+  line-height: 1.6;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  border-left: 3px solid #8b5cf6;
+  margin-top: 8px;
 }
 
 /* ============ 动画 ============ */
