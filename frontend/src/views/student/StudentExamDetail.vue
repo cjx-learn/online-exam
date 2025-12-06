@@ -445,19 +445,40 @@ const downloadPDF = () => {
     return
   }
   
-  const element = document.getElementById('certificateContent')
-  if (!element) {
-    ElMessage.error('内容加载失败')
-    return
-  }
-  
   ElMessage.info('正在生成PDF，请稍候...')
   
-  // 临时显示元素以便html2canvas渲染
-  element.style.display = 'block'
-  element.style.position = 'absolute'
-  element.style.left = '-9999px'
-  element.style.top = '0'
+  // 创建临时元素并填充实际数据
+  const tempDiv = document.createElement('div')
+  tempDiv.style.padding = '40px'
+  tempDiv.style.fontFamily = '微软雅黑, sans-serif'
+  tempDiv.style.background = 'white'
+  tempDiv.style.width = '800px'
+  
+  const currentDate = new Date().toLocaleDateString('zh-CN', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit' 
+  })
+  
+  tempDiv.innerHTML = `
+    <h1 style="text-align: center; margin-bottom: 30px; color: #333; font-size: 28px;">成绩证明</h1>
+    <div style="margin: 20px 0; line-height: 2.5; font-size: 16px;">
+      <p><strong>考试名称：</strong>${analysisData.value.examTitle || exam.title || '-'}</p>
+      <p><strong>总分：</strong>${analysisData.value.studentScore || 0} 分</p>
+      <p><strong>客观题得分：</strong>${analysisData.value.objectiveScore || 0} 分</p>
+      <p><strong>主观题得分：</strong>${analysisData.value.subjectiveScore || 0} 分</p>
+      <p><strong>及格分：</strong>${analysisData.value.passScore || 0} 分</p>
+      <p><strong>班级排名：</strong>第 ${analysisData.value.rank || '-'} 名 / 共 ${analysisData.value.totalStudents || 0} 人</p>
+      <p><strong>班级平均分：</strong>${analysisData.value.classAverage || 0} 分</p>
+      <p style="margin-top: 40px; text-align: right; color: #666;">生成日期：${currentDate}</p>
+    </div>
+  `
+  
+  // 临时添加到页面（屏幕外）
+  tempDiv.style.position = 'absolute'
+  tempDiv.style.left = '-9999px'
+  tempDiv.style.top = '0'
+  document.body.appendChild(tempDiv)
   
   const opt = {
     margin: [10, 10],
@@ -467,21 +488,13 @@ const downloadPDF = () => {
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   }
   
-  html2pdf().set(opt).from(element).save().then(() => {
+  html2pdf().set(opt).from(tempDiv).save().then(() => {
     ElMessage.success('PDF下载成功')
-    // 恢复隐藏
-    element.style.display = 'none'
-    element.style.position = ''
-    element.style.left = ''
-    element.style.top = ''
+    document.body.removeChild(tempDiv)
   }).catch((err) => {
     console.error('PDF生成失败:', err)
     ElMessage.error('PDF生成失败')
-    // 恢复隐藏
-    element.style.display = 'none'
-    element.style.position = ''
-    element.style.left = ''
-    element.style.top = ''
+    document.body.removeChild(tempDiv)
   })
 }
 
