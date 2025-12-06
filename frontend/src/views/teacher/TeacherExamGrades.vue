@@ -560,7 +560,8 @@ const highErrorQuestions = computed(() => {
   
   const questionStats = questions.value.map((question, index) => {
     const questionAnswers = allAnswers.value.filter(a => a.questionId === question.id)
-    const totalAnswers = questionAnswers.length
+    // 使用参加考试的总人数
+    const totalAnswers = examRecords.value.length
     const correctAnswers = questionAnswers.filter(a => {
       // 对于客观题，score > 0 表示正确
       if ([1, 2, 3].includes(question.type)) {
@@ -610,7 +611,8 @@ const questionTypeStats = computed(() => {
     const questionAnswers = allAnswers.value.filter(a => a.questionId === question.id)
     const correctAnswers = questionAnswers.filter(a => a.score > 0)
     
-    stats[typeName].total += questionAnswers.length
+    // 每道题的总人数 = 参加考试的总人数
+    stats[typeName].total += examRecords.value.length
     stats[typeName].correct += correctAnswers.length
   })
   
@@ -639,7 +641,8 @@ const drawCorrectRateChart = () => {
   
   const data = questions.value.map((q, index) => {
     const questionAnswers = allAnswers.value.filter(a => a.questionId === q.id)
-    const total = questionAnswers.length
+    // 正确率 = 答对人数 / 参加考试总人数
+    const total = examRecords.value.length
     // 未作答（null/undefined）或0分算错误
     const correct = questionAnswers.filter(a => {
       const score = a.score ?? 0  // null/undefined视为0
@@ -745,7 +748,10 @@ const drawErrorDistChart = () => {
   const scoreRates = questions.value.map((q, qIndex) => {
     const questionAnswers = allAnswers.value.filter(a => a.questionId === q.id)
     
-    if (questionAnswers.length === 0) {
+    // 使用参加考试的总人数
+    const totalStudents = examRecords.value.length
+    
+    if (totalStudents === 0) {
       return {
         name: `第${qIndex + 1}题`,
         rate: 0
@@ -753,7 +759,7 @@ const drawErrorDistChart = () => {
     }
     
     const totalScore = questionAnswers.reduce((sum, a) => sum + (a.score || 0), 0)
-    const maxScore = q.score * questionAnswers.length
+    const maxScore = q.score * totalStudents
     const rate = maxScore > 0 ? ((totalScore / maxScore) * 100).toFixed(1) : 0
     
     return {
