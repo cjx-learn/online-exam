@@ -67,7 +67,18 @@ public class UserController {
     @PostMapping("/update")
     public Result<?> updateUser(@RequestBody UpdateUserRequest request) {
         try {
-            userService.updateUser(request.getId(), request.getEmail(), request.getPhone(), request.getRole());
+            userService.updateUserInfo(
+                request.getId(), 
+                request.getRole(), 
+                request.getRealName(),
+                request.getEmail(), 
+                request.getPhone(),
+                request.getTeacherNo(),
+                request.getDepartment(),
+                request.getTitle(),
+                request.getStudentNo(),
+                request.getMajor()
+            );
             return Result.success("更新成功");
         } catch (Exception e) {
             return Result.error(e.getMessage());
@@ -116,6 +127,16 @@ public class UserController {
         private String email;
         private String phone;
         private Integer role;  // 0-学生 1-教师 2-管理员
+        
+        // 教师额外字段
+        private String realName;
+        private String teacherNo;
+        private String department;
+        private String title;
+        
+        // 学生额外字段
+        private String studentNo;
+        private String major;
     }
     
     /**

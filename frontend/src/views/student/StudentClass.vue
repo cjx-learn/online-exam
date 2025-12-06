@@ -761,6 +761,10 @@ const saveProfile = async () => {
   try {
     const updateData = {
       id: currentUserInfo.userId,
+      role: 0, // 学生角色
+      realName: userForm.realName,
+      studentNo: userForm.studentNo,
+      major: userForm.major,
       email: userForm.email,
       phone: userForm.phone
     };

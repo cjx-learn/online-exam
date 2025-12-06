@@ -468,6 +468,7 @@ const saveProfile = async () => {
     // 假设后端有一个 /user/update 接口来更新用户信息
     const updateData = {
       id: currentUserInfo.userId,
+      role: 1, // 教师角色
       realName: userForm.realName,
       teacherNo: userForm.teacherNo,
       email: userForm.email,

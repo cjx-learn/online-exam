@@ -409,9 +409,12 @@ const saveProfile = async () => {
     // 构建要发送到后端的用户信息更新对象
     const updateData = {
       id: currentUserInfo.userId, // 确保发送用户ID
+      role: 0, // 学生角色
+      realName: userForm.realName,
+      studentNo: userForm.studentNo,
+      major: userForm.major,
       email: userForm.email,
       phone: userForm.phone
-      // 其他需要更新的字段
     };
 
     // 假设后端有一个 /user/update 接口来更新用户信息

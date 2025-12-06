@@ -62,6 +62,8 @@ public class UserService {
             result.put("role", 0);
             result.put("studentNo", student.getStudentNo());
             result.put("major", student.getMajor());
+            result.put("email", student.getEmail());
+            result.put("phone", student.getPhone());
             return result;
             
         } else if (role == 1) {
@@ -85,8 +87,11 @@ public class UserService {
             result.put("username", teacher.getUsername());
             result.put("realName", teacher.getRealName());
             result.put("role", 1);
+            result.put("teacherNo", teacher.getTeacherNo());
             result.put("department", teacher.getDepartment());
             result.put("title", teacher.getTitle());
+            result.put("email", teacher.getEmail());
+            result.put("phone", teacher.getPhone());
             return result;
             
         } else if (role == 2) {
@@ -221,6 +226,60 @@ public class UserService {
         if (teacherMapper.selectById(userId) != null) return 1;
         if (adminMapper.selectById(userId) != null) return 2;
         return null;
+    }
+    
+    /**
+     * 更新用户完整信息
+     * 根据角色和用户ID更新对应表的所有可修改字段
+     */
+    public void updateUserInfo(Long id, Integer role, String realName, String email, String phone,
+                              String teacherNo, String department, String title,
+                              String studentNo, String major) {
+        if (role == null) {
+            role = findUserRole(id);
+        }
+        
+        if (role == 0) {
+            // 学生
+            Student student = studentMapper.selectById(id);
+            if (student != null) {
+                if (realName != null) student.setRealName(realName);
+                if (studentNo != null) student.setStudentNo(studentNo);
+                if (major != null) student.setMajor(major);
+                if (email != null) student.setEmail(email);
+                if (phone != null) student.setPhone(phone);
+                
+                studentMapper.update(student);
+                return;
+            }
+        } else if (role == 1) {
+            // 教师
+            Teacher teacher = teacherMapper.selectById(id);
+            if (teacher != null) {
+                if (realName != null) teacher.setRealName(realName);
+                if (teacherNo != null) teacher.setTeacherNo(teacherNo);
+                if (department != null) teacher.setDepartment(department);
+                if (title != null) teacher.setTitle(title);
+                if (email != null) teacher.setEmail(email);
+                if (phone != null) teacher.setPhone(phone);
+                
+                teacherMapper.update(teacher);
+                return;
+            }
+        } else if (role == 2) {
+            // 管理员
+            Admin admin = adminMapper.selectById(id);
+            if (admin != null) {
+                if (realName != null) admin.setRealName(realName);
+                if (email != null) admin.setEmail(email);
+                if (phone != null) admin.setPhone(phone);
+                
+                adminMapper.update(admin);
+                return;
+            }
+        }
+        
+        throw new RuntimeException("用户不存在");
     }
 }
 

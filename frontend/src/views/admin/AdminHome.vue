@@ -599,6 +599,7 @@ const saveProfile = async () => {
   try {
     const response = await request.post('/user/update', {
       id: userForm.id,
+      realName: userForm.realName,
       email: userForm.email,
       phone: userForm.phone,
       role: 2
@@ -609,6 +610,7 @@ const saveProfile = async () => {
       const storedUserInfo = localStorage.getItem('userInfo')
       if (storedUserInfo) {
         const parsed = JSON.parse(storedUserInfo)
+        parsed.realName = userForm.realName
         parsed.email = userForm.email
         parsed.phone = userForm.phone
         localStorage.setItem('userInfo', JSON.stringify(parsed))
