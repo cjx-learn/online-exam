@@ -100,7 +100,7 @@
                   <div class="student-name">学生 {{ index + 1 }}</div>
                 </div>
                 <div class="answer-status">
-                  <span v-if="answer.currentScore !== null" class="status-badge graded">
+                  <span v-if="isAnswerSaved(answer)" class="status-badge graded">
                     {{ answer.currentScore }}分
                   </span>
                   <span v-else class="status-badge pending">待批改</span>
