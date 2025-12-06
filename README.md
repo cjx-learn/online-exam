@@ -11,15 +11,20 @@
 - **MySQL 8.0** - 数据库
 - **Druid** - 数据库连接池
 - **JWT** - 身份认证
+- **BCrypt** - 密码加密
+- **Apache POI** - Excel文件处理
 - **Lombok** - 简化代码
 
 ### 前端
 - **Vue 3** - 前端框架
-- **Vite** - 构建工具
+- **Vite 4.5** - 构建工具
 - **Vue Router** - 路由管理
 - **Pinia** - 状态管理
 - **Element Plus** - UI组件库
 - **Axios** - HTTP客户端
+- **ECharts** - 数据可视化
+- **html2pdf.js** - PDF导出
+- **xlsx** - Excel文件处理
 
 ## 项目结构
 
@@ -126,11 +131,11 @@ npm run dev
 yarn dev
 ```
 
-前端应用将在 http://localhost:3000 启动
+前端应用将在 http://localhost:5173 启动
 
 ### 4. 访问系统
 
-浏览器访问: http://localhost:3000
+浏览器访问: http://localhost:5173
 
 默认测试账号：
 - 管理员: admin / 123456
@@ -140,28 +145,95 @@ yarn dev
 ## 主要功能
 
 ### 学生端
-- ✅ 用户登录
-- ✅ 查看考试列表（未开始/进行中/已完成）
-- ✅ 在线考试（倒计时、自动保存、超时自动提交）
-- ✅ 查看成绩和答题详情
-- ✅ 查看教师批改意见
-- ✅ 题目导航快速跳转
+- ✅ **用户认证**
+  - 安全登录（BCrypt密码加密）
+  - 个人信息管理（支持修改姓名、学号、专业、邮箱、手机号）
+  - 修改密码
+
+- ✅ **考试功能**
+  - 查看考试列表（未开始/进行中/已完成）
+  - 在线考试（倒计时、自动保存、超时自动提交）
+  - 题目导航快速跳转
+  - 考试结果实时查看
+
+- ✅ **成绩管理**
+  - 查看成绩和答题详情
+  - 查看教师批改意见和评分
+  - 错题标记和正确答案展示
+  - 考试详情PDF导出
+  - 成绩趋势图表分析
 
 ### 教师端
-- ✅ 班级管理（创建班级、添加学生）
-- ✅ 题库管理（5种题型）
-- ✅ 考试管理（创建考试、选择题目）
-- ✅ 主观题批改（匿名批改、键盘快捷键）
-- ✅ 批改进度可视化
-- ✅ 成绩统计
+- ✅ **班级管理**
+  - 创建和管理班级
+  - Excel批量导入学生
+  - 学生信息管理
+  - 班级成员查看
+
+- ✅ **题库管理**
+  - 支持5种题型（单选、多选、判断、填空、简答）
+  - 题目创建、编辑、删除
+  - 题目搜索和筛选
+
+- ✅ **考试管理**
+  - 创建考试（选择班级、课程、时间）
+  - 从题库选择题目
+  - 设置考试时长和总分
+  - 考试状态管理
+
+- ✅ **批改评分**
+  - 主观题批改（匿名批改、键盘快捷键）
+  - 批改进度可视化
+  - 批改意见和评分
+  - 批改历史记录
+
+- ✅ **成绩统计**
+  - 学生成绩列表
+  - 成绩分布统计
+  - 高频错题分析（题目、选项、错误率统计）
+  - 数据可视化图表
+  - 个人信息管理（支持修改姓名、工号、院系、职称、邮箱、手机号）
+
+### 管理员端
+- ✅ **用户管理**
+  - 学生账号管理（创建、编辑、删除、禁用）
+  - 教师账号管理
+  - 管理员账号管理
+  - Excel批量导入账号
+
+- ✅ **系统管理**
+  - 课程管理
+  - 系统配置
+  - 数据统计
+  - 个人信息管理
 
 ### 核心特性
-- ✅ 客观题自动批改（单选、多选、判断）
-- ✅ 主观题人工批改（填空、简答）
-- ✅ 考试时间严格控制
-- ✅ 批改界面学生信息匿名
-- ✅ 实时保存答案
-- ✅ 响应式界面设计
+- ✅ **安全性**
+  - BCrypt密码加密存储
+  - JWT身份认证
+  - 跨域请求配置
+  - 账号状态控制（启用/禁用）
+
+- ✅ **用户体验**
+  - 客观题自动批改（单选、多选、判断）
+  - 主观题人工批改（填空、简答）
+  - 考试时间严格控制
+  - 批改界面学生信息匿名
+  - 实时保存答案
+  - 响应式界面设计
+  - 现代化UI设计
+
+- ✅ **数据处理**
+  - Excel批量导入学生和题目
+  - 考试详情PDF导出
+  - 成绩数据可视化
+  - 高频错题统计分析
+
+- ✅ **可靠性**
+  - 数据库事务处理
+  - 错误异常处理
+  - 用户信息跨设备同步
+  - 数据一致性保证
 
 ## 开发说明
 
@@ -192,6 +264,34 @@ yarn dev
 
 详见 `database/schema.sql`
 
+## 最近更新
+
+### v1.2.0 (2025-12-06)
+
+**新功能**
+- ✨ 支持Excel批量导入学生信息
+- ✨ 高频错题统计与分析功能
+- ✨ 考试详情PDF导出功能
+- ✨ 成绩趋势可视化图表
+- ✨ 完善个人信息管理功能
+
+**优化改进**
+- 🎨 优化教师批改界面，提升体验
+- 🎨 优化成绩统计页面布局
+- ⚡ 提升数据加载性能
+- 🔧 完善错误提示信息
+
+**Bug修复**
+- 🐛 修复用户个人信息更新后跨设备不同步问题
+- 🐛 修复登录接口返回数据不完整问题
+- 🐛 修复高频错题题目正确率计算错误
+- 🐛 修复前端依赖冲突导致启动失败
+
+### v1.1.0 (2025-11-17)
+- 🎉 初始版本发布
+- ✨ 完整的考试系统功能
+- ✨ 学生、教师、管理员三端功能
+
 ## 常见问题
 
 ### 1. 后端启动失败
@@ -219,10 +319,44 @@ yarn dev
 
 ### 4. 端口占用
 
-**问题**: 端口 8080 或 3000 被占用
+**问题**: 端口 8080 或 5173 被占用
 **解决**:
 - 修改后端端口: `application.yml` 中的 `server.port`
 - 修改前端端口: `vite.config.js` 中的 `server.port`
+
+### 5. Excel 导入失败
+
+**问题**: Excel 文件导入失败
+**解决**:
+- 确认 Excel 文件格式正确（参考模板）
+- 检查文件编码为 UTF-8
+- 确认必填字段不为空
+- 查看后端日志获取详细错误信息
+
+### 6. PDF 导出失败
+
+**问题**: 考试详情 PDF 导出失败或显示空白
+**解决**:
+- 检查是否安装 `html2pdf.js` 依赖
+- 清除浏览器缓存后重试
+- 确认浏览器支持 HTML5 Canvas
+
+### 7. 个人信息修改不生效
+
+**问题**: 修改个人信息后，重新登录显示旧信息
+**解决**:
+- 确认后端服务已重启（最新版本已修复）
+- 清除浏览器 localStorage 缓存
+- 退出登录后重新登录
+
+### 8. 前端依赖安装失败
+
+**问题**: npm install 报错 `EPERM` 或 `EACCES`
+**解决**:
+- Windows: 以管理员身份运行 PowerShell
+- 删除 `node_modules` 和 `package-lock.json` 后重新安装
+- 使用 `npm install --legacy-peer-deps`
+- 清理 npm 缓存: `npm cache clean --force`
 
 ## 部署说明
 
@@ -245,11 +379,50 @@ npm run build
 # dist 目录部署到 Nginx 或其他服务器
 ```
 
+## 技术支持
+
+如遇到问题，请按以下方式获取帮助：
+
+1. **查看文档**: 先查看本 README 和常见问题部分
+2. **查看 Issue**: 在 GitHub Issues 中搜索类似问题
+3. **提交 Issue**: 如果是新问题，请提交详细的 Issue（包含错误信息、操作步骤、环境信息）
+4. **Pull Request**: 欢迎提交代码改进
+
+## 贡献指南
+
+欢迎贡献代码、报告 Bug、提出建议！
+
+1. Fork 本仓库
+2. 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交您的修改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启一个 Pull Request
+
 ## 许可证
 
 MIT License
 
-## 联系方式
+Copyright (c) 2025 cjx-learn
 
-如有问题，请提交 Issue 或联系开发者。
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+⭐ 如果这个项目对您有帮助，请给个 Star 支持一下！
 
