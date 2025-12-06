@@ -288,13 +288,12 @@
                     <el-tag size="small" :type="getQuestionTypeColor(item.question.type)">
                       {{ getQuestionTypeName(item.question.type) }}
                     </el-tag>
-                    <span class="error-stat">{{ item.correctRate }}%</span>
-                    <el-progress 
-                      :percentage="item.correctRate" 
-                      :color="getProgressColor(item.correctRate)"
-                      :stroke-width="8"
-                      style="width: 120px"
-                    />
+                    <span class="error-stat correct-count">
+                      正确: <strong>{{ item.correctAnswers }}</strong> 人
+                    </span>
+                    <span class="error-stat total-count">
+                      总数: {{ item.totalAnswers }} 人
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1810,11 +1809,25 @@ onMounted(loadData)
 }
 
 .error-stat {
-  font-size: 15px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  min-width: 80px;
+  text-align: left;
+  margin-left: 12px;
+}
+
+.error-stat.correct-count {
+  color: #22c55e;
+}
+
+.error-stat.correct-count strong {
+  font-size: 16px;
   font-weight: 700;
-  color: #ef4444;
-  min-width: 45px;
-  text-align: right;
+}
+
+.error-stat.total-count {
+  color: #666;
 }
 
 /* ============ 学生成绩列表 ============ */
