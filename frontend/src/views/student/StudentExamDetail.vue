@@ -873,9 +873,15 @@ onMounted(() => {
 }
 
 /* ============ 视图容器 ============ */
-.report-view,
+.report-view {
+  width: 100%;
+  animation: fadeIn 0.4s ease-out;
+}
+
 .detail-view {
   width: 100%;
+  display: flex;
+  gap: 28px;
   animation: fadeIn 0.4s ease-out;
 }
 
