@@ -454,6 +454,8 @@ const downloadPDF = async () => {
     const day = String(currentDate.getDate()).padStart(2, '0')
     const formattedDate = `${year}年${month}月${day}日`
     
+    console.log('生成日期:', formattedDate)
+    
     // 从localStorage获取当前登录学生的个人信息
     let studentName = '未知'
     let studentId = '-'
