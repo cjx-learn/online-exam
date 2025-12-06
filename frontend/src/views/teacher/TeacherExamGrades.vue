@@ -256,10 +256,10 @@
                 <div ref="correctRateChart" class="chart-container-compact"></div>
               </div>
 
-              <!-- 错误题目分布 -->
+              <!-- 题目得分率趋势 -->
               <div class="analysis-card-compact">
                 <div class="analysis-card-header">
-                  <h4>❌ 错题分布</h4>
+                  <h4>📈 题目得分率趋势</h4>
                 </div>
                 <div ref="errorDistChart" class="chart-container-compact"></div>
               </div>
@@ -731,61 +731,62 @@ const drawCorrectRateChart = () => {
   chart.setOption(option)
 }
 
-// 绘制错题分布图表（柱状图）
+// 绘制题目得分率趋势图表（折线图）
 const drawErrorDistChart = () => {
   if (!errorDistChart.value) return
   
   const chart = echarts.init(errorDistChart.value)
   
-  // 统计错误选项
-  const errorOptions = {}
-  
-  questions.value.forEach((q, qIndex) => {
-    if (![1, 2, 3].includes(q.type)) return // 只统计客观题
+  // 计算每道题的得分率
+  const scoreRates = questions.value.map((q, qIndex) => {
+    const questionAnswers = allAnswers.value.filter(a => a.questionId === q.id)
     
-    const questionAnswers = allAnswers.value.filter(a => a.questionId === q.id && a.score === 0)
+    if (questionAnswers.length === 0) {
+      return {
+        name: `第${qIndex + 1}题`,
+        rate: 0
+      }
+    }
     
-    questionAnswers.forEach(answer => {
-      const key = `第${qIndex + 1}题`
-      if (!errorOptions[key]) errorOptions[key] = 0
-      errorOptions[key]++
-    })
+    const totalScore = questionAnswers.reduce((sum, a) => sum + (a.score || 0), 0)
+    const maxScore = q.score * questionAnswers.length
+    const rate = maxScore > 0 ? ((totalScore / maxScore) * 100).toFixed(1) : 0
+    
+    return {
+      name: `第${qIndex + 1}题`,
+      rate: parseFloat(rate)
+    }
   })
-  
-  const sortedErrors = Object.entries(errorOptions)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
   
   const option = {
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      borderColor: '#ef4444',
+      borderColor: '#3b82f6',
       borderWidth: 1,
       textStyle: {
         color: '#333',
         fontSize: 12
       },
-      axisPointer: {
-        type: 'shadow',
-        shadowStyle: {
-          color: 'rgba(239, 68, 68, 0.1)'
-        }
+      formatter: (params) => {
+        const data = params[0]
+        return `${data.name}<br/>得分率: <span style="color: #3b82f6; font-weight: bold;">${data.value}%</span>`
       }
     },
     grid: {
-      left: '15%',
+      left: '10%',
       right: '5%',
-      top: '10%',
-      bottom: '15%'
+      top: '15%',
+      bottom: '10%'
     },
     xAxis: {
       type: 'category',
-      data: sortedErrors.map(e => e[0]),
+      data: scoreRates.map(s => s.name),
       axisLabel: {
         color: '#666',
-        fontSize: 11,
-        rotate: 30
+        fontSize: 10,
+        interval: 0,
+        rotate: scoreRates.length > 15 ? 45 : 0
       },
       axisLine: {
         lineStyle: {
@@ -795,14 +796,17 @@ const drawErrorDistChart = () => {
     },
     yAxis: {
       type: 'value',
-      name: '错误人数',
+      name: '得分率(%)',
+      min: 0,
+      max: 100,
       nameTextStyle: {
         color: '#666',
         fontSize: 12
       },
       axisLabel: {
         color: '#666',
-        fontSize: 11
+        fontSize: 11,
+        formatter: '{value}%'
       },
       axisLine: {
         show: false
@@ -815,35 +819,56 @@ const drawErrorDistChart = () => {
       }
     },
     series: [{
-      type: 'bar',
-      barWidth: '50%',
-      label: {
-        show: true,
-        position: 'top',
-        fontSize: 11,
-        color: '#ef4444',
-        fontWeight: 'bold',
-        formatter: '{c}人'
+      type: 'line',
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 6,
+      lineStyle: {
+        width: 2,
+        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+          { offset: 0, color: '#3b82f6' },
+          { offset: 1, color: '#8b5cf6' }
+        ])
+      },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
+          { offset: 1, color: 'rgba(59, 130, 246, 0.05)' }
+        ])
       },
       itemStyle: {
-        borderRadius: [4, 4, 0, 0]
+        color: '#3b82f6',
+        borderColor: '#fff',
+        borderWidth: 2
       },
       emphasis: {
         itemStyle: {
           shadowBlur: 10,
-          shadowColor: 'rgba(239, 68, 68, 0.5)'
+          shadowColor: 'rgba(59, 130, 246, 0.5)',
+          scale: 1.2
         }
       },
-      data: sortedErrors.map((e, index) => ({
-        value: e[1],
-        name: e[0],
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#ef4444' },
-            { offset: 1, color: '#dc2626' }
-          ])
-        }
-      }))
+      markLine: {
+        silent: true,
+        symbol: 'none',
+        lineStyle: {
+          type: 'dashed',
+          color: '#f59e0b',
+          width: 1
+        },
+        label: {
+          show: true,
+          position: 'end',
+          formatter: '平均线',
+          color: '#f59e0b',
+          fontSize: 10
+        },
+        data: [{
+          yAxis: scoreRates.length > 0 ? 
+            (scoreRates.reduce((sum, s) => sum + s.rate, 0) / scoreRates.length).toFixed(1) : 0
+        }]
+      },
+      data: scoreRates.map(s => s.rate)
     }]
   }
   
