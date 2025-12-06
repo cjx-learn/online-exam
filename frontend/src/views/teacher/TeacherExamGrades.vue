@@ -561,16 +561,27 @@ const highErrorQuestions = computed(() => {
     const questionAnswers = allAnswers.value.filter(a => a.questionId === question.id)
     // 使用参加考试的总人数
     const totalAnswers = examRecords.value.length
-    const correctAnswers = questionAnswers.filter(a => {
-      // 对于客观题，score > 0 表示正确
-      if ([1, 2, 3].includes(question.type)) {
-        return a.score > 0
-      }
-      // 对于主观题，按满分的50%计算
-      return a.score >= (question.score * 0.5)
-    }).length
     
-    const correctRate = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
+    let correctRate = 0
+    let correctAnswers = 0
+    
+    // 与题目正确率图表保持一致的计算逻辑
+    // 对于客观题（单选、多选、判断）：按答对人数计算正确率
+    if ([1, 2, 3].includes(question.type)) {
+      correctAnswers = questionAnswers.filter(a => {
+        const score = a.score ?? 0
+        return score > 0
+      }).length
+      correctRate = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
+    } 
+    // 对于主观题（填空题、简答题）：按得分占总分的比例计算
+    else {
+      const totalScore = questionAnswers.reduce((sum, a) => sum + (a.score ?? 0), 0)
+      const maxScore = question.score * totalAnswers
+      correctRate = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
+      // 主观题的"正确人数"按得分率估算（为了显示）
+      correctAnswers = Math.round(totalAnswers * correctRate / 100)
+    }
     
     return {
       questionId: question.id,
