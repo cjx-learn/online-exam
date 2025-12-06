@@ -460,10 +460,19 @@ const downloadPDF = async () => {
     
     try {
       const storedUserInfo = localStorage.getItem('userInfo')
+      console.log('localStorage.userInfo:', storedUserInfo)
+      
       if (storedUserInfo) {
         const userInfo = JSON.parse(storedUserInfo)
+        console.log('解析后的userInfo:', userInfo)
+        
         studentName = userInfo.realName || userInfo.username || '未知'
         studentId = userInfo.userId || userInfo.id || '-'
+        
+        console.log('最终姓名:', studentName)
+        console.log('最终学号:', studentId)
+      } else {
+        console.warn('localStorage中没有userInfo')
       }
     } catch (e) {
       console.error('获取用户信息失败:', e)
