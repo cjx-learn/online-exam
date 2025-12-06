@@ -276,24 +276,28 @@
             <!-- 高频错误题目列表（紧凑版） -->
             <div class="analysis-card-compact" v-if="highErrorQuestions.length > 0">
               <div class="analysis-card-header">
-                <h4>⚠️ 高频错误题目（正确率<50%）</h4>
+                <h4>⚠️ 高频错误题目（正确率<50%，不含简答题）</h4>
+                <span class="card-subtitle">主观题得分≥50%视为正确，未作答视为错误</span>
               </div>
               <div class="error-questions-compact">
                 <div class="error-question-compact" v-for="(item, index) in highErrorQuestions.slice(0, 5)" :key="item.questionId">
                   <div class="error-left">
                     <span class="error-number">#{{ index + 1 }}</span>
-                    <span class="error-title">题{{ item.questionIndex + 1 }}: {{ item.question.content.substring(0, 40) }}...</span>
+                    <span class="error-title">第{{ item.questionIndex + 1 }}题: {{ item.question.content.substring(0, 40) }}...</span>
                   </div>
                   <div class="error-right">
                     <el-tag size="small" :type="getQuestionTypeColor(item.question.type)">
                       {{ getQuestionTypeName(item.question.type) }}
                     </el-tag>
-                    <span class="error-stat">{{ item.correctRate }}%</span>
+                    <span class="error-stat" style="color: #ef4444; font-weight: bold;">
+                      {{ item.errorAnswers }}人错误
+                    </span>
+                    <span class="error-stat">正确率: {{ item.correctRate }}%</span>
                     <el-progress 
                       :percentage="item.correctRate" 
                       :color="getProgressColor(item.correctRate)"
                       :stroke-width="8"
-                      style="width: 120px"
+                      style="width: 100px"
                     />
                   </div>
                 </div>
@@ -554,40 +558,48 @@ const exportToExcel = () => {
   }
 }
 
-// 计算高频错误题目（正确率<50%）
+// 计算高频错误题目（正确率<50%，不含简答题）
 const highErrorQuestions = computed(() => {
   if (questions.value.length === 0 || examRecords.value.length === 0) return []
   
-  const questionStats = questions.value.map((question, index) => {
-    const questionAnswers = allAnswers.value.filter(a => a.questionId === question.id)
-    const totalAnswers = questionAnswers.length
-    const correctAnswers = questionAnswers.filter(a => {
-      // 对于客观题，score > 0 表示正确
-      if ([1, 2, 3].includes(question.type)) {
-        return a.score > 0
+  const questionStats = questions.value
+    .filter(question => question.type !== 5) // 排除简答题
+    .map((question, index) => {
+      const questionAnswers = allAnswers.value.filter(a => a.questionId === question.id)
+      const totalAnswers = questionAnswers.length
+      
+      const correctAnswers = questionAnswers.filter(a => {
+        // 未作答或分数为null/undefined，视为0分错误
+        const score = a.score ?? 0
+        
+        // 对于客观题（单选、多选、判断），score > 0 表示正确
+        if ([1, 2, 3].includes(question.type)) {
+          return score > 0
+        }
+        // 对于主观题（填空题），得分超过该题分值的一半算正确
+        // 注意：简答题已在上面filter中排除
+        return score >= (question.score * 0.5)
+      }).length
+      
+      const correctRate = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
+      
+      return {
+        questionId: question.id,
+        questionIndex: index,
+        question,
+        correctRate,
+        totalAnswers,
+        correctAnswers,
+        errorAnswers: totalAnswers - correctAnswers
       }
-      // 对于主观题，按满分的50%计算
-      return a.score >= (question.score * 0.5)
-    }).length
-    
-    const correctRate = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
-    
-    return {
-      questionId: question.id,
-      questionIndex: index,
-      question,
-      correctRate,
-      totalAnswers,
-      correctAnswers
-    }
-  })
+    })
   
   return questionStats
     .filter(s => s.correctRate < 50 && s.totalAnswers > 0)
     .sort((a, b) => a.correctRate - b.correctRate)
 })
 
-// 题型正确率数据
+// 题型正确率数据（主观题按50%规则）
 const questionTypeStats = computed(() => {
   if (questions.value.length === 0 || allAnswers.value.length === 0) return []
   
@@ -608,7 +620,17 @@ const questionTypeStats = computed(() => {
     }
     
     const questionAnswers = allAnswers.value.filter(a => a.questionId === question.id)
-    const correctAnswers = questionAnswers.filter(a => a.score > 0)
+    const correctAnswers = questionAnswers.filter(a => {
+      // 未作答或分数为null/undefined，视为0分错误
+      const score = a.score ?? 0
+      
+      // 对于客观题（单选、多选、判断），score > 0 表示正确
+      if ([1, 2, 3].includes(question.type)) {
+        return score > 0
+      }
+      // 对于主观题（填空题、简答题），得分超过该题分值的一半算正确
+      return score >= (question.score * 0.5)
+    })
     
     stats[typeName].total += questionAnswers.length
     stats[typeName].correct += correctAnswers.length
@@ -1581,6 +1603,9 @@ onMounted(loadData)
   margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .analysis-card-header h4 {
@@ -1588,6 +1613,12 @@ onMounted(loadData)
   font-size: 16px;
   font-weight: 700;
   color: #303133;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: #909399;
+  font-weight: 400;
 }
 
 .analysis-grid {
