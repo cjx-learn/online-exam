@@ -890,16 +890,20 @@ const drawErrorDistChart = () => {
   chart.setOption(option)
 }
 
-// 绘制题型数量对比图表（柱状图）
+// 绘制题型数量分布图表（雷达图）
 const drawTypeRateChart = () => {
   if (!typeRateChart.value) return
   
   const chart = echarts.init(typeRateChart.value)
   const data = questionTypeStats.value
   
+  // 计算最大值，用于设置雷达图的max
+  const maxCount = data.length > 0 ? Math.max(...data.map(d => d.count)) : 10
+  const radarMax = Math.ceil(maxCount * 1.2) // 最大值增加20%留白
+  
   const option = {
     tooltip: {
-      trigger: 'axis',
+      trigger: 'item',
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderColor: '#667eea',
       borderWidth: 1,
@@ -907,85 +911,85 @@ const drawTypeRateChart = () => {
         color: '#333',
         fontSize: 12
       },
-      axisPointer: {
-        type: 'shadow',
-        shadowStyle: {
-          color: 'rgba(102, 126, 234, 0.1)'
+      formatter: (params) => {
+        let result = '<b>题型分布</b><br/>'
+        params.value.forEach((val, idx) => {
+          result += `${data[idx].type}: <span style="color: #667eea; font-weight: bold;">${val}题</span><br/>`
+        })
+        return result
+      }
+    },
+    radar: {
+      indicator: data.map(d => ({
+        name: d.type,
+        max: radarMax
+      })),
+      shape: 'polygon',
+      radius: '65%',
+      name: {
+        textStyle: {
+          color: '#666',
+          fontSize: 12,
+          fontWeight: 'bold'
         }
       },
-      formatter: '{b}: <span style="color: #667eea; font-weight: bold;">{c}题</span>'
-    },
-    grid: {
-      left: '15%',
-      right: '5%',
-      top: '10%',
-      bottom: '15%'
-    },
-    xAxis: {
-      type: 'category',
-      data: data.map(d => d.type),
-      axisLabel: {
-        color: '#666',
-        fontSize: 11
+      splitArea: {
+        areaStyle: {
+          color: ['rgba(102, 126, 234, 0.05)', 'rgba(102, 126, 234, 0.1)', 
+                  'rgba(102, 126, 234, 0.15)', 'rgba(102, 126, 234, 0.2)']
+        }
       },
       axisLine: {
         lineStyle: {
-          color: '#e0e0e0'
+          color: 'rgba(102, 126, 234, 0.3)'
         }
-      }
-    },
-    yAxis: {
-      type: 'value',
-      name: '题目数量',
-      nameTextStyle: {
-        color: '#666',
-        fontSize: 12
-      },
-      axisLabel: {
-        color: '#666',
-        fontSize: 11,
-        formatter: '{value}题'
-      },
-      axisLine: {
-        show: false
       },
       splitLine: {
         lineStyle: {
-          color: '#f0f0f0',
-          type: 'dashed'
+          color: 'rgba(102, 126, 234, 0.3)'
         }
-      },
-      minInterval: 1
+      }
     },
     series: [{
-      type: 'bar',
-      barWidth: '50%',
-      label: {
-        show: true,
-        position: 'top',
-        fontSize: 11,
-        color: '#667eea',
-        fontWeight: 'bold',
-        formatter: '{c}题'
-      },
-      itemStyle: {
-        borderRadius: [4, 4, 0, 0]
-      },
-      emphasis: {
+      type: 'radar',
+      data: [{
+        value: data.map(d => d.count),
+        name: '题目数量',
+        symbol: 'circle',
+        symbolSize: 8,
+        lineStyle: {
+          width: 3,
+          color: '#667eea'
+        },
         itemStyle: {
-          shadowBlur: 10,
-          shadowColor: 'rgba(102, 126, 234, 0.5)'
-        }
-      },
-      data: data.map((d, index) => ({
-        value: d.count,
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe'][index % 5] },
-            { offset: 1, color: ['#5a67d8', '#667eea', '#e879f9', '#3b82f6', '#06b6d4'][index % 5] }
+          color: '#667eea',
+          borderColor: '#fff',
+          borderWidth: 2,
+          shadowBlur: 6,
+          shadowColor: 'rgba(102, 126, 234, 0.4)'
+        },
+        areaStyle: {
+          color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+            { offset: 0, color: 'rgba(102, 126, 234, 0.5)' },
+            { offset: 1, color: 'rgba(102, 126, 234, 0.1)' }
           ])
+        },
+        label: {
+          show: true,
+          fontSize: 11,
+          color: '#667eea',
+          fontWeight: 'bold',
+          formatter: (params) => params.value + '题'
         }
-      }))
+      }],
+      emphasis: {
+        lineStyle: {
+          width: 4
+        },
+        itemStyle: {
+          shadowBlur: 10
+        }
+      }
     }]
   }
   
