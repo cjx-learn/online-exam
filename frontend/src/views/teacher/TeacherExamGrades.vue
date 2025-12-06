@@ -641,16 +641,28 @@ const drawCorrectRateChart = () => {
   
   const data = questions.value.map((q, index) => {
     const questionAnswers = allAnswers.value.filter(a => a.questionId === q.id)
-    // 正确率 = 答对人数 / 参加考试总人数
     const total = examRecords.value.length
-    // 未作答（null/undefined）或0分算错误
-    const correct = questionAnswers.filter(a => {
-      const score = a.score ?? 0  // null/undefined视为0
-      return score > 0
-    }).length
+    
+    let rate = 0
+    
+    // 对于客观题（单选、多选、判断）：按答对人数计算正确率
+    if ([1, 2, 3].includes(q.type)) {
+      const correct = questionAnswers.filter(a => {
+        const score = a.score ?? 0  // null/undefined视为0
+        return score > 0
+      }).length
+      rate = total > 0 ? Math.round((correct / total) * 100) : 0
+    } 
+    // 对于主观题（填空题、简答题）：按得分占总分的比例计算
+    else {
+      const totalScore = questionAnswers.reduce((sum, a) => sum + (a.score ?? 0), 0)
+      const maxScore = q.score * total
+      rate = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
+    }
+    
     return {
       name: `题${index + 1}`,
-      value: total > 0 ? Math.round((correct / total) * 100) : 0
+      value: rate
     }
   })
   
