@@ -351,4 +351,112 @@ public class ExamRecordServiceImpl implements ExamRecordService {
         
         return count;
     }
+
+    @Override
+    public Map<String, Object> getStudentAnalysis(Long recordId) {
+        Map<String, Object> result = new HashMap<>();
+        
+        // 1. 获取学生的考试记录
+        ExamRecord studentRecord = examRecordMapper.selectById(recordId);
+        if (studentRecord == null) {
+            return null;
+        }
+        
+        // 2. 获取考试信息
+        Exam exam = examMapper.selectById(studentRecord.getExamId());
+        if (exam == null) {
+            return null;
+        }
+        
+        // 3. 获取同一考试的所有学生记录（用于排名和平均分计算）
+        List<ExamRecord> allRecords = examRecordMapper.selectByExamId(studentRecord.getExamId());
+        
+        // 4. 计算班级排名
+        int rank = 1;
+        BigDecimal studentScore = studentRecord.getTotalScore() != null ? studentRecord.getTotalScore() : BigDecimal.ZERO;
+        if (allRecords != null) {
+            for (ExamRecord record : allRecords) {
+                BigDecimal score = record.getTotalScore() != null ? record.getTotalScore() : BigDecimal.ZERO;
+                if (score.compareTo(studentScore) > 0) {
+                    rank++;
+                }
+            }
+        }
+        
+        // 5. 计算班级平均分
+        BigDecimal totalSum = BigDecimal.ZERO;
+        int validCount = 0;
+        if (allRecords != null) {
+            for (ExamRecord record : allRecords) {
+                if (record.getTotalScore() != null) {
+                    totalSum = totalSum.add(record.getTotalScore());
+                    validCount++;
+                }
+            }
+        }
+        BigDecimal classAverage = validCount > 0 ? totalSum.divide(BigDecimal.valueOf(validCount), 2, BigDecimal.ROUND_HALF_UP) : BigDecimal.ZERO;
+        
+        // 6. 计算知识点掌握度（基于题目分类）
+        List<Question> questions = examQuestionMapper.selectQuestionsByExamId(studentRecord.getExamId());
+        List<ExamAnswer> answers = examAnswerMapper.selectByRecordId(recordId);
+        Map<Long, ExamAnswer> answerMap = new HashMap<>();
+        if (answers != null) {
+            for (ExamAnswer ea : answers) {
+                if (ea != null && ea.getQuestionId() != null) {
+                    answerMap.put(ea.getQuestionId(), ea);
+                }
+            }
+        }
+        
+        // 按分类统计得分
+        Map<String, BigDecimal> categoryScores = new HashMap<>();
+        Map<String, BigDecimal> categoryTotals = new HashMap<>();
+        
+        if (questions != null) {
+            for (Question q : questions) {
+                if (q == null) continue;
+                String category = q.getCategory() != null && !q.getCategory().trim().isEmpty() ? q.getCategory() : "其他";
+                BigDecimal fullScore = BigDecimal.valueOf(q.getScore() != null ? q.getScore() : 0.0);
+                
+                // 累加该分类的总分
+                categoryTotals.put(category, categoryTotals.getOrDefault(category, BigDecimal.ZERO).add(fullScore));
+                
+                // 累加学生在该分类的得分
+                ExamAnswer ea = answerMap.get(q.getId());
+                BigDecimal studentAnswerScore = ea != null && ea.getScore() != null ? ea.getScore() : BigDecimal.ZERO;
+                categoryScores.put(category, categoryScores.getOrDefault(category, BigDecimal.ZERO).add(studentAnswerScore));
+            }
+        }
+        
+        // 计算每个分类的掌握度百分比
+        List<Map<String, Object>> knowledgePoints = new java.util.ArrayList<>();
+        for (String category : categoryTotals.keySet()) {
+            BigDecimal total = categoryTotals.get(category);
+            BigDecimal score = categoryScores.getOrDefault(category, BigDecimal.ZERO);
+            double percentage = 0;
+            if (total.compareTo(BigDecimal.ZERO) > 0) {
+                percentage = score.divide(total, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
+            }
+            
+            Map<String, Object> point = new HashMap<>();
+            point.put("name", category);
+            point.put("score", score);
+            point.put("total", total);
+            point.put("percentage", Math.round(percentage * 10) / 10.0); // 保留1位小数
+            knowledgePoints.add(point);
+        }
+        
+        // 7. 组装返回数据
+        result.put("studentScore", studentScore);
+        result.put("classAverage", classAverage);
+        result.put("rank", rank);
+        result.put("totalStudents", allRecords != null ? allRecords.size() : 0);
+        result.put("knowledgePoints", knowledgePoints);
+        result.put("examTitle", exam.getTitle());
+        result.put("passScore", exam.getPassScore());
+        result.put("objectiveScore", studentRecord.getObjectiveScore());
+        result.put("subjectiveScore", studentRecord.getSubjectiveScore());
+        
+        return result;
+    }
 }

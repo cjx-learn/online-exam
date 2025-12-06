@@ -81,6 +81,112 @@
         </div>
       </div>
 
+      <!-- 个人学情报告区域 -->
+      <div v-if="analysisData" class="analysis-section">
+        <div class="analysis-header">
+          <h2 class="analysis-title">
+            <span class="title-icon">📊</span>
+            个人学情报告
+          </h2>
+          <el-button type="primary" @click="downloadPDF" class="download-btn">
+            <el-icon><Download /></el-icon>
+            下载成绩证明
+          </el-button>
+        </div>
+
+        <!-- PDF证明内容（隐藏，仅用于导出） -->
+        <div id="certificateContent" style="display: none;">
+          <div style="padding: 40px; font-family: '微软雅黑', sans-serif;">
+            <h1 style="text-align: center; margin-bottom: 30px; color: #333;">成绩证明</h1>
+            <div style="margin: 20px 0; line-height: 2;">
+              <p><strong>考试名称：</strong>{{ analysisData.examTitle }}</p>
+              <p><strong>总分：</strong>{{ analysisData.studentScore }} 分</p>
+              <p><strong>客观题得分：</strong>{{ analysisData.objectiveScore || 0 }} 分</p>
+              <p><strong>主观题得分：</strong>{{ analysisData.subjectiveScore || 0 }} 分</p>
+              <p><strong>及格分：</strong>{{ analysisData.passScore }} 分</p>
+              <p><strong>班级排名：</strong>第 {{ analysisData.rank }} 名 / 共 {{ analysisData.totalStudents }} 人</p>
+              <p><strong>班级平均分：</strong>{{ analysisData.classAverage }} 分</p>
+              <p style="margin-top: 40px; text-align: right;">生成日期：{{ new Date().toLocaleDateString('zh-CN') }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="analysis-content">
+          <!-- 排名和成绩对比卡片 -->
+          <div class="rank-cards">
+            <div class="rank-card rank-card-1">
+              <div class="rank-icon">🏆</div>
+              <div class="rank-info">
+                <div class="rank-label">班级排名</div>
+                <div class="rank-value">
+                  第 <span class="rank-number">{{ analysisData.rank }}</span> 名
+                </div>
+                <div class="rank-sub">共 {{ analysisData.totalStudents }} 人参加</div>
+              </div>
+            </div>
+
+            <div class="rank-card rank-card-2">
+              <div class="rank-icon">📈</div>
+              <div class="rank-info">
+                <div class="rank-label">与班级平均分对比</div>
+                <div class="rank-value">
+                  <span :class="['compare-value', analysisData.studentScore >= analysisData.classAverage ? 'positive' : 'negative']">
+                    {{ analysisData.studentScore >= analysisData.classAverage ? '+' : '' }}{{ (analysisData.studentScore - analysisData.classAverage).toFixed(1) }}
+                  </span> 分
+                </div>
+                <div class="rank-sub">班级平均: {{ analysisData.classAverage }} 分</div>
+              </div>
+            </div>
+
+            <div class="rank-card rank-card-3">
+              <div class="rank-icon">⭐</div>
+              <div class="rank-info">
+                <div class="rank-label">成绩水平</div>
+                <div class="rank-value">
+                  <span :class="['level-badge', getScoreLevel(analysisData.studentScore, analysisData.passScore)]">
+                    {{ getScoreLevelText(analysisData.studentScore, analysisData.passScore) }}
+                  </span>
+                </div>
+                <div class="rank-sub">及格线: {{ analysisData.passScore }} 分</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 知识点雷达图 -->
+          <div v-if="analysisData.knowledgePoints && analysisData.knowledgePoints.length > 0" class="radar-container">
+            <div id="radarChart" class="radar-chart"></div>
+          </div>
+
+          <!-- 知识点详细列表 -->
+          <div v-if="analysisData.knowledgePoints && analysisData.knowledgePoints.length > 0" class="knowledge-list">
+            <h3 class="knowledge-title">📚 知识点详细分析</h3>
+            <div class="knowledge-items">
+              <div 
+                v-for="(point, index) in analysisData.knowledgePoints" 
+                :key="index"
+                class="knowledge-item"
+              >
+                <div class="knowledge-item-header">
+                  <span class="knowledge-name">{{ point.name }}</span>
+                  <span class="knowledge-percentage" :style="{ color: getPercentageColor(point.percentage) }">
+                    {{ point.percentage }}%
+                  </span>
+                </div>
+                <div class="knowledge-progress">
+                  <div 
+                    class="knowledge-progress-bar" 
+                    :style="{ width: point.percentage + '%', backgroundColor: getPercentageColor(point.percentage) }"
+                  ></div>
+                </div>
+                <div class="knowledge-score">
+                  得分: {{ point.score }} / {{ point.total }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 试题详情区域 -->
       <div class="questions-section">
         <div v-if="questions.length === 0" class="empty-state">
@@ -157,11 +263,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, Loading, Edit } from '@element-plus/icons-vue'
+import { ArrowLeft, Loading, Edit, Download } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import * as echarts from 'echarts'
+import html2pdf from 'html2pdf.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -174,6 +282,11 @@ const questions = ref([])
 const answers = ref([])
 const answerMap = reactive({})
 const currentQuestionId = ref(null)
+
+// 学情分析数据
+const analysisData = ref(null)
+const analysisLoading = ref(false)
+const radarChart = ref(null)
 
 const totalScoreText = computed(() => {
   if (!examRecord.value || examRecord.value.totalScore == null) return '-'
@@ -221,6 +334,167 @@ const loadData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 加载学情分析数据
+const loadAnalysisData = async () => {
+  analysisLoading.value = true
+  try {
+    const res = await request.get(`/examRecord/${recordId.value}/analysis`)
+    if (res && res.data) {
+      analysisData.value = res.data
+      // 渲染雷达图
+      await nextTick()
+      renderRadarChart()
+    }
+  } catch (e) {
+    console.error('加载学情分析失败:', e)
+  } finally {
+    analysisLoading.value = false
+  }
+}
+
+// 渲染雷达图
+const renderRadarChart = () => {
+  if (!analysisData.value || !analysisData.value.knowledgePoints) return
+  
+  const chartDom = document.getElementById('radarChart')
+  if (!chartDom) return
+  
+  // 销毁旧图表
+  if (radarChart.value) {
+    radarChart.value.dispose()
+  }
+  
+  radarChart.value = echarts.init(chartDom)
+  
+  const knowledgePoints = analysisData.value.knowledgePoints
+  const indicator = knowledgePoints.map(item => ({
+    name: item.name,
+    max: 100
+  }))
+  
+  const values = knowledgePoints.map(item => item.percentage)
+  
+  const option = {
+    title: {
+      text: '知识点掌握度分析',
+      left: 'center',
+      textStyle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333'
+      }
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: (params) => {
+        let result = '<div style="padding: 5px;">'
+        params.value.forEach((val, idx) => {
+          const point = knowledgePoints[idx]
+          result += `<div style="margin: 3px 0;">
+            <strong>${point.name}</strong>: ${val}% <br/>
+            <span style="color: #666; font-size: 12px;">
+              得分: ${point.score}/${point.total}
+            </span>
+          </div>`
+        })
+        result += '</div>'
+        return result
+      }
+    },
+    radar: {
+      indicator: indicator,
+      radius: '65%',
+      splitNumber: 4,
+      name: {
+        textStyle: {
+          color: '#666',
+          fontSize: 12
+        }
+      },
+      splitLine: {
+        lineStyle: {
+          color: ['#e0e6f1', '#e5e8ef', '#ebeef5', '#f2f3f5']
+        }
+      },
+      splitArea: {
+        areaStyle: {
+          color: ['rgba(114, 172, 209, 0.05)', 'rgba(114, 172, 209, 0.1)'],
+          shadowColor: 'rgba(0, 0, 0, 0.2)',
+          shadowBlur: 5
+        }
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#d0d0d0'
+        }
+      }
+    },
+    series: [{
+      name: '知识点掌握度',
+      type: 'radar',
+      data: [{
+        value: values,
+        name: '我的掌握度',
+        symbol: 'circle',
+        symbolSize: 6,
+        lineStyle: {
+          width: 2,
+          color: '#4facfe'
+        },
+        areaStyle: {
+          color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+            {
+              color: 'rgba(79, 172, 254, 0.3)',
+              offset: 0
+            },
+            {
+              color: 'rgba(79, 172, 254, 0.1)',
+              offset: 1
+            }
+          ])
+        },
+        itemStyle: {
+          color: '#4facfe',
+          borderColor: '#fff',
+          borderWidth: 2
+        }
+      }]
+    }]
+  }
+  
+  radarChart.value.setOption(option)
+  
+  // 响应式调整
+  window.addEventListener('resize', () => {
+    radarChart.value && radarChart.value.resize()
+  })
+}
+
+// 下载PDF成绩证明
+const downloadPDF = () => {
+  const element = document.getElementById('certificateContent')
+  if (!element) {
+    ElMessage.error('内容加载失败')
+    return
+  }
+  
+  ElMessage.info('正在生成PDF，请稍候...')
+  
+  const opt = {
+    margin: [10, 10],
+    filename: `成绩证明_${exam.title || '考试'}_${new Date().getTime()}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }
+  
+  html2pdf().set(opt).from(element).save().then(() => {
+    ElMessage.success('PDF下载成功')
+  }).catch(() => {
+    ElMessage.error('PDF生成失败')
+  })
 }
 
 const goBack = () => {
@@ -351,7 +625,36 @@ const formatTime = (timeString) => {
   return date.toLocaleString('zh-CN', { hour12: false })
 }
 
-onMounted(loadData)
+// 获取成绩等级样式类
+const getScoreLevel = (score, passScore) => {
+  const percentage = (score / (passScore * 1.5)) * 100  // 假设满分是及格分的1.5倍
+  if (percentage >= 90) return 'excellent'
+  if (percentage >= 80) return 'good'
+  if (percentage >= 60) return 'pass'
+  return 'fail'
+}
+
+// 获取成绩等级文本
+const getScoreLevelText = (score, passScore) => {
+  const percentage = (score / (passScore * 1.5)) * 100
+  if (percentage >= 90) return '优秀'
+  if (percentage >= 80) return '良好'
+  if (percentage >= 60) return '及格'
+  return '不及格'
+}
+
+// 获取百分比对应的颜色
+const getPercentageColor = (percentage) => {
+  if (percentage >= 90) return '#10b981'  // 绿色
+  if (percentage >= 75) return '#3b82f6'  // 蓝色
+  if (percentage >= 60) return '#f59e0b'  // 橙色
+  return '#ef4444'  // 红色
+}
+
+onMounted(() => {
+  loadData()
+  loadAnalysisData()
+})
 </script>
 
 <style scoped>
@@ -1218,6 +1521,287 @@ onMounted(loadData)
 
   .option-text {
     font-size: 13px;
+  }
+}
+
+/* ============ 学情报告区域 ============ */
+.analysis-section {
+  margin: 30px 0;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 3px solid rgba(79, 172, 254, 0.3);
+}
+
+.analysis-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e3a8a;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+
+.title-icon {
+  font-size: 28px;
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+  transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+}
+
+.analysis-content {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* 排名卡片 */
+.rank-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.rank-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.rank-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.rank-card-1 {
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.rank-card-1:hover {
+  border-color: rgba(245, 158, 11, 0.6);
+  background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
+}
+
+.rank-card-2 {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.rank-card-2:hover {
+  border-color: rgba(59, 130, 246, 0.6);
+  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.rank-card-3 {
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.rank-card-3:hover {
+  border-color: rgba(168, 85, 247, 0.6);
+  background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%);
+}
+
+.rank-icon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.rank-info {
+  flex: 1;
+}
+
+.rank-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.rank-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.rank-number {
+  color: #f59e0b;
+  font-size: 32px;
+}
+
+.rank-sub {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.compare-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.compare-value.positive {
+  color: #10b981;
+}
+
+.compare-value.negative {
+  color: #ef4444;
+}
+
+.level-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.level-badge.excellent {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.level-badge.good {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.level-badge.pass {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.level-badge.fail {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+/* 雷达图 */
+.radar-container {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.radar-chart {
+  width: 100%;
+  height: 400px;
+}
+
+/* 知识点列表 */
+.knowledge-list {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.knowledge-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.knowledge-items {
+  display: grid;
+  gap: 16px;
+}
+
+.knowledge-item {
+  padding: 16px;
+  background: rgba(249, 250, 251, 0.6);
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  transition: all 0.3s ease;
+}
+
+.knowledge-item:hover {
+  background: rgba(249, 250, 251, 1);
+  border-color: rgba(79, 172, 254, 0.3);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.1);
+}
+
+.knowledge-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.knowledge-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.knowledge-percentage {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.knowledge-progress {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.knowledge-progress-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 1s ease-out;
+  background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.knowledge-score {
+  font-size: 13px;
+  color: #6b7280;
+  text-align: right;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .rank-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .radar-chart {
+    height: 300px;
+  }
+
+  .analysis-content {
+    padding: 20px;
   }
 }
 </style>

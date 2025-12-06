@@ -104,4 +104,23 @@ public class ExamRecordController {
             return Result.error("提交考试失败：" + e.getMessage());
         }
     }
+
+    /**
+     * 获取学生的学情分析报告
+     * @param recordId 考试记录ID
+     * @return 学情分析数据
+     */
+    @GetMapping("/{recordId}/analysis")
+    public Result getStudentAnalysis(@PathVariable Long recordId) {
+        try {
+            java.util.Map<String, Object> analysis = examRecordService.getStudentAnalysis(recordId);
+            if (analysis != null) {
+                return Result.success(analysis);
+            } else {
+                return Result.error("获取学情分析失败，考试记录不存在");
+            }
+        } catch (Exception e) {
+            return Result.error("获取学情分析失败：" + e.getMessage());
+        }
+    }
 }

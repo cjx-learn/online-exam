@@ -71,4 +71,11 @@ public interface ExamRecordService {
      * @return 自动提交的记录数量
      */
     int autoSubmitExpiredExams(Long examId);
+
+    /**
+     * 获取学生的学情分析数据
+     * @param recordId 考试记录ID
+     * @return 包含知识点掌握度、班级排名、平均分对比等数据的Map
+     */
+    java.util.Map<String, Object> getStudentAnalysis(Long recordId);
 }
