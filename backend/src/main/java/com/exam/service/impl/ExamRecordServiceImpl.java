@@ -8,6 +8,7 @@ import com.exam.mapper.ExamAnswerMapper;
 import com.exam.mapper.ExamMapper;
 import com.exam.mapper.ExamQuestionMapper;
 import com.exam.mapper.ExamRecordMapper;
+import com.exam.mapper.UserMapper;
 import com.exam.service.ExamRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,8 @@ public class ExamRecordServiceImpl implements ExamRecordService {
     private ExamQuestionMapper examQuestionMapper;
     @Autowired
     private ExamAnswerMapper examAnswerMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public ExamRecord getExamRecordById(Long id) {
@@ -446,7 +449,12 @@ public class ExamRecordServiceImpl implements ExamRecordService {
             knowledgePoints.add(point);
         }
         
-        // 7. 组装返回数据
+        // 7. 获取学生信息
+        com.exam.entity.User student = userMapper.selectById(studentRecord.getUserId());
+        String studentName = student != null ? student.getUsername() : "未知";
+        String studentId = student != null ? student.getStudentId() : "未知";
+        
+        // 8. 组装返回数据
         result.put("studentScore", studentScore);
         result.put("classAverage", classAverage);
         result.put("rank", rank);
@@ -456,6 +464,9 @@ public class ExamRecordServiceImpl implements ExamRecordService {
         result.put("passScore", exam.getPassScore());
         result.put("objectiveScore", studentRecord.getObjectiveScore());
         result.put("subjectiveScore", studentRecord.getSubjectiveScore());
+        result.put("studentName", studentName);
+        result.put("studentId", studentId);
+        result.put("courseName", exam.getTitle()); // 使用考试标题作为课程名称
         
         return result;
     }

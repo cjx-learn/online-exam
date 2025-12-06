@@ -91,17 +91,20 @@
 
         <!-- PDF证明内容（隐藏，仅用于导出） -->
         <div id="certificateContent" style="display: none;">
-          <div style="padding: 40px; font-family: '微软雅黑', sans-serif;">
-            <h1 style="text-align: center; margin-bottom: 30px; color: #333;">成绩证明</h1>
-            <div style="margin: 20px 0; line-height: 2;">
-              <p><strong>考试名称：</strong>{{ analysisData.examTitle }}</p>
-              <p><strong>总分：</strong>{{ analysisData.studentScore }} 分</p>
-              <p><strong>客观题得分：</strong>{{ analysisData.objectiveScore || 0 }} 分</p>
-              <p><strong>主观题得分：</strong>{{ analysisData.subjectiveScore || 0 }} 分</p>
-              <p><strong>及格分：</strong>{{ analysisData.passScore }} 分</p>
-              <p><strong>班级排名：</strong>第 {{ analysisData.rank }} 名 / 共 {{ analysisData.totalStudents }} 人</p>
-              <p><strong>班级平均分：</strong>{{ analysisData.classAverage }} 分</p>
-              <p style="margin-top: 40px; text-align: right;">生成日期：{{ new Date().toLocaleDateString('zh-CN') }}</p>
+          <div style="padding: 50px; font-family: '微软雅黑', sans-serif; max-width: 800px; margin: 0 auto;">
+            <h1 style="text-align: center; margin-bottom: 40px; color: #1e40af; font-size: 32px; border-bottom: 3px solid #3b82f6; padding-bottom: 15px;">成绩证明</h1>
+            <div style="margin: 30px 0; line-height: 2.2; font-size: 16px;">
+              <p><strong style="color: #374151;">学生姓名：</strong>{{ analysisData.studentName || '未知' }}</p>
+              <p><strong style="color: #374151;">学号：</strong>{{ analysisData.studentId || '未知' }}</p>
+              <p><strong style="color: #374151;">课程名称：</strong>{{ analysisData.courseName || exam.title || '未知' }}</p>
+              <p><strong style="color: #374151;">考试名称：</strong>{{ analysisData.examTitle || exam.title }}</p>
+              <p style="margin-top: 25px;"><strong style="color: #374151;">总分数：</strong><span style="color: #2563eb; font-size: 18px; font-weight: bold;">{{ analysisData.studentScore }} 分</span></p>
+              <p><strong style="color: #374151;">客观题分数：</strong><span style="color: #059669;">{{ analysisData.objectiveScore || 0 }} 分</span></p>
+              <p><strong style="color: #374151;">主观题分数：</strong><span style="color: #d97706;">{{ analysisData.subjectiveScore || 0 }} 分</span></p>
+              <p style="margin-top: 50px; text-align: right; color: #6b7280; font-size: 14px;">出具日期：{{ new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) }}</p>
+            </div>
+            <div style="margin-top: 60px; text-align: center; color: #9ca3af; font-size: 12px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+              本证明由在线考试系统自动生成
             </div>
           </div>
         </div>
@@ -135,7 +138,7 @@
           </div>
 
           <!-- 图表区域 -->
-          <div class="charts-grid">
+          <div v-if="analysisData" class="charts-grid">
             <!-- 知识点雷达图 -->
             <div v-if="analysisData.knowledgePoints && analysisData.knowledgePoints.length > 0" class="chart-container">
               <div id="radarChart" class="chart-box"></div>
