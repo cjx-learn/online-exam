@@ -15,6 +15,21 @@
             {{ formatTime(examRecord.examEndTime || exam.endTime) }}
           </p>
         </div>
+        <!-- 视图切换按钮 -->
+        <div class="view-switch-buttons">
+          <button 
+            :class="['switch-btn', { active: currentView === 'report' }]"
+            @click="currentView = 'report'"
+          >
+            📊 学情报告
+          </button>
+          <button 
+            :class="['switch-btn', { active: currentView === 'detail' }]"
+            @click="currentView = 'detail'"
+          >
+            📝 试卷详情
+          </button>
+        </div>
       </div>
     </div>
 
@@ -28,28 +43,8 @@
 
     <!-- 主要内容 -->
     <div v-else class="detail-body">
-      <!-- 题目导航侧边栏 -->
-      <aside class="questions-nav">
-        <div class="nav-header">
-          <span class="nav-title">题目导航</span>
-          <span class="nav-progress">{{ questions.length }}</span>
-        </div>
-        <div class="nav-grid">
-          <button
-            v-for="(q, index) in questions"
-            :key="q.id"
-            class="nav-item"
-            :class="{ 'is-current': currentQuestionId === q.id }"
-            @click="scrollToQuestion(q.id)"
-            :title="`题目 ${index + 1}`"
-          >
-            {{ index + 1 }}
-          </button>
-        </div>
-      </aside>
-
-      <!-- 主内容区域 -->
-      <div class="detail-content">
+      <!-- 学情报告视图 -->
+      <div v-if="currentView === 'report'" class="report-view">
         <!-- 统计卡片区域 -->
         <div class="stats-section">
         <div class="stat-card total-card">
@@ -88,10 +83,16 @@
             <span class="title-icon">📊</span>
             个人学情报告
           </h2>
-          <el-button type="primary" @click="downloadPDF" class="download-btn">
-            <el-icon><Download /></el-icon>
-            下载成绩证明
-          </el-button>
+          <div class="header-actions">
+            <el-button type="success" @click="currentView = 'detail'" class="view-detail-btn">
+              <el-icon><Edit /></el-icon>
+              查看试卷详情
+            </el-button>
+            <el-button type="primary" @click="downloadPDF" class="download-btn">
+              <el-icon><Download /></el-icon>
+              下载成绩证明
+            </el-button>
+          </div>
         </div>
 
         <!-- PDF证明内容（隐藏，仅用于导出） -->
@@ -186,8 +187,31 @@
           </div>
         </div>
       </div>
+      </div>
 
-      <!-- 试题详情区域 -->
+      <!-- 试卷详情视图 -->
+      <div v-else-if="currentView === 'detail'" class="detail-view">
+      <!-- 题目导航侧边栏 -->
+      <aside class="questions-nav">
+        <div class="nav-header">
+          <span class="nav-title">题目导航</span>
+          <span class="nav-progress">{{ questions.length }}</span>
+        </div>
+        <div class="nav-grid">
+          <button
+            v-for="(q, index) in questions"
+            :key="q.id"
+            class="nav-item"
+            :class="{ 'is-current': currentQuestionId === q.id }"
+            @click="scrollToQuestion(q.id)"
+            :title="`题目 ${index + 1}`"
+          >
+            {{ index + 1 }}
+          </button>
+        </div>
+      </aside>
+
+      <!-- 主内容区域（试题详情） -->
       <div class="questions-section">
         <div v-if="questions.length === 0" class="empty-state">
           <div class="empty-icon">📝</div>
@@ -258,8 +282,11 @@
         </div>
       </div>
       </div>
+      <!-- 关闭试卷详情视图 -->
     </div>
+    <!-- 关闭主要内容 detail-body -->
   </div>
+  <!-- 关闭最外层容器 -->
 </template>
 
 <script setup>
@@ -287,6 +314,9 @@ const currentQuestionId = ref(null)
 const analysisData = ref(null)
 const analysisLoading = ref(false)
 const radarChart = ref(null)
+
+// 视图切换：'report' - 学情报告, 'detail' - 试卷详情
+const currentView = ref('report')
 
 const totalScoreText = computed(() => {
   if (!examRecord.value || examRecord.value.totalScore == null) return '-'
@@ -763,8 +793,65 @@ onMounted(() => {
 }
 
 .separator {
+  margin: 0 8px;
   color: #d1d5db;
-  margin: 0 4px;
+}
+
+/* ============ 视图切换按钮 ============ */
+.view-switch-buttons {
+  display: flex;
+  gap: 12px;
+  margin-left: 20px;
+}
+
+.switch-btn {
+  padding: 10px 20px;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.switch-btn:hover {
+  border-color: rgba(102, 126, 234, 0.5);
+  background: rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.switch-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+}
+
+.switch-btn.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+/* ============ 视图容器 ============ */
+.report-view,
+.detail-view {
+  width: 100%;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============ 加载状态 ============ */
@@ -1552,6 +1639,24 @@ onMounted(() => {
 .title-icon {
   font-size: 28px;
   animation: iconPulse 2s ease-in-out infinite;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.view-detail-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  transition: all 0.3s ease;
+}
+
+.view-detail-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 .download-btn {
