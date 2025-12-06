@@ -930,12 +930,12 @@ onMounted(() => {
 /* ============ 主要内容区域 ============ */
 .detail-body {
   flex: 1;
-  max-width: 1400px;
+  max-width: 1600px;
   width: 100%;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 32px 24px;
   display: flex;
-  gap: 24px;
+  gap: 28px;
 }
 
 /* ============ 题目导航侧边栏 ============ */
@@ -1145,18 +1145,18 @@ onMounted(() => {
 .question-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
 /* ============ 题目卡片 ============ */
 .question-card {
-  padding: 24px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border: 2px solid rgba(102, 126, 234, 0.1);
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 28px 32px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  border: 2px solid rgba(102, 126, 234, 0.12);
+  box-shadow: 0 6px 24px rgba(102, 126, 234, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
   animation: fadeInUp 0.6s ease-out;
@@ -1193,17 +1193,17 @@ onMounted(() => {
 .question-header {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(102, 126, 234, 0.08);
+  gap: 18px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.1);
 }
 
 .q-number-badge {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   font-weight: 800;
@@ -1220,40 +1220,42 @@ onMounted(() => {
 }
 
 .q-content {
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827;
-  line-height: 1.6;
-  word-break: break-word;
-  margin-bottom: 10px;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.9;
+  color: #1e293b;
+  margin-bottom: 14px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  letter-spacing: 0.01em;
 }
 
 .q-tags {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .q-type-tag,
 .q-score-tag {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .q-type-tag {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
   color: #667eea;
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  border: 1.5px solid rgba(102, 126, 234, 0.25);
 }
 
 .q-score-tag {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(234, 88, 12, 0.12) 100%);
   color: #f97316;
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  border: 1.5px solid rgba(249, 115, 22, 0.25);
 }
 
 /* ============ 题目选项 ============ */
@@ -1361,20 +1363,24 @@ onMounted(() => {
 .question-details {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 18px;
+  margin-top: 20px;
 }
 
 .detail-item {
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: rgba(249, 250, 251, 0.8);
-  border: 1px solid rgba(102, 126, 234, 0.08);
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(249, 250, 251, 0.9);
+  border: 1.5px solid rgba(102, 126, 234, 0.1);
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .detail-item:hover {
-  background: rgba(249, 250, 251, 1);
-  border-color: rgba(102, 126, 234, 0.15);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08);
+  transform: translateY(-2px);
 }
 
 .detail-label {
