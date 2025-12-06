@@ -457,7 +457,8 @@ const scoreRanges = computed(() => {
 
   return ranges.map(range => {
     const count = examRecords.value.filter(r => {
-      const score = r.totalScore || 0
+      // 未作答或未批改（totalScore为null/undefined）视为0分
+      const score = r.totalScore ?? 0
       return score >= range.min && score <= range.max
     }).length
     return {
@@ -662,7 +663,11 @@ const drawCorrectRateChart = () => {
   const data = questions.value.map((q, index) => {
     const questionAnswers = allAnswers.value.filter(a => a.questionId === q.id)
     const total = questionAnswers.length
-    const correct = questionAnswers.filter(a => a.score > 0).length
+    // 未作答（score为null/undefined）视为0分，算作错误
+    const correct = questionAnswers.filter(a => {
+      const score = a.score ?? 0
+      return score > 0
+    }).length
     return {
       name: `题${index + 1}`,
       value: total > 0 ? Math.round((correct / total) * 100) : 0
@@ -770,7 +775,8 @@ const drawErrorDistChart = () => {
       }
     }
     
-    const totalScore = questionAnswers.reduce((sum, a) => sum + (a.score || 0), 0)
+    // 未作答（score为null/undefined）视为0分
+    const totalScore = questionAnswers.reduce((sum, a) => sum + (a.score ?? 0), 0)
     const maxScore = q.score * questionAnswers.length
     const rate = maxScore > 0 ? ((totalScore / maxScore) * 100).toFixed(1) : 0
     
