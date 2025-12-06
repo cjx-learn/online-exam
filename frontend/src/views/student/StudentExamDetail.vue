@@ -454,9 +454,18 @@ const downloadPDF = async () => {
     const day = String(currentDate.getDate()).padStart(2, '0')
     const formattedDate = `${year}年${month}月${day}日`
     
-    // 获取学生姓名和学号
-    const studentName = examRecord.value?.studentName || '未知'
-    const studentId = examRecord.value?.studentId || '-'
+    // 从班级排名表格中获取当前学生的姓名和学号
+    let studentName = '未知'
+    let studentId = examRecord.value?.studentId || '-'
+    
+    if (analysisData.value.rankingList && examRecord.value?.studentId) {
+      const currentStudent = analysisData.value.rankingList.find(
+        student => student.studentId === examRecord.value.studentId
+      )
+      if (currentStudent) {
+        studentName = currentStudent.studentName || '未知'
+      }
+    }
     
     // 创建临时元素并填充实际数据
     const tempDiv = document.createElement('div')
