@@ -1,6 +1,63 @@
 <template>
-  <div class="student-exam-container">
-    <div class="exam-header">
+  <div class="student-exam-container" @contextmenu.prevent @copy.prevent @paste.prevent @cut.prevent>
+    <!-- 考试须知弹窗 -->
+    <el-dialog
+      v-model="noticeVisible"
+      title="考试须知"
+      width="520px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+      center
+    >
+      <div class="notice-content">
+        <el-alert type="warning" :closable="false" show-icon>
+          <template #title>
+            <span style="font-size: 16px; font-weight: bold;">请认真阅读以下考试纪律</span>
+          </template>
+        </el-alert>
+        <div class="notice-list">
+          <p>1. 考试期间请保持诚信，严禁作弊行为。</p>
+          <p>2. 禁止使用任何通讯工具或查阅资料。</p>
+          <p>3. 考试过程中请勿切换页面或离开考试界面，切屏超过3次将自动交卷。</p>
+          <p>4. 禁止复制、粘贴、右键菜单等操作。</p>
+          <p>5. 答题完成后请及时提交试卷。</p>
+          <p>6. 如遇网络问题，系统会自动保存答案。</p>
+          <p>7. 违反考试纪律者，成绩将作废处理。</p>
+        </div>
+        <div class="countdown-tip">
+          <el-icon><Timer /></el-icon>
+          <span>{{ noticeCountdown }} 秒后自动进入考试...</span>
+        </div>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="startExamNow" :disabled="noticeCountdown > 0">
+          {{ noticeCountdown > 0 ? `请等待 ${noticeCountdown} 秒` : '立即开始考试' }}
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 切屏警告弹窗 -->
+    <el-dialog
+      v-model="switchWarningVisible"
+      title="警告"
+      width="400px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+      center
+    >
+      <div class="warning-content">
+        <el-icon class="warning-icon" color="#F56C6C" :size="60"><WarningFilled /></el-icon>
+        <p class="warning-text">检测到您离开了考试页面！</p>
+        <p class="warning-count">您已切屏 <span class="count-num">{{ switchCount }}</span> 次，超过 3 次将自动交卷</p>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="switchWarningVisible = false">我知道了</el-button>
+      </template>
+    </el-dialog>
+
+    <div v-show="!noticeVisible" class="exam-header">
       <div class="header-left">
         <div class="exam-info">
           <h1 class="exam-title">{{ exam.title || '考试' }}</h1>
@@ -38,6 +95,10 @@
           </transition>
         </div>
 
+        <div class="switch-count-tag" v-if="switchCount > 0">
+          <el-tag type="danger" effect="dark">切屏: {{ switchCount }}/3</el-tag>
+        </div>
+
         <div class="action-buttons">
           <el-button class="nav-btn-mobile" plain @click="navVisible = true">
             <el-icon><Grid /></el-icon>
@@ -52,7 +113,7 @@
     </div>
 
     <el-progress
-      v-if="questions.length"
+      v-if="questions.length && !noticeVisible"
       class="progress-bar"
       :percentage="progressPercent"
       :stroke-width="6"
@@ -60,12 +121,12 @@
       status="success"
     />
 
-    <el-card v-if="loading" class="loading-card" shadow="never">
+    <el-card v-if="loading && !noticeVisible" class="loading-card" shadow="never">
       <el-icon class="is-loading"><Loading /></el-icon>
       正在加载试题...
     </el-card>
 
-    <div v-else class="exam-body">
+    <div v-show="!loading && !noticeVisible" class="exam-body">
       <aside class="q-nav">
         <div class="nav-header">
           <span>题目导航</span>
@@ -148,7 +209,7 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Loading, Timer, Trophy, Select, Grid, Checked } from '@element-plus/icons-vue'
+import { Loading, Timer, Trophy, Select, Grid, Checked, WarningFilled } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -156,6 +217,15 @@ const router = useRouter()
 
 const examId = ref(Number(route.params.id))
 const exam = reactive({})
+
+// 考试须知相关
+const noticeVisible = ref(true)
+const noticeCountdown = ref(5)
+let noticeTimer = null
+
+// 防作弊相关
+const switchCount = ref(0)
+const switchWarningVisible = ref(false)
 
 const isAnswered = (val, type) => {
   if (type === 2) return Array.isArray(val) && val.length > 0
@@ -418,8 +488,67 @@ onMounted(() => {
 })
 onBeforeUnmount(() => { if (autosaveTimer) clearInterval(autosaveTimer) })
 
+// 考试须知倒计时
+const startNoticeCountdown = () => {
+  noticeTimer = setInterval(() => {
+    if (noticeCountdown.value > 0) {
+      noticeCountdown.value--
+    } else {
+      clearInterval(noticeTimer)
+      startExamNow()
+    }
+  }, 1000)
+}
+
+// 立即开始考试
+const startExamNow = () => {
+  if (noticeTimer) {
+    clearInterval(noticeTimer)
+  }
+  noticeVisible.value = false
+}
+
+// 防作弊：监听切屏
+const handleVisibilityChange = () => {
+  if (document.hidden && !noticeVisible.value) {
+    switchCount.value++
+    if (switchCount.value >= 3) {
+      ElMessageBox.alert('您已切屏超过3次，系统将自动提交试卷！', '警告', {
+        confirmButtonText: '确定',
+        type: 'error',
+        callback: () => {
+          submit()
+        }
+      })
+    } else {
+      switchWarningVisible.value = true
+      ElMessage.warning(`警告：检测到切屏行为！已切屏 ${switchCount.value} 次，超过3次将自动交卷`)
+    }
+  }
+}
+
+// 防作弊：禁用快捷键
+const handleKeydown = (e) => {
+  if ((e.ctrlKey && ['c', 'v', 'x', 'a'].includes(e.key.toLowerCase())) || e.key === 'F12') {
+    e.preventDefault()
+    ElMessage.warning('考试期间禁止使用此快捷键')
+  }
+}
+
+onMounted(() => {
+  startNoticeCountdown()
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  document.addEventListener('keydown', handleKeydown)
+})
+
 onMounted(loadData)
-onBeforeUnmount(() => { if (countdownTimer.value) clearInterval(countdownTimer.value) })
+
+onBeforeUnmount(() => { 
+  if (countdownTimer.value) clearInterval(countdownTimer.value)
+  if (noticeTimer) clearInterval(noticeTimer)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  document.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <style scoped>
@@ -1055,5 +1184,67 @@ onBeforeUnmount(() => { if (countdownTimer.value) clearInterval(countdownTimer.v
   .question {
     padding: 16px 18px;
   }
+}
+
+/* 考试须知弹窗样式 */
+.notice-content {
+  padding: 10px 0;
+}
+
+.notice-list {
+  margin: 20px 0;
+  padding: 15px 20px;
+  background: #fdf6ec;
+  border-radius: 8px;
+}
+
+.notice-list p {
+  margin: 10px 0;
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.countdown-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  color: #E6A23C;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* 切屏警告弹窗样式 */
+.warning-content {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.warning-icon {
+  margin-bottom: 15px;
+}
+
+.warning-text {
+  font-size: 18px;
+  color: #303133;
+  margin-bottom: 10px;
+}
+
+.warning-count {
+  color: #606266;
+  font-size: 14px;
+}
+
+.count-num {
+  color: #F56C6C;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 5px;
+}
+
+.switch-count-tag {
+  margin-right: 12px;
 }
 </style>

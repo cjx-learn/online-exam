@@ -63,10 +63,6 @@
                   <el-icon><User /></el-icon>
                   个人信息
                 </el-dropdown-item>
-                <el-dropdown-item command="settings">
-                  <el-icon><Setting /></el-icon>
-                  设置
-                </el-dropdown-item>
                 <el-dropdown-item command="logout" divided>
                   <el-icon><SwitchButton /></el-icon>
                   退出登录
@@ -583,9 +579,7 @@ const handleCommand = (command) => {
       }
       profileDialogVisible.value = true
       break
-    case 'settings':
-      ElMessage.info('设置功能开发中...')
-      break
+
     case 'logout':
       ElMessageBox.confirm('确定要退出登录吗？', '提示', {
         confirmButtonText: '确定',
