@@ -265,7 +265,7 @@ const perQuestionScore = (q) => {
   const userAnswerText = answer && answer.userAnswer
     ? formatAnswerText(q, answer.userAnswer)
     : '未作答'
-  const comment = answer && answer.comment ? answer.comment : ''
+  const comment = answer && answer.teacherComment ? answer.teacherComment : ''
   return { scoreText, userAnswerText, comment }
 }
 
