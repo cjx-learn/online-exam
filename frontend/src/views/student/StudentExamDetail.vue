@@ -83,16 +83,10 @@
             <span class="title-icon">📊</span>
             个人学情报告
           </h2>
-          <div class="header-actions">
-            <el-button type="success" @click="currentView = 'detail'" class="view-detail-btn">
-              <el-icon><Edit /></el-icon>
-              查看试卷详情
-            </el-button>
-            <el-button type="primary" @click="downloadPDF" class="download-btn">
-              <el-icon><Download /></el-icon>
-              下载成绩证明
-            </el-button>
-          </div>
+          <el-button type="primary" @click="downloadPDF" class="download-btn">
+            <el-icon><Download /></el-icon>
+            下载成绩证明
+          </el-button>
         </div>
 
         <!-- PDF证明内容（隐藏，仅用于导出） -->
@@ -1687,24 +1681,6 @@ onMounted(() => {
 .title-icon {
   font-size: 28px;
   animation: iconPulse 2s ease-in-out infinite;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.view-detail-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border: none;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-  transition: all 0.3s ease;
-}
-
-.view-detail-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 .download-btn {
