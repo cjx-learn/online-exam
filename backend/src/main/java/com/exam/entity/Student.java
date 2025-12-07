@@ -20,6 +20,7 @@ public class Student implements Serializable {
     private String major;      // 专业
     private String email;
     private String phone;
+    private String avatar;     // 头像URL
     private Integer status;    // 0-禁用 1-启用
     private Date createTime;
     private Date updateTime;

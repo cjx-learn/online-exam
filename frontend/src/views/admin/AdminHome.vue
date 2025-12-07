@@ -54,7 +54,12 @@
           <!-- 用户头像下拉菜单 -->
           <el-dropdown @command="handleCommand">
             <div class="user-avatar">
-              <el-avatar :size="42" :icon="UserFilled" class="avatar-img" />
+              <el-avatar 
+                :size="42" 
+                :icon="userInfo.realName ? (userInfo.avatar ? undefined : UserFilled) : UserFilled" 
+                :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+                class="avatar-img" 
+              />
               <span class="user-name">{{ userInfo.realName || '管理员' }}</span>
             </div>
             <template #dropdown>
@@ -268,6 +273,9 @@
     <!-- 个人信息对话框 -->
     <el-dialog v-model="profileDialogVisible" title="个人信息" width="500px" :close-on-click-modal="false">
       <el-form :model="userForm" label-width="80px">
+        <el-form-item label="头像">
+          <AvatarUpload v-model="userForm.avatar" />
+        </el-form-item>
         <el-form-item label="用户名"><el-input v-model="userForm.username" disabled /></el-form-item>
         <el-form-item label="真实姓名"><el-input v-model="userForm.realName" disabled /></el-form-item>
         <el-divider content-position="left"><span style="color: #909399; font-size: 13px;">可修改信息</span></el-divider>
@@ -409,18 +417,50 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  HomeFilled, Reading, User, UserFilled, Document, Plus, ArrowDown, Setting, SwitchButton, School, Upload
+  Document,
+  User,
+  UserFilled,
+  SwitchButton,
+  Plus,
+  Edit,
+  Delete,
+  Search,
+  Refresh,
+  Download,
+  Upload
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import AvatarUpload from '@/components/AvatarUpload.vue'
 
 const router = useRouter()
 
 // 用户信息
 const userInfo = reactive({
-  id: localStorage.getItem('userId') || '',
-  username: localStorage.getItem('username') || '',
-  realName: localStorage.getItem('realName') || '管理员'
+  id: '',
+  username: '',
+  realName: '管理员',
+  email: '',
+  phone: '',
+  avatar: ''
 })
+
+// 从 localStorage 读取用户信息
+try {
+  const storedUserInfo = localStorage.getItem('userInfo')
+  if (storedUserInfo) {
+    const parsed = JSON.parse(storedUserInfo)
+    Object.assign(userInfo, {
+      id: parsed.userId || '',
+      username: parsed.username || '',
+      realName: parsed.realName || '管理员',
+      email: parsed.email || '',
+      phone: parsed.phone || '',
+      avatar: parsed.avatar || ''
+    })
+  }
+} catch (e) {
+  console.error('Failed to parse userInfo from localStorage in AdminHome:', e)
+}
 
 // 当前激活的菜单
 const activeMenu = ref('dashboard')
@@ -529,7 +569,8 @@ const userForm = reactive({
   username: '',
   realName: '',
   email: '',
-  phone: ''
+  phone: '',
+  avatar: ''
 })
 
 // 修改密码对话框
@@ -574,7 +615,8 @@ const handleCommand = (command) => {
           username: parsed.username,
           realName: parsed.realName,
           email: parsed.email || '',
-          phone: parsed.phone || ''
+          phone: parsed.phone || '',
+          avatar: parsed.avatar || ''
         })
       }
       profileDialogVisible.value = true
@@ -602,17 +644,27 @@ const saveProfile = async () => {
       realName: userForm.realName,
       email: userForm.email,
       phone: userForm.phone,
+      avatar: userForm.avatar,
       role: 2
     })
     if (response.code === 200) {
       ElMessage.success('个人信息已保存')
       profileDialogVisible.value = false
+      // 更新本地 userInfo
+      Object.assign(userInfo, {
+        realName: userForm.realName,
+        email: userForm.email,
+        phone: userForm.phone,
+        avatar: userForm.avatar
+      })
+      // 更新 localStorage
       const storedUserInfo = localStorage.getItem('userInfo')
       if (storedUserInfo) {
         const parsed = JSON.parse(storedUserInfo)
         parsed.realName = userForm.realName
         parsed.email = userForm.email
         parsed.phone = userForm.phone
+        parsed.avatar = userForm.avatar
         localStorage.setItem('userInfo', JSON.stringify(parsed))
       }
     } else {

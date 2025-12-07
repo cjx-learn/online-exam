@@ -14,7 +14,12 @@
         <!-- 用户头像下拉菜单 -->
         <el-dropdown @command="handleUserCommand">
           <div class="user-avatar">
-            <el-avatar :size="42" :icon="UserFilled" class="avatar-img" />
+            <el-avatar 
+              :size="42" 
+              :icon="userInfo.avatar ? undefined : UserFilled" 
+              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              class="avatar-img" 
+            />
             <span class="user-name">{{ userInfo.realName || '教师' }}</span>
           </div>
           <template #dropdown>
@@ -440,6 +445,9 @@
       :close-on-click-modal="false"
     >
       <el-form :model="userForm" label-width="80px">
+        <el-form-item label="头像">
+          <AvatarUpload v-model="userForm.avatar" />
+        </el-form-item>
         <el-form-item label="真实姓名">
           <el-input v-model="userForm.realName" disabled />
         </el-form-item>
@@ -479,6 +487,7 @@ import {
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import * as XLSX from 'xlsx'
+import AvatarUpload from '@/components/AvatarUpload.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -495,7 +504,8 @@ const userInfo = reactive({
   email: '',
   phone: '',
   department: '',
-  title: ''
+  title: '',
+  avatar: ''
 })
 
 // 个人信息表单
@@ -520,6 +530,7 @@ try {
         phone: currentUserInfo.phone || '',
         department: currentUserInfo.department || '',
         title: currentUserInfo.title || '',
+        avatar: currentUserInfo.avatar || '',
       });
     }
   }
@@ -1027,13 +1038,14 @@ const saveProfile = async () => {
     // 假设后端有一个 /user/update 接口来更新用户信息
     const updateData = {
       id: currentUserInfo.userId,
+      role: 1, // 教师角色
       realName: userForm.realName,
       teacherNo: userForm.teacherNo,
       email: userForm.email,
       phone: userForm.phone,
       department: userForm.department,
       title: userForm.title,
-      // password: userForm.password // 密码字段需要额外处理，这里暂时不包含
+      avatar: userForm.avatar,
     };
     // 如果密码字段有值，则添加到更新数据中
     if (userForm.password) {

@@ -21,6 +21,7 @@ public class Teacher implements Serializable {
     private String title;      // 职称
     private String email;
     private String phone;
+    private String avatar;     // 头像URL
     private Integer status;    // 0-禁用 1-启用
     private Date createTime;
     private Date updateTime;

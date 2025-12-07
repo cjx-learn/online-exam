@@ -12,7 +12,12 @@
         </el-button>
         <el-dropdown @command="handleCommand" trigger="click">
           <div class="user-display">
-            <el-avatar :size="36" :icon="UserFilled" class="user-avatar" />
+            <el-avatar 
+              :size="36" 
+              :icon="userInfo.avatar ? undefined : UserFilled" 
+              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              class="user-avatar" 
+            />
             <span class="user-name">{{ userInfo.realName || '教师' }}</span>
           </div>
           <template #dropdown>
@@ -542,6 +547,9 @@
       :close-on-click-modal="false"
     >
       <el-form :model="userForm" label-width="100px">
+        <el-form-item label="头像">
+          <AvatarUpload v-model="userForm.avatar" />
+        </el-form-item>
         <el-form-item label="用户名">
           <el-input v-model="userForm.username" disabled></el-input>
         </el-form-item>
@@ -573,6 +581,7 @@ import { ElMessage, ElMessageBox, ElNotification } from 'element-plus';
 import { Back, UserFilled, User, SwitchButton, Document, Edit, CircleCheck, Plus, Clock, Timer, Reading, Search, Grid, Refresh, TrendCharts, MagicStick, Top, Bottom, Close, Delete } from '@element-plus/icons-vue';
 import request from '@/utils/request';
 import QuestionSelectionTable from '@/components/QuestionSelectionTable.vue'; // 显式导入 QuestionSelectionTable 组件
+import AvatarUpload from '@/components/AvatarUpload.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -586,9 +595,31 @@ const userInfo = reactive({
   teacherNo: '',
   email: '',
   phone: '',
+  avatar: '',
 });
 const userForm = reactive({});
 const profileDialogVisible = ref(false);
+
+// 初始化用户信息
+try {
+  const storedUserInfo = localStorage.getItem('userInfo');
+  if (storedUserInfo) {
+    const parsed = JSON.parse(storedUserInfo);
+    Object.assign(userInfo, {
+      id: parsed.id || '',
+      userId: parsed.userId || '',
+      username: parsed.username || '',
+      realName: parsed.realName || '',
+      role: parsed.role || '',
+      teacherNo: parsed.teacherNo || '',
+      email: parsed.email || '',
+      phone: parsed.phone || '',
+      avatar: parsed.avatar || '',
+    });
+  }
+} catch (e) {
+  console.error('Failed to parse userInfo from localStorage in TeacherExamCreate:', e);
+}
 
 const activeStep = ref(0); // 当前激活的步骤，0-indexed
 const examFormRef = ref(null); // 表单引用
@@ -1003,14 +1034,38 @@ const handleLogout = () => {
   }).catch(() => {});
 };
 
-// 保存个人信息 (占位符)
+// 保存个人信息
 const saveProfile = async () => {
-  // 实际应该调用后端接口更新用户信息
-  ElMessage.success('个人信息保存成功！(模拟)');
-  profileDialogVisible.value = false;
-  // 更新本地用户信息
-  Object.assign(userInfo, userForm);
-  localStorage.setItem('userInfo', JSON.stringify(userInfo));
+  if (!userInfo.userId) {
+    ElMessage.warning('用户信息未找到，请重新登录');
+    router.push('/login');
+    return;
+  }
+  try {
+    const updateData = {
+      id: userInfo.userId,
+      role: 1, // 教师角色
+      realName: userForm.realName,
+      teacherNo: userForm.teacherNo,
+      email: userForm.email,
+      phone: userForm.phone,
+      avatar: userForm.avatar,
+    };
+    const response = await request.post('/user/update', updateData);
+    if (response.code === 200) {
+      ElMessage.success('个人信息已保存');
+      profileDialogVisible.value = false;
+      // 更新本地用户信息
+      Object.assign(userInfo, updateData);
+      const updatedUserInfo = { ...userInfo, ...updateData };
+      localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
+    } else {
+      ElMessage.error(response.message || '保存个人信息失败');
+    }
+  } catch (error) {
+    console.error('保存个人信息失败:', error);
+    ElMessage.error('网络错误，无法保存个人信息');
+  }
 };
 
 // 加载课程列表

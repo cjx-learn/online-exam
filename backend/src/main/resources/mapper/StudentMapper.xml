@@ -12,6 +12,7 @@
         <result column="major" property="major"/>
         <result column="email" property="email"/>
         <result column="phone" property="phone"/>
+        <result column="avatar" property="avatar"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
@@ -53,6 +54,7 @@
             <if test="major != null">major = #{major},</if>
             <if test="email != null">email = #{email},</if>
             <if test="phone != null">phone = #{phone},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
             <if test="status != null">status = #{status},</if>
         </set>
         WHERE id = #{id}

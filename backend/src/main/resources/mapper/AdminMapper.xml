@@ -10,6 +10,7 @@
         <result column="real_name" property="realName"/>
         <result column="email" property="email"/>
         <result column="phone" property="phone"/>
+        <result column="avatar" property="avatar"/>
         <result column="super_admin" property="superAdmin"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
@@ -37,6 +38,7 @@
             <if test="realName != null">real_name = #{realName},</if>
             <if test="email != null">email = #{email},</if>
             <if test="phone != null">phone = #{phone},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
             <if test="superAdmin != null">super_admin = #{superAdmin},</if>
             <if test="status != null">status = #{status},</if>
         </set>

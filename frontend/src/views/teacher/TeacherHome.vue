@@ -27,7 +27,12 @@
         <!-- 用户头像下拉菜单 -->
         <el-dropdown @command="handleCommand">
           <div class="user-avatar">
-            <el-avatar :size="42" :icon="UserFilled" class="avatar-img" />
+            <el-avatar 
+              :size="42" 
+              :icon="userInfo.avatar ? undefined : UserFilled" 
+              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              class="avatar-img" 
+            />
             <span class="user-name">{{ userInfo.realName || '教师' }}</span>
           </div>
           <template #dropdown>
@@ -207,6 +212,9 @@
       :close-on-click-modal="false"
     >
       <el-form :model="userForm" label-width="80px">
+        <el-form-item label="头像">
+          <AvatarUpload v-model="userForm.avatar" />
+        </el-form-item>
         <el-form-item label="真实姓名">
           <el-input v-model="userForm.realName" disabled />
         </el-form-item>
@@ -245,6 +253,7 @@ import {
   Plus, UserFilled, User, SwitchButton, Monitor, Loading, Document
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import AvatarUpload from '@/components/AvatarUpload.vue'
 
 const router = useRouter()
 
@@ -257,7 +266,8 @@ const userInfo = reactive({
   email: '',
   phone: '',
   department: '',
-  title: ''
+  title: '',
+  avatar: ''
 })
 
 // 个人信息表单
@@ -279,6 +289,7 @@ try {
         phone: currentUserInfo.phone || '',
         department: currentUserInfo.department || '',
         title: currentUserInfo.title || '',
+        avatar: currentUserInfo.avatar || ''
       });
     }
   }
@@ -475,6 +486,7 @@ const saveProfile = async () => {
       phone: userForm.phone,
       department: userForm.department,
       title: userForm.title,
+      avatar: userForm.avatar,
       // password: userForm.password // 密码字段需要额外处理，这里暂时不包含
     };
     // 如果密码字段有值，则添加到更新数据中
@@ -996,6 +1008,7 @@ onMounted(() => {
   transition: all 0.3s;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

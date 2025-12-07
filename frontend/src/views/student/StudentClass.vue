@@ -17,7 +17,12 @@
         <!-- 用户头像下拉菜单 -->
         <el-dropdown @command="handleCommand">
           <div class="user-avatar">
-            <el-avatar :size="42" :icon="UserFilled" class="avatar-img" />
+            <el-avatar 
+              :size="42" 
+              :icon="userInfo.avatar ? undefined : UserFilled" 
+              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              class="avatar-img" 
+            />
             <span class="user-name">{{ userInfo.realName || '个人设置' }}</span>
           </div>
           <template #dropdown>
@@ -224,6 +229,9 @@
       class="profile-dialog"
     >
       <el-form :model="userForm" label-width="100px" class="profile-form">
+        <el-form-item label="头像">
+          <AvatarUpload v-model="userForm.avatar" />
+        </el-form-item>
         <el-form-item label="用户名">
           <el-input v-model="userForm.username" disabled>
             <template #suffix>
@@ -345,6 +353,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox, ElLoading, ElDropdown, ElDropdownMenu, ElDropdownItem, ElAvatar } from 'element-plus';
 import request from '@/utils/request';
 import { Clock, CircleCheck, CircleClose, Timer, Reading, TrophyBase, ArrowRight, Back, Document, UserFilled, User, Setting, SwitchButton, Edit, Lock, Key, InfoFilled } from '@element-plus/icons-vue';
+import AvatarUpload from '@/components/AvatarUpload.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -374,6 +383,7 @@ const userInfo = reactive({
   className: '',
   email: '',
   phone: '',
+  avatar: '',
 });
 
 // 个人信息表单
@@ -766,7 +776,8 @@ const saveProfile = async () => {
       studentNo: userForm.studentNo,
       major: userForm.major,
       email: userForm.email,
-      phone: userForm.phone
+      phone: userForm.phone,
+      avatar: userForm.avatar
     };
     const response = await request.post('/user/update', updateData);
 

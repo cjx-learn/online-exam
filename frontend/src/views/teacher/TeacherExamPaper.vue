@@ -11,7 +11,12 @@
         </el-button>
         <el-dropdown @command="handleUserCommand">
           <div class="user-avatar">
-            <el-avatar :size="42" :icon="UserFilled" class="avatar-img" />
+            <el-avatar 
+              :size="42" 
+              :icon="userInfo.avatar ? undefined : UserFilled" 
+              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              class="avatar-img" 
+            />
             <span class="user-name">{{ userInfo.realName || '教师' }}</span>
           </div>
           <template #dropdown>
@@ -173,6 +178,9 @@
       width="500px"
       :close-on-click-modal="false">
       <el-form :model="userForm" label-width="80px">
+        <el-form-item label="头像">
+          <AvatarUpload v-model="userForm.avatar" />
+        </el-form-item>
         <el-form-item label="真实姓名">
           <el-input v-model="userForm.realName" disabled />
         </el-form-item>
@@ -210,6 +218,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Back, Loading, Printer, User, UserFilled, SwitchButton, TrendCharts, Timer, Clock, CircleCheck, Document } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import AvatarUpload from '@/components/AvatarUpload.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -232,7 +241,7 @@ const printPaper = () => window.print()
 // 个人设置
 const profileDialogVisible = ref(false)
 const userInfo = reactive({
-  id: '', username: '', realName: '教师', teacherNo: '', email: '', phone: '', department: '', title: ''
+  id: '', username: '', realName: '教师', teacherNo: '', email: '', phone: '', department: '', title: '', avatar: ''
 })
 const userForm = reactive({ ...userInfo })
 let currentUserInfo = null
@@ -249,7 +258,8 @@ try {
         email: currentUserInfo.email || '',
         phone: currentUserInfo.phone || '',
         department: currentUserInfo.department || '',
-        title: currentUserInfo.title || ''
+        title: currentUserInfo.title || '',
+        avatar: currentUserInfo.avatar || ''
       })
     }
   }
@@ -286,12 +296,14 @@ const saveProfile = async () => {
   try {
     const updateData = {
       id: currentUserInfo.userId,
+      role: 1, // 教师角色
       realName: userForm.realName,
       teacherNo: userForm.teacherNo,
       email: userForm.email,
       phone: userForm.phone,
       department: userForm.department,
-      title: userForm.title
+      title: userForm.title,
+      avatar: userForm.avatar
     }
     if (userForm.password) updateData.password = userForm.password
     const response = await request.post('/user/update', updateData)

@@ -77,7 +77,8 @@ public class UserController {
                 request.getDepartment(),
                 request.getTitle(),
                 request.getStudentNo(),
-                request.getMajor()
+                request.getMajor(),
+                request.getAvatar()
             );
             return Result.success("更新成功");
         } catch (Exception e) {
@@ -137,6 +138,9 @@ public class UserController {
         // 学生额外字段
         private String studentNo;
         private String major;
+        
+        // 头像
+        private String avatar;
     }
     
     /**

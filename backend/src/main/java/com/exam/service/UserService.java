@@ -64,6 +64,7 @@ public class UserService {
             result.put("major", student.getMajor());
             result.put("email", student.getEmail());
             result.put("phone", student.getPhone());
+            result.put("avatar", student.getAvatar());
             return result;
             
         } else if (role == 1) {
@@ -92,6 +93,7 @@ public class UserService {
             result.put("title", teacher.getTitle());
             result.put("email", teacher.getEmail());
             result.put("phone", teacher.getPhone());
+            result.put("avatar", teacher.getAvatar());
             return result;
             
         } else if (role == 2) {
@@ -118,6 +120,7 @@ public class UserService {
             result.put("superAdmin", admin.getSuperAdmin());
             result.put("email", admin.getEmail());
             result.put("phone", admin.getPhone());
+            result.put("avatar", admin.getAvatar());
             return result;
             
         } else {
@@ -234,7 +237,7 @@ public class UserService {
      */
     public void updateUserInfo(Long id, Integer role, String realName, String email, String phone,
                               String teacherNo, String department, String title,
-                              String studentNo, String major) {
+                              String studentNo, String major, String avatar) {
         if (role == null) {
             role = findUserRole(id);
         }
@@ -248,6 +251,7 @@ public class UserService {
                 if (major != null) student.setMajor(major);
                 if (email != null) student.setEmail(email);
                 if (phone != null) student.setPhone(phone);
+                if (avatar != null) student.setAvatar(avatar);
                 
                 studentMapper.update(student);
                 return;
@@ -262,6 +266,7 @@ public class UserService {
                 if (title != null) teacher.setTitle(title);
                 if (email != null) teacher.setEmail(email);
                 if (phone != null) teacher.setPhone(phone);
+                if (avatar != null) teacher.setAvatar(avatar);
                 
                 teacherMapper.update(teacher);
                 return;
@@ -273,6 +278,7 @@ public class UserService {
                 if (realName != null) admin.setRealName(realName);
                 if (email != null) admin.setEmail(email);
                 if (phone != null) admin.setPhone(phone);
+                if (avatar != null) admin.setAvatar(avatar);
                 
                 adminMapper.update(admin);
                 return;
