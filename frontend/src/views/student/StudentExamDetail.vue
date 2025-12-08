@@ -80,7 +80,6 @@
       <div v-if="analysisData" class="analysis-section">
         <div class="analysis-header">
           <h2 class="analysis-title">
-            <span class="title-icon">📊</span>
             个人学情报告
           </h2>
           <el-button type="primary" @click="downloadPDF" class="download-btn">
@@ -136,7 +135,7 @@
 
           <!-- 班级排名表格 -->
           <div class="ranking-table-container">
-            <h3 class="ranking-table-title">📊 班级成绩排名</h3>
+            <h3 class="ranking-table-title">班级成绩排名</h3>
             <div class="ranking-table-wrapper">
               <table class="ranking-table">
                 <thead>
@@ -173,7 +172,7 @@
 
           <!-- 知识点详细列表 -->
           <div v-if="analysisData.knowledgePoints && analysisData.knowledgePoints.length > 0" class="knowledge-list">
-            <h3 class="knowledge-title">📚 知识点详细分析</h3>
+            <h3 class="knowledge-title">知识点详细分析</h3>
             <div class="knowledge-items">
               <div 
                 v-for="(point, index) in analysisData.knowledgePoints" 
@@ -1657,11 +1656,6 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   margin: 0;
-}
-
-.title-icon {
-  font-size: 28px;
-  animation: iconPulse 2s ease-in-out infinite;
 }
 
 .download-btn {

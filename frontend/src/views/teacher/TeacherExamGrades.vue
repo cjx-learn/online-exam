@@ -251,7 +251,7 @@
               <!-- 题目正确率分析 -->
               <div class="analysis-card-compact">
                 <div class="analysis-card-header">
-                  <h4>📊 题目正确率</h4>
+                  <h4>题目正确率</h4>
                 </div>
                 <div ref="correctRateChart" class="chart-container-compact"></div>
               </div>
@@ -259,7 +259,7 @@
               <!-- 题目得分率趋势 -->
               <div class="analysis-card-compact">
                 <div class="analysis-card-header">
-                  <h4>📈 题目得分率趋势</h4>
+                  <h4>题目得分率趋势</h4>
                 </div>
                 <div ref="errorDistChart" class="chart-container-compact"></div>
               </div>
@@ -267,7 +267,7 @@
               <!-- 题型数量分布 -->
               <div class="analysis-card-compact">
                 <div class="analysis-card-header">
-                  <h4>📝 题型分布</h4>
+                  <h4>题型分布</h4>
                 </div>
                 <div ref="typeRateChart" class="chart-container-compact"></div>
               </div>
@@ -276,7 +276,7 @@
             <!-- 高频错误题目列表（紧凑版） -->
             <div class="analysis-card-compact" v-if="highErrorQuestions.length > 0">
               <div class="analysis-card-header">
-                <h4>⚠️ 高频错误题目（正确率<50%）</h4>
+                <h4>高频错误题目（正确率<50%）</h4>
               </div>
               <div class="error-questions-compact">
                 <div class="error-question-compact" v-for="(item, index) in highErrorQuestions.slice(0, 5)" :key="item.questionId">
