@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : cjx
+ Source Server         : exam
  Source Server Type    : MySQL
  Source Server Version : 80040
- Source Host           : 127.0.0.1:3306
+ Source Host           : localhost:3306
  Source Schema         : online_exam
 
  Target Server Type    : MySQL
  Target Server Version : 80040
  File Encoding         : 65001
 
- Date: 05/12/2025 10:16:42
+ Date: 10/12/2025 20:48:04
 */
 
 SET NAMES utf8mb4;
@@ -33,16 +33,17 @@ CREATE TABLE `admin`  (
   `status` tinyint NOT NULL DEFAULT 1 COMMENT '鐘舵?: 0-绂佺敤 1-鍚?敤',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '鍒涘缓鏃堕棿',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '鏇存柊鏃堕棿',
+  `current_token` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '褰撳墠鐧诲綍Token锛堢敤浜庡崟璁惧?闄愬埗锛',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_username`(`username` ASC) USING BTREE,
   INDEX `idx_status`(`status` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '绠＄悊鍛樿〃' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '绠＄悊鍛樿〃' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of admin
 -- ----------------------------
-INSERT INTO `admin` VALUES (1, 'admin', '$2a$10$PqyZKkF3ag6/tGQungV3N.7vgr036IVd.RUNZn76ZRUFkwqYtXX96', 'System Admin', NULL, 'admin@exam.com', '13700001001', 1, 1, '2025-11-08 15:36:20', '2025-11-08 15:36:20');
-INSERT INTO `admin` VALUES (2, 'admin2', '$2a$10$PqyZKkF3ag6/tGQungV3N.7vgr036IVd.RUNZn76ZRUFkwqYtXX96', 'Sub Admin', NULL, 'admin2@exam.com', '13700001002', 0, 1, '2025-11-08 15:36:20', '2025-11-08 15:36:20');
+INSERT INTO `admin` VALUES (1, 'admin', '$2a$10$PqyZKkF3ag6/tGQungV3N.7vgr036IVd.RUNZn76ZRUFkwqYtXX96', 'System Admin', '/uploads/avatars/2025/12/07/aed5735c31a44effbe65050d6379285f.jpg', 'admin@exam.com', '13700001001', 1, 1, '2025-11-08 15:36:20', '2025-12-10 18:30:18', 'eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoyLCJleHAiOjE3NjU5Njc0MTgsInVzZXJJZCI6MSwiaWF0IjoxNzY1MzYyNjE4LCJ1c2VybmFtZSI6ImFkbWluIn0.9xQmZbqco4CKjcJjpMvZSiiO4jMkenCma2PlmZvXvdonfjQNpC59xO0oeR0Sa-TJxbi0Jw4OZrArAZD13Ml0fQ');
+INSERT INTO `admin` VALUES (2, 'admin2', '$2a$10$PqyZKkF3ag6/tGQungV3N.7vgr036IVd.RUNZn76ZRUFkwqYtXX96', 'Sub Admin', NULL, 'admin2@exam.com', '13700001002', 0, 1, '2025-11-08 15:36:20', '2025-12-10 18:28:14', 'eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoyLCJleHAiOjE3NjU5NjcyOTQsInVzZXJJZCI6MiwiaWF0IjoxNzY1MzYyNDk0LCJ1c2VybmFtZSI6ImFkbWluMiJ9.ImaXDq784SJYwM8bDpf83dm3tCDkpdbIa7mhM6Vr1ql01yhdkyk0HFZEsW6cNmUYPhUe5ockmSEAMR-0HgGrtw');
 
 -- ----------------------------
 -- Table structure for announcement
@@ -112,7 +113,7 @@ CREATE TABLE `answer_record`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_exam_record`(`exam_record_id` ASC) USING BTREE,
   INDEX `idx_question`(`question_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 177 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '绛旈?璁板綍琛' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 202 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '绛旈?璁板綍琛' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of answer_record
@@ -225,13 +226,37 @@ INSERT INTO `answer_record` VALUES (167, 62, 35, 'B', 0, 0.00, NULL, NULL, '2025
 INSERT INTO `answer_record` VALUES (168, 62, 83, 'A', 1, 10.00, NULL, NULL, '2025-11-18 10:26:52', '2025-11-18 10:26:29', '2025-11-18 10:26:51');
 INSERT INTO `answer_record` VALUES (169, 62, 99, 'sds', NULL, NULL, NULL, NULL, NULL, '2025-11-18 10:26:29', '2025-11-18 10:26:51');
 INSERT INTO `answer_record` VALUES (170, 62, 51, 'asfas', NULL, NULL, NULL, NULL, NULL, '2025-11-18 10:26:29', '2025-11-18 10:26:51');
-INSERT INTO `answer_record` VALUES (171, 64, 118, 'B', NULL, NULL, NULL, NULL, NULL, '2025-11-25 10:20:07', '2025-11-25 10:20:29');
-INSERT INTO `answer_record` VALUES (172, 64, 19, '[\"B\",\"C\",\"D\",\"A\"]', NULL, NULL, NULL, NULL, NULL, '2025-11-25 10:20:07', '2025-11-25 10:20:29');
-INSERT INTO `answer_record` VALUES (173, 64, 67, '[\"B\",\"A\"]', NULL, NULL, NULL, NULL, NULL, '2025-11-25 10:20:07', '2025-11-25 10:20:29');
-INSERT INTO `answer_record` VALUES (174, 64, 35, 'B', NULL, NULL, NULL, NULL, NULL, '2025-11-25 10:20:07', '2025-11-25 10:20:29');
-INSERT INTO `answer_record` VALUES (175, 64, 83, 'B', NULL, NULL, NULL, NULL, NULL, '2025-11-25 10:20:07', '2025-11-25 10:20:29');
+INSERT INTO `answer_record` VALUES (171, 64, 118, 'B', 0, 0.00, NULL, NULL, '2025-12-06 20:24:07', '2025-11-25 10:20:07', '2025-12-06 20:24:07');
+INSERT INTO `answer_record` VALUES (172, 64, 19, '[\"B\",\"C\",\"D\",\"A\"]', 0, 0.00, NULL, NULL, '2025-12-06 20:24:07', '2025-11-25 10:20:07', '2025-12-06 20:24:07');
+INSERT INTO `answer_record` VALUES (173, 64, 67, '[\"B\",\"A\"]', 0, 0.00, NULL, NULL, '2025-12-06 20:24:07', '2025-11-25 10:20:07', '2025-12-06 20:24:07');
+INSERT INTO `answer_record` VALUES (174, 64, 35, 'B', 0, 0.00, NULL, NULL, '2025-12-06 20:24:07', '2025-11-25 10:20:07', '2025-12-06 20:24:07');
+INSERT INTO `answer_record` VALUES (175, 64, 83, 'B', 0, 0.00, NULL, NULL, '2025-12-06 20:24:07', '2025-11-25 10:20:07', '2025-12-06 20:24:07');
 INSERT INTO `answer_record` VALUES (176, 64, 51, '', NULL, NULL, NULL, NULL, NULL, '2025-11-25 10:20:07', '2025-11-25 10:20:29');
 INSERT INTO `answer_record` VALUES (177, 64, 99, '', NULL, NULL, NULL, NULL, NULL, '2025-11-25 10:20:07', '2025-11-25 10:20:29');
+INSERT INTO `answer_record` VALUES (178, 66, 120, 'D', 0, 0.00, NULL, NULL, '2025-12-05 11:22:57', '2025-12-05 11:22:47', '2025-12-05 11:22:56');
+INSERT INTO `answer_record` VALUES (179, 66, 121, '[\"B\",\"A\",\"C\"]', 1, 10.00, NULL, NULL, '2025-12-05 11:22:57', '2025-12-05 11:22:47', '2025-12-05 11:22:56');
+INSERT INTO `answer_record` VALUES (180, 66, 122, 'A', 1, 3.00, NULL, NULL, '2025-12-05 11:22:57', '2025-12-05 11:22:47', '2025-12-05 11:22:56');
+INSERT INTO `answer_record` VALUES (181, 66, 123, 'afsaf', NULL, 2.00, NULL, NULL, '2025-12-05 11:23:55', '2025-12-05 11:22:47', '2025-12-05 11:23:55');
+INSERT INTO `answer_record` VALUES (182, 66, 124, 'safsa', NULL, 4.00, NULL, NULL, '2025-12-05 11:24:01', '2025-12-05 11:22:47', '2025-12-05 11:24:01');
+INSERT INTO `answer_record` VALUES (183, 67, 135, 'A', 1, 5.00, NULL, NULL, '2025-12-07 23:22:54', '2025-12-07 23:22:32', '2025-12-07 23:22:53');
+INSERT INTO `answer_record` VALUES (184, 67, 136, 'A', 1, 5.00, NULL, NULL, '2025-12-07 23:22:54', '2025-12-07 23:22:32', '2025-12-07 23:22:53');
+INSERT INTO `answer_record` VALUES (185, 67, 137, '[\"C\",\"B\"]', 0, 0.00, NULL, NULL, '2025-12-07 23:22:54', '2025-12-07 23:22:32', '2025-12-07 23:22:53');
+INSERT INTO `answer_record` VALUES (186, 67, 138, 'B', 1, 3.00, NULL, NULL, '2025-12-07 23:22:54', '2025-12-07 23:22:32', '2025-12-07 23:22:53');
+INSERT INTO `answer_record` VALUES (187, 67, 139, '6', NULL, NULL, NULL, NULL, NULL, '2025-12-07 23:22:32', '2025-12-07 23:22:53');
+INSERT INTO `answer_record` VALUES (188, 67, 140, '6', NULL, NULL, NULL, NULL, NULL, '2025-12-07 23:22:32', '2025-12-07 23:22:53');
+INSERT INTO `answer_record` VALUES (189, 68, 136, 'B', 0, 0.00, NULL, NULL, '2025-12-07 23:24:28', '2025-12-07 23:24:18', '2025-12-07 23:24:28');
+INSERT INTO `answer_record` VALUES (190, 68, 135, 'A', 1, 5.00, NULL, NULL, '2025-12-07 23:24:28', '2025-12-07 23:24:18', '2025-12-07 23:24:28');
+INSERT INTO `answer_record` VALUES (191, 68, 137, '[\"A\",\"B\"]', 0, 0.00, NULL, NULL, '2025-12-07 23:24:28', '2025-12-07 23:24:18', '2025-12-07 23:24:28');
+INSERT INTO `answer_record` VALUES (192, 68, 138, 'A', 0, 0.00, NULL, NULL, '2025-12-07 23:24:28', '2025-12-07 23:24:18', '2025-12-07 23:24:28');
+INSERT INTO `answer_record` VALUES (193, 68, 139, '6', NULL, 1.00, NULL, NULL, '2025-12-07 23:26:35', '2025-12-07 23:24:18', '2025-12-07 23:26:34');
+INSERT INTO `answer_record` VALUES (194, 68, 140, '6', NULL, 1.00, NULL, NULL, '2025-12-07 23:26:44', '2025-12-07 23:24:18', '2025-12-07 23:26:44');
+INSERT INTO `answer_record` VALUES (195, 69, 143, 'A', 1, 5.00, NULL, NULL, '2025-12-09 23:46:12', '2025-12-09 23:45:55', '2025-12-09 23:46:12');
+INSERT INTO `answer_record` VALUES (196, 69, 16, 'B', 0, 0.00, NULL, NULL, '2025-12-09 23:46:12', '2025-12-09 23:45:55', '2025-12-09 23:46:12');
+INSERT INTO `answer_record` VALUES (197, 69, 48, 'C', 0, 0.00, NULL, NULL, '2025-12-09 23:46:12', '2025-12-09 23:45:55', '2025-12-09 23:46:12');
+INSERT INTO `answer_record` VALUES (198, 69, 64, 'A', 1, 5.00, NULL, NULL, '2025-12-09 23:46:12', '2025-12-09 23:45:55', '2025-12-09 23:46:12');
+INSERT INTO `answer_record` VALUES (199, 69, 96, 'B', 0, 0.00, NULL, NULL, '2025-12-09 23:46:12', '2025-12-09 23:45:55', '2025-12-09 23:46:12');
+INSERT INTO `answer_record` VALUES (200, 69, 32, '', NULL, NULL, NULL, NULL, NULL, '2025-12-09 23:45:55', '2025-12-09 23:46:12');
+INSERT INTO `answer_record` VALUES (201, 69, 80, '', NULL, NULL, NULL, NULL, NULL, '2025-12-09 23:45:55', '2025-12-09 23:46:12');
 
 -- ----------------------------
 -- Table structure for class
@@ -261,7 +286,7 @@ CREATE TABLE `class`  (
   INDEX `idx_semester`(`semester` ASC) USING BTREE,
   INDEX `idx_status`(`status` ASC) USING BTREE,
   INDEX `idx_course_id`(`course_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '鐝?骇/璇剧▼琛' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 22 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '鐝?骇/璇剧▼琛' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of class
@@ -299,7 +324,7 @@ CREATE TABLE `course`  (
   UNIQUE INDEX `uk_code`(`code` ASC) USING BTREE,
   INDEX `idx_category`(`category` ASC) USING BTREE,
   INDEX `idx_status`(`status` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '璇剧▼琛?鐢辩?鐞嗗憳绠＄悊)' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '璇剧▼琛?鐢辩?鐞嗗憳绠＄悊)' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of course
@@ -412,7 +437,7 @@ CREATE TABLE `exam`  (
   INDEX `idx_creator`(`creator_id` ASC) USING BTREE,
   INDEX `idx_status`(`status` ASC) USING BTREE,
   INDEX `idx_time`(`start_time` ASC, `end_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 46 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '鑰冭瘯琛' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 51 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '鑰冭瘯琛' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of exam
@@ -434,6 +459,10 @@ INSERT INTO `exam` VALUES (43, 14, '2412412', NULL, NULL, 1, 5760, 81.00, 49.00,
 INSERT INTO `exam` VALUES (44, 14, '期末考试1', NULL, NULL, 1, 2280, 81.00, 49.00, '2025-11-19 00:00:00', '2025-11-20 14:00:00', 0, 1, 0, 0, 0, 1, 1, 1, '2025-11-17 22:35:11', '2025-11-17 22:35:11');
 INSERT INTO `exam` VALUES (45, 14, '1111', NULL, NULL, 1, 1440, 81.00, 49.00, '2025-11-18 00:00:00', '2025-11-19 00:00:00', 0, 1, 0, 0, 0, 1, 1, 1, '2025-11-18 10:26:06', '2025-11-18 10:26:06');
 INSERT INTO `exam` VALUES (46, 14, 'dafsafsa', NULL, NULL, 1, 15222, 81.00, 49.00, '2025-11-25 10:17:32', '2025-12-06 00:00:00', 0, 1, 0, 0, 0, 1, 1, 1, '2025-11-25 10:17:51', '2025-11-25 10:17:51');
+INSERT INTO `exam` VALUES (47, 18, '第四次测试', NULL, NULL, 1, 683, 43.00, 26.00, '2025-12-05 00:00:00', '2025-12-05 11:23:25', 0, 1, 0, 0, 0, 1, 1, 1, '2025-12-05 11:22:13', '2025-12-05 11:22:13');
+INSERT INTO `exam` VALUES (48, 20, 'zCzc', NULL, NULL, 1, 24545, 48.00, 29.00, '2025-12-07 22:55:21', '2025-12-25 00:00:00', 0, 1, 0, 0, 0, 1, 1, 1, '2025-12-07 22:59:06', '2025-12-07 22:59:06');
+INSERT INTO `exam` VALUES (49, 20, '111', NULL, NULL, 1, 2, 48.00, 29.00, '2025-12-07 23:23:35', '2025-12-07 23:25:35', 0, 1, 0, 0, 0, 1, 1, 1, '2025-12-07 23:23:56', '2025-12-07 23:23:56');
+INSERT INTO `exam` VALUES (50, 19, 'safsa', NULL, NULL, 1, 2, 69.00, 41.00, '2025-12-09 23:44:28', '2025-12-09 23:46:28', 0, 1, 0, 0, 0, 1, 1, 1, '2025-12-09 23:45:14', '2025-12-09 23:45:14');
 
 -- ----------------------------
 -- Table structure for exam_question
@@ -450,7 +479,7 @@ CREATE TABLE `exam_question`  (
   INDEX `idx_exam`(`exam_id` ASC) USING BTREE,
   INDEX `idx_question`(`question_id` ASC) USING BTREE,
   INDEX `idx_sort`(`exam_id` ASC, `sort_order` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 253 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '鑰冭瘯棰樼洰鍏宠仈琛' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 278 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '鑰冭瘯棰樼洰鍏宠仈琛' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of exam_question
@@ -568,6 +597,30 @@ INSERT INTO `exam_question` VALUES (250, 46, 51, 0, 20.00, 1);
 INSERT INTO `exam_question` VALUES (251, 46, 99, 0, 20.00, 1);
 INSERT INTO `exam_question` VALUES (252, 46, 35, 0, 10.00, 1);
 INSERT INTO `exam_question` VALUES (253, 46, 83, 0, 10.00, 1);
+INSERT INTO `exam_question` VALUES (254, 47, 120, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (255, 47, 121, 0, 10.00, 1);
+INSERT INTO `exam_question` VALUES (256, 47, 123, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (257, 47, 124, 0, 20.00, 1);
+INSERT INTO `exam_question` VALUES (258, 47, 122, 0, 3.00, 1);
+INSERT INTO `exam_question` VALUES (259, 48, 135, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (260, 48, 136, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (261, 48, 137, 0, 10.00, 1);
+INSERT INTO `exam_question` VALUES (262, 48, 139, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (263, 48, 140, 0, 20.00, 1);
+INSERT INTO `exam_question` VALUES (264, 48, 138, 0, 3.00, 1);
+INSERT INTO `exam_question` VALUES (265, 49, 136, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (266, 49, 135, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (267, 49, 137, 0, 10.00, 1);
+INSERT INTO `exam_question` VALUES (268, 49, 139, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (269, 49, 140, 0, 20.00, 1);
+INSERT INTO `exam_question` VALUES (270, 49, 138, 0, 3.00, 1);
+INSERT INTO `exam_question` VALUES (271, 50, 143, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (272, 50, 16, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (273, 50, 48, 0, 15.00, 1);
+INSERT INTO `exam_question` VALUES (274, 50, 64, 0, 5.00, 1);
+INSERT INTO `exam_question` VALUES (275, 50, 96, 0, 15.00, 1);
+INSERT INTO `exam_question` VALUES (276, 50, 32, 0, 12.00, 1);
+INSERT INTO `exam_question` VALUES (277, 50, 80, 0, 12.00, 1);
 
 -- ----------------------------
 -- Table structure for exam_record
@@ -593,7 +646,7 @@ CREATE TABLE `exam_record`  (
   INDEX `idx_exam`(`exam_id` ASC) USING BTREE,
   INDEX `idx_student`(`student_id` ASC) USING BTREE,
   INDEX `idx_status`(`status` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 65 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '鑰冭瘯璁板綍琛' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 70 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '鑰冭瘯璁板綍琛' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of exam_record
@@ -627,8 +680,12 @@ INSERT INTO `exam_record` VALUES (60, 44, 1, 1, '2025-11-19 00:00:00', '2025-11-
 INSERT INTO `exam_record` VALUES (61, 44, 2, 1, '2025-11-19 00:00:00', '2025-11-25 09:56:03', NULL, 0.00, 0.00, NULL, 0, NULL, 1, '2025-11-17 22:35:11', '2025-11-25 09:56:03');
 INSERT INTO `exam_record` VALUES (62, 45, 1, 1, '2025-11-18 10:26:25', '2025-11-18 10:26:52', NULL, 10.00, 10.00, NULL, 0, NULL, 1, '2025-11-18 10:26:06', '2025-11-18 10:26:51');
 INSERT INTO `exam_record` VALUES (63, 45, 2, 1, '2025-11-18 00:00:00', '2025-11-25 09:56:03', NULL, 0.00, 0.00, NULL, 0, NULL, 1, '2025-11-18 10:26:06', '2025-11-25 09:56:03');
-INSERT INTO `exam_record` VALUES (64, 46, 1, 1, '2025-11-25 10:21:53', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2025-11-25 10:17:51', '2025-11-25 10:21:52');
-INSERT INTO `exam_record` VALUES (65, 46, 2, 1, '2025-11-25 10:17:32', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2025-11-25 10:17:51', '2025-11-25 10:17:51');
+INSERT INTO `exam_record` VALUES (64, 46, 1, 1, '2025-12-05 10:59:28', '2025-12-06 20:24:07', NULL, 0.00, 0.00, NULL, 0, NULL, 1, '2025-11-25 10:17:51', '2025-12-06 20:24:07');
+INSERT INTO `exam_record` VALUES (65, 46, 2, 1, '2025-11-25 10:17:32', '2025-12-06 20:24:07', NULL, 0.00, 0.00, NULL, 0, NULL, 1, '2025-11-25 10:17:51', '2025-12-06 20:24:07');
+INSERT INTO `exam_record` VALUES (66, 47, 1, 1, '2025-12-05 11:22:44', '2025-12-05 11:22:57', NULL, 19.00, 13.00, 6.00, 0, NULL, 2, '2025-12-05 11:22:13', '2025-12-05 11:24:01');
+INSERT INTO `exam_record` VALUES (67, 48, 1, 1, '2025-12-07 23:22:13', '2025-12-07 23:22:54', NULL, 13.00, 13.00, NULL, 0, NULL, 1, '2025-12-07 22:59:06', '2025-12-07 23:22:53');
+INSERT INTO `exam_record` VALUES (68, 49, 1, 1, '2025-12-07 23:24:10', '2025-12-07 23:24:28', NULL, 7.00, 5.00, 2.00, 0, NULL, 2, '2025-12-07 23:23:56', '2025-12-07 23:26:44');
+INSERT INTO `exam_record` VALUES (69, 50, 1, 1, '2025-12-09 23:45:48', '2025-12-09 23:46:12', NULL, 10.00, 10.00, NULL, 0, NULL, 1, '2025-12-09 23:45:14', '2025-12-09 23:46:12');
 
 -- ----------------------------
 -- Table structure for homework
@@ -757,6 +814,7 @@ CREATE TABLE `question`  (
   `type` tinyint NOT NULL COMMENT '棰樼洰绫诲瀷: 1-鍗曢? 2-澶氶? 3-鍒ゆ柇 4-濉?┖ 5-绠?瓟 6-缂栫▼',
   `category` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '鍒嗙被/鏍囩?',
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '棰樼洰鍐呭?(鏀?寔Markdown)',
+  `image` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '题目图片URL',
   `options` json NULL COMMENT '閫夐」(JSON鏍煎紡: [{key:\"A\",value:\"閫夐」鍐呭?\"}])',
   `answer` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '绛旀?(澶氶?鐢ㄩ?鍙峰垎闅?',
   `analysis` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '瑙ｆ瀽',
@@ -776,123 +834,142 @@ CREATE TABLE `question`  (
   INDEX `idx_difficulty`(`difficulty` ASC) USING BTREE,
   INDEX `idx_creator`(`creator_id` ASC) USING BTREE,
   INDEX `idx_public`(`is_public` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 119 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '棰樺簱琛' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 144 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '棰樺簱琛' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of question
 -- ----------------------------
-INSERT INTO `question` VALUES (4, 1, 'Operating System Basics', 'Which of the following is true for Operating System (Q1)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
-INSERT INTO `question` VALUES (5, 3, 'Data Structures Advanced Concepts', 'Statement about Data Structures: This is a true statement (Q2).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
-INSERT INTO `question` VALUES (6, 1, 'Java Web Design Applications', 'Which of the following is true for Java Web Design (Q3)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
-INSERT INTO `question` VALUES (7, 2, 'Database Systems Theory', 'Select all correct options for Database Systems (Q4).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 4);
-INSERT INTO `question` VALUES (8, 5, 'Computer Networks Practice', 'Explain a key principle in Computer Networks (Q5).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
-INSERT INTO `question` VALUES (9, 4, 'Software Engineering Fundamental', 'The primary component of Software Engineering is related to ______ (Q6).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
-INSERT INTO `question` VALUES (10, 1, 'Intro to AI Deep Dive', 'Which of the following is true for Intro to AI (Q7)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
-INSERT INTO `question` VALUES (11, 3, 'Machine Learning Case Study', 'Statement about Machine Learning: This is a true statement (Q8).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
-INSERT INTO `question` VALUES (12, 1, 'Advanced Math I Algorithms', 'Which of the following is true for Advanced Math I (Q9)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
-INSERT INTO `question` VALUES (13, 2, 'Advanced Math II Principles', 'Select all correct options for Advanced Math II (Q10).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
-INSERT INTO `question` VALUES (14, 5, 'Linear Algebra Basics', 'Explain a key principle in Linear Algebra (Q11).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
-INSERT INTO `question` VALUES (15, 4, 'Probability Stats Advanced Concepts', 'The primary component of Probability Stats is related to ______ (Q12).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
-INSERT INTO `question` VALUES (16, 1, 'College English I Applications', 'Which of the following is true for College English I (Q13)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
-INSERT INTO `question` VALUES (17, 3, 'College English II Theory', 'Statement about College English II: This is a true statement (Q14).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
-INSERT INTO `question` VALUES (18, 1, 'College Physics Practice', 'Which of the following is true for College Physics (Q15)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
-INSERT INTO `question` VALUES (19, 2, 'DATA Techology Fundamental', 'Select all correct options for DATA Techology (Q16).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
-INSERT INTO `question` VALUES (20, 5, 'Operating System Deep Dive', 'Explain a key principle in Operating System (Q17).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
-INSERT INTO `question` VALUES (21, 4, 'Data Structures Case Study', 'The primary component of Data Structures is related to ______ (Q18).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
-INSERT INTO `question` VALUES (22, 1, 'Java Web Design Algorithms', 'Which of the following is true for Java Web Design (Q19)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
-INSERT INTO `question` VALUES (23, 3, 'Database Systems Principles', 'Statement about Database Systems: This is a true statement (Q20).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 4);
-INSERT INTO `question` VALUES (24, 1, 'Computer Networks Basics', 'Which of the following is true for Computer Networks (Q21)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
-INSERT INTO `question` VALUES (25, 2, 'Software Engineering Advanced Concepts', 'Select all correct options for Software Engineering (Q22).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
-INSERT INTO `question` VALUES (26, 5, 'Intro to AI Applications', 'Explain a key principle in Intro to AI (Q23).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
-INSERT INTO `question` VALUES (27, 4, 'Machine Learning Theory', 'The primary component of Machine Learning is related to ______ (Q24).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
-INSERT INTO `question` VALUES (28, 1, 'Advanced Math I Practice', 'Which of the following is true for Advanced Math I (Q25)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
-INSERT INTO `question` VALUES (29, 3, 'Advanced Math II Fundamental', 'Statement about Advanced Math II: This is a true statement (Q26).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
-INSERT INTO `question` VALUES (30, 1, 'Linear Algebra Deep Dive', 'Which of the following is true for Linear Algebra (Q27)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
-INSERT INTO `question` VALUES (31, 2, 'Probability Stats Case Study', 'Select all correct options for Probability Stats (Q28).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
-INSERT INTO `question` VALUES (32, 5, 'College English I Algorithms', 'Explain a key principle in College English I (Q29).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
-INSERT INTO `question` VALUES (33, 4, 'College English II Principles', 'The primary component of College English II is related to ______ (Q30).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
-INSERT INTO `question` VALUES (34, 1, 'College Physics Basics', 'Which of the following is true for College Physics (Q31)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
-INSERT INTO `question` VALUES (35, 3, 'DATA Techology Advanced Concepts', 'Statement about DATA Techology: This is a true statement (Q32).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
-INSERT INTO `question` VALUES (36, 1, 'Operating System Applications', 'Which of the following is true for Operating System (Q33)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
-INSERT INTO `question` VALUES (37, 2, 'Data Structures Theory', 'Select all correct options for Data Structures (Q34).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
-INSERT INTO `question` VALUES (38, 5, 'Java Web Design Practice', 'Explain a key principle in Java Web Design (Q35).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
-INSERT INTO `question` VALUES (39, 4, 'Database Systems Fundamental', 'The primary component of Database Systems is related to ______ (Q36).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 4);
-INSERT INTO `question` VALUES (40, 1, 'Computer Networks Deep Dive', 'Which of the following is true for Computer Networks (Q37)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
-INSERT INTO `question` VALUES (41, 3, 'Software Engineering Case Study', 'Statement about Software Engineering: This is a true statement (Q38).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
-INSERT INTO `question` VALUES (42, 1, 'Intro to AI Algorithms', 'Which of the following is true for Intro to AI (Q39)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
-INSERT INTO `question` VALUES (43, 2, 'Machine Learning Principles', 'Select all correct options for Machine Learning (Q40).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
-INSERT INTO `question` VALUES (44, 5, 'Advanced Math I Basics', 'Explain a key principle in Advanced Math I (Q41).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
-INSERT INTO `question` VALUES (45, 4, 'Advanced Math II Advanced Concepts', 'The primary component of Advanced Math II is related to ______ (Q42).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
-INSERT INTO `question` VALUES (46, 1, 'Linear Algebra Applications', 'Which of the following is true for Linear Algebra (Q43)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
-INSERT INTO `question` VALUES (47, 3, 'Probability Stats Theory', 'Statement about Probability Stats: This is a true statement (Q44).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
-INSERT INTO `question` VALUES (48, 1, 'College English I Practice', 'Which of the following is true for College English I (Q45)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
-INSERT INTO `question` VALUES (49, 2, 'College English II Fundamental', 'Select all correct options for College English II (Q46).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
-INSERT INTO `question` VALUES (50, 5, 'College Physics Deep Dive', 'Explain a key principle in College Physics (Q47).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
-INSERT INTO `question` VALUES (51, 4, 'DATA Techology Case Study', 'The primary component of DATA Techology is related to ______ (Q48).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
-INSERT INTO `question` VALUES (52, 1, 'Operating System Algorithms', 'Which of the following is true for Operating System (Q49)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
-INSERT INTO `question` VALUES (53, 3, 'Data Structures Principles', 'Statement about Data Structures: This is a true statement (Q50).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
-INSERT INTO `question` VALUES (54, 1, 'Java Web Design Basics', 'Which of the following is true for Java Web Design (Q51)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
-INSERT INTO `question` VALUES (55, 2, 'Database Systems Advanced Concepts', 'Select all correct options for Database Systems (Q52).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 4);
-INSERT INTO `question` VALUES (56, 5, 'Computer Networks Applications', 'Explain a key principle in Computer Networks (Q53).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
-INSERT INTO `question` VALUES (57, 4, 'Software Engineering Theory', 'The primary component of Software Engineering is related to ______ (Q54).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
-INSERT INTO `question` VALUES (58, 1, 'Intro to AI Practice', 'Which of the following is true for Intro to AI (Q55)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
-INSERT INTO `question` VALUES (59, 3, 'Machine Learning Fundamental', 'Statement about Machine Learning: This is a true statement (Q56).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
-INSERT INTO `question` VALUES (60, 1, 'Advanced Math I Deep Dive', 'Which of the following is true for Advanced Math I (Q57)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
-INSERT INTO `question` VALUES (61, 2, 'Advanced Math II Case Study', 'Select all correct options for Advanced Math II (Q58).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
-INSERT INTO `question` VALUES (62, 5, 'Linear Algebra Algorithms', 'Explain a key principle in Linear Algebra (Q59).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
-INSERT INTO `question` VALUES (63, 4, 'Probability Stats Principles', 'The primary component of Probability Stats is related to ______ (Q60).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
-INSERT INTO `question` VALUES (64, 1, 'College English I Basics', 'Which of the following is true for College English I (Q61)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
-INSERT INTO `question` VALUES (65, 3, 'College English II Advanced Concepts', 'Statement about College English II: This is a true statement (Q62).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
-INSERT INTO `question` VALUES (66, 1, 'College Physics Applications', 'Which of the following is true for College Physics (Q63)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
-INSERT INTO `question` VALUES (67, 2, 'DATA Techology Theory', 'Select all correct options for DATA Techology (Q64).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
-INSERT INTO `question` VALUES (68, 5, 'Operating System Practice', 'Explain a key principle in Operating System (Q65).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
-INSERT INTO `question` VALUES (69, 4, 'Data Structures Fundamental', 'The primary component of Data Structures is related to ______ (Q66).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
-INSERT INTO `question` VALUES (70, 1, 'Java Web Design Deep Dive', 'Which of the following is true for Java Web Design (Q67)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
-INSERT INTO `question` VALUES (71, 3, 'Database Systems Case Study', 'Statement about Database Systems: This is a true statement (Q68).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 4);
-INSERT INTO `question` VALUES (72, 1, 'Computer Networks Algorithms', 'Which of the following is true for Computer Networks (Q69)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
-INSERT INTO `question` VALUES (73, 2, 'Software Engineering Principles', 'Select all correct options for Software Engineering (Q70).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
-INSERT INTO `question` VALUES (74, 5, 'Intro to AI Basics', 'Explain a key principle in Intro to AI (Q71).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
-INSERT INTO `question` VALUES (75, 4, 'Machine Learning Advanced Concepts', 'The primary component of Machine Learning is related to ______ (Q72).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
-INSERT INTO `question` VALUES (76, 1, 'Advanced Math I Applications', 'Which of the following is true for Advanced Math I (Q73)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
-INSERT INTO `question` VALUES (77, 3, 'Advanced Math II Theory', 'Statement about Advanced Math II: This is a true statement (Q74).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
-INSERT INTO `question` VALUES (78, 1, 'Linear Algebra Practice', 'Which of the following is true for Linear Algebra (Q75)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
-INSERT INTO `question` VALUES (79, 2, 'Probability Stats Fundamental', 'Select all correct options for Probability Stats (Q76).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
-INSERT INTO `question` VALUES (80, 5, 'College English I Deep Dive', 'Explain a key principle in College English I (Q77).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
-INSERT INTO `question` VALUES (81, 4, 'College English II Case Study', 'The primary component of College English II is related to ______ (Q78).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
-INSERT INTO `question` VALUES (82, 1, 'College Physics Algorithms', 'Which of the following is true for College Physics (Q79)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
-INSERT INTO `question` VALUES (83, 3, 'DATA Techology Principles', 'Statement about DATA Techology: This is a true statement (Q80).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
-INSERT INTO `question` VALUES (84, 1, 'Operating System Basics', 'Which of the following is true for Operating System (Q81)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
-INSERT INTO `question` VALUES (85, 2, 'Data Structures Advanced Concepts', 'Select all correct options for Data Structures (Q82).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
-INSERT INTO `question` VALUES (86, 5, 'Java Web Design Applications', 'Explain a key principle in Java Web Design (Q83).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
-INSERT INTO `question` VALUES (88, 1, 'Computer Networks Practice', 'Which of the following is true for Computer Networks (Q85)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
-INSERT INTO `question` VALUES (89, 3, 'Software Engineering Fundamental', 'Statement about Software Engineering: This is a true statement (Q86).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
-INSERT INTO `question` VALUES (90, 1, 'Intro to AI Deep Dive', 'Which of the following is true for Intro to AI (Q87)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
-INSERT INTO `question` VALUES (91, 2, 'Machine Learning Case Study', 'Select all correct options for Machine Learning (Q88).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
-INSERT INTO `question` VALUES (92, 5, 'Advanced Math I Algorithms', 'Explain a key principle in Advanced Math I (Q89).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
-INSERT INTO `question` VALUES (93, 4, 'Advanced Math II Principles', 'The primary component of Advanced Math II is related to ______ (Q90).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
-INSERT INTO `question` VALUES (94, 1, 'Linear Algebra Basics', 'Which of the following is true for Linear Algebra (Q91)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
-INSERT INTO `question` VALUES (95, 3, 'Probability Stats Advanced Concepts', 'Statement about Probability Stats: This is a true statement (Q92).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
-INSERT INTO `question` VALUES (96, 1, 'College English I Applications', 'Which of the following is true for College English I (Q93)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
-INSERT INTO `question` VALUES (97, 2, 'College English II Theory', 'Select all correct options for College English II (Q94).', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
-INSERT INTO `question` VALUES (98, 5, 'College Physics Practice', 'Explain a key principle in College Physics (Q95).', NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
-INSERT INTO `question` VALUES (99, 4, 'DATA Techology Fundamental', 'The primary component of DATA Techology is related to ______ (Q96).', NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
-INSERT INTO `question` VALUES (100, 1, 'Operating System Deep Dive', 'Which of the following is true for Operating System (Q97)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
-INSERT INTO `question` VALUES (101, 3, 'Data Structures Case Study', 'Statement about Data Structures: This is a true statement (Q98).', NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
-INSERT INTO `question` VALUES (102, 1, 'Java Web Design Algorithms', 'Which of the following is true for Java Web Design (Q99)?', '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
-INSERT INTO `question` VALUES (104, 1, '你好', '你好', '{\"A\": \"一\", \"B\": \"二\", \"C\": \"三\", \"D\": \"四\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-11-10 22:25:59', '2025-11-10 22:25:59', 12);
-INSERT INTO `question` VALUES (106, 1, 'data', 'asfsf', '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:00:52', '2025-11-12 20:00:52', 2);
-INSERT INTO `question` VALUES (107, 1, '你好', 'safsaf', '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:01:26', '2025-11-12 20:01:25', 2);
-INSERT INTO `question` VALUES (109, 1, '	Data Structures Advanced Concepts', 'saf', '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:03:10', '2025-11-12 20:03:10', 2);
-INSERT INTO `question` VALUES (110, 5, 'asfsa', 'sasfas', NULL, 'safsafsa', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:54:21', '2025-11-12 20:54:20', 12);
-INSERT INTO `question` VALUES (111, 4, 'safsa', 'dsad', NULL, 'sadsa', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:54:28', '2025-11-12 20:54:28', 12);
-INSERT INTO `question` VALUES (112, 1, 'safsa', 'safsa', '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:54:42', '2025-11-12 20:54:41', 12);
-INSERT INTO `question` VALUES (113, 4, 'aFDSA', 'safsa', NULL, 'safsaf', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:54:49', '2025-11-12 20:54:49', 12);
-INSERT INTO `question` VALUES (114, 4, 'wqrwq', 'wqr', NULL, 'wqr', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 22:27:36', '2025-11-12 22:27:35', 2);
-INSERT INTO `question` VALUES (115, 4, 'sad', 'safsa', NULL, 'safsaf', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 22:27:48', '2025-11-12 22:27:47', 2);
-INSERT INTO `question` VALUES (116, 4, 'safasfsafsafsafsa', 'ssafsa', NULL, 'safsa', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 22:42:52', '2025-11-12 22:42:52', 2);
-INSERT INTO `question` VALUES (117, 4, 'safsafa', 'sdfsdfa', NULL, 'sadsaf', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 22:43:05', '2025-11-12 22:43:04', 2);
-INSERT INTO `question` VALUES (118, 1, 'DATA', 'HHHHHHHH', '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-17 22:11:05', '2025-11-17 22:11:05', 16);
-INSERT INTO `question` VALUES (119, 1, '数学', '1+1=？', '{\"A\": \"1\", \"B\": \"2\", \"C\": \"aa\", \"D\": \"不知道\"}', 'B', NULL, 3, 5.00, 0, NULL, 1, 0, 1, '2025-11-17 22:24:18', '2025-11-17 22:24:17', 18);
+INSERT INTO `question` VALUES (4, 1, 'Operating System Basics', 'Which of the following is true for Operating System (Q1)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
+INSERT INTO `question` VALUES (5, 3, 'Data Structures Advanced Concepts', 'Statement about Data Structures: This is a true statement (Q2).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
+INSERT INTO `question` VALUES (6, 1, 'Java Web Design Applications', 'Which of the following is true for Java Web Design (Q3)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
+INSERT INTO `question` VALUES (7, 2, 'Database Systems Theory', 'Select all correct options for Database Systems (Q4).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 4);
+INSERT INTO `question` VALUES (8, 5, 'Computer Networks Practice', 'Explain a key principle in Computer Networks (Q5).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
+INSERT INTO `question` VALUES (9, 4, 'Software Engineering Fundamental', 'The primary component of Software Engineering is related to ______ (Q6).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
+INSERT INTO `question` VALUES (10, 1, 'Intro to AI Deep Dive', 'Which of the following is true for Intro to AI (Q7)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
+INSERT INTO `question` VALUES (11, 3, 'Machine Learning Case Study', 'Statement about Machine Learning: This is a true statement (Q8).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
+INSERT INTO `question` VALUES (12, 1, 'Advanced Math I Algorithms', 'Which of the following is true for Advanced Math I (Q9)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
+INSERT INTO `question` VALUES (13, 2, 'Advanced Math II Principles', 'Select all correct options for Advanced Math II (Q10).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
+INSERT INTO `question` VALUES (14, 5, 'Linear Algebra Basics', 'Explain a key principle in Linear Algebra (Q11).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
+INSERT INTO `question` VALUES (15, 4, 'Probability Stats Advanced Concepts', 'The primary component of Probability Stats is related to ______ (Q12).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
+INSERT INTO `question` VALUES (16, 1, 'College English I Applications', 'Which of the following is true for College English I (Q13)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
+INSERT INTO `question` VALUES (17, 3, 'College English II Theory', 'Statement about College English II: This is a true statement (Q14).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
+INSERT INTO `question` VALUES (18, 1, 'College Physics Practice', 'Which of the following is true for College Physics (Q15)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
+INSERT INTO `question` VALUES (19, 2, 'DATA Techology Fundamental', 'Select all correct options for DATA Techology (Q16).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
+INSERT INTO `question` VALUES (20, 5, 'Operating System Deep Dive', 'Explain a key principle in Operating System (Q17).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
+INSERT INTO `question` VALUES (21, 4, 'Data Structures Case Study', 'The primary component of Data Structures is related to ______ (Q18).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
+INSERT INTO `question` VALUES (22, 1, 'Java Web Design Algorithms', 'Which of the following is true for Java Web Design (Q19)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
+INSERT INTO `question` VALUES (23, 3, 'Database Systems Principles', 'Statement about Database Systems: This is a true statement (Q20).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 4);
+INSERT INTO `question` VALUES (24, 1, 'Computer Networks Basics', 'Which of the following is true for Computer Networks (Q21)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
+INSERT INTO `question` VALUES (25, 2, 'Software Engineering Advanced Concepts', 'Select all correct options for Software Engineering (Q22).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
+INSERT INTO `question` VALUES (26, 5, 'Intro to AI Applications', 'Explain a key principle in Intro to AI (Q23).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
+INSERT INTO `question` VALUES (27, 4, 'Machine Learning Theory', 'The primary component of Machine Learning is related to ______ (Q24).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
+INSERT INTO `question` VALUES (28, 1, 'Advanced Math I Practice', 'Which of the following is true for Advanced Math I (Q25)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
+INSERT INTO `question` VALUES (29, 3, 'Advanced Math II Fundamental', 'Statement about Advanced Math II: This is a true statement (Q26).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
+INSERT INTO `question` VALUES (30, 1, 'Linear Algebra Deep Dive', 'Which of the following is true for Linear Algebra (Q27)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
+INSERT INTO `question` VALUES (31, 2, 'Probability Stats Case Study', 'Select all correct options for Probability Stats (Q28).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
+INSERT INTO `question` VALUES (32, 5, 'College English I Algorithms', 'Explain a key principle in College English I (Q29).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
+INSERT INTO `question` VALUES (33, 4, 'College English II Principles', 'The primary component of College English II is related to ______ (Q30).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
+INSERT INTO `question` VALUES (34, 1, 'College Physics Basics', 'Which of the following is true for College Physics (Q31)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
+INSERT INTO `question` VALUES (35, 3, 'DATA Techology Advanced Concepts', 'Statement about DATA Techology: This is a true statement (Q32).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
+INSERT INTO `question` VALUES (36, 1, 'Operating System Applications', 'Which of the following is true for Operating System (Q33)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
+INSERT INTO `question` VALUES (37, 2, 'Data Structures Theory', 'Select all correct options for Data Structures (Q34).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
+INSERT INTO `question` VALUES (38, 5, 'Java Web Design Practice', 'Explain a key principle in Java Web Design (Q35).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
+INSERT INTO `question` VALUES (39, 4, 'Database Systems Fundamental', 'The primary component of Database Systems is related to ______ (Q36).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 4);
+INSERT INTO `question` VALUES (40, 1, 'Computer Networks Deep Dive', 'Which of the following is true for Computer Networks (Q37)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
+INSERT INTO `question` VALUES (41, 3, 'Software Engineering Case Study', 'Statement about Software Engineering: This is a true statement (Q38).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
+INSERT INTO `question` VALUES (42, 1, 'Intro to AI Algorithms', 'Which of the following is true for Intro to AI (Q39)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
+INSERT INTO `question` VALUES (43, 2, 'Machine Learning Principles', 'Select all correct options for Machine Learning (Q40).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
+INSERT INTO `question` VALUES (44, 5, 'Advanced Math I Basics', 'Explain a key principle in Advanced Math I (Q41).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
+INSERT INTO `question` VALUES (45, 4, 'Advanced Math II Advanced Concepts', 'The primary component of Advanced Math II is related to ______ (Q42).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
+INSERT INTO `question` VALUES (46, 1, 'Linear Algebra Applications', 'Which of the following is true for Linear Algebra (Q43)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
+INSERT INTO `question` VALUES (47, 3, 'Probability Stats Theory', 'Statement about Probability Stats: This is a true statement (Q44).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
+INSERT INTO `question` VALUES (48, 1, 'College English I Practice', 'Which of the following is true for College English I (Q45)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
+INSERT INTO `question` VALUES (49, 2, 'College English II Fundamental', 'Select all correct options for College English II (Q46).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
+INSERT INTO `question` VALUES (50, 5, 'College Physics Deep Dive', 'Explain a key principle in College Physics (Q47).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
+INSERT INTO `question` VALUES (51, 4, 'DATA Techology Case Study', 'The primary component of DATA Techology is related to ______ (Q48).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
+INSERT INTO `question` VALUES (52, 1, 'Operating System Algorithms', 'Which of the following is true for Operating System (Q49)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
+INSERT INTO `question` VALUES (53, 3, 'Data Structures Principles', 'Statement about Data Structures: This is a true statement (Q50).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
+INSERT INTO `question` VALUES (54, 1, 'Java Web Design Basics', 'Which of the following is true for Java Web Design (Q51)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
+INSERT INTO `question` VALUES (55, 2, 'Database Systems Advanced Concepts', 'Select all correct options for Database Systems (Q52).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 4);
+INSERT INTO `question` VALUES (56, 5, 'Computer Networks Applications', 'Explain a key principle in Computer Networks (Q53).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
+INSERT INTO `question` VALUES (57, 4, 'Software Engineering Theory', 'The primary component of Software Engineering is related to ______ (Q54).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
+INSERT INTO `question` VALUES (58, 1, 'Intro to AI Practice', 'Which of the following is true for Intro to AI (Q55)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
+INSERT INTO `question` VALUES (59, 3, 'Machine Learning Fundamental', 'Statement about Machine Learning: This is a true statement (Q56).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
+INSERT INTO `question` VALUES (60, 1, 'Advanced Math I Deep Dive', 'Which of the following is true for Advanced Math I (Q57)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
+INSERT INTO `question` VALUES (61, 2, 'Advanced Math II Case Study', 'Select all correct options for Advanced Math II (Q58).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
+INSERT INTO `question` VALUES (62, 5, 'Linear Algebra Algorithms', 'Explain a key principle in Linear Algebra (Q59).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
+INSERT INTO `question` VALUES (63, 4, 'Probability Stats Principles', 'The primary component of Probability Stats is related to ______ (Q60).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
+INSERT INTO `question` VALUES (64, 1, 'College English I Basics', 'Which of the following is true for College English I (Q61)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
+INSERT INTO `question` VALUES (65, 3, 'College English II Advanced Concepts', 'Statement about College English II: This is a true statement (Q62).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
+INSERT INTO `question` VALUES (66, 1, 'College Physics Applications', 'Which of the following is true for College Physics (Q63)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
+INSERT INTO `question` VALUES (67, 2, 'DATA Techology Theory', 'Select all correct options for DATA Techology (Q64).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
+INSERT INTO `question` VALUES (68, 5, 'Operating System Practice', 'Explain a key principle in Operating System (Q65).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
+INSERT INTO `question` VALUES (69, 4, 'Data Structures Fundamental', 'The primary component of Data Structures is related to ______ (Q66).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
+INSERT INTO `question` VALUES (70, 1, 'Java Web Design Deep Dive', 'Which of the following is true for Java Web Design (Q67)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
+INSERT INTO `question` VALUES (71, 3, 'Database Systems Case Study', 'Statement about Database Systems: This is a true statement (Q68).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 4);
+INSERT INTO `question` VALUES (72, 1, 'Computer Networks Algorithms', 'Which of the following is true for Computer Networks (Q69)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
+INSERT INTO `question` VALUES (73, 2, 'Software Engineering Principles', 'Select all correct options for Software Engineering (Q70).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
+INSERT INTO `question` VALUES (74, 5, 'Intro to AI Basics', 'Explain a key principle in Intro to AI (Q71).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
+INSERT INTO `question` VALUES (75, 4, 'Machine Learning Advanced Concepts', 'The primary component of Machine Learning is related to ______ (Q72).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
+INSERT INTO `question` VALUES (76, 1, 'Advanced Math I Applications', 'Which of the following is true for Advanced Math I (Q73)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
+INSERT INTO `question` VALUES (77, 3, 'Advanced Math II Theory', 'Statement about Advanced Math II: This is a true statement (Q74).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
+INSERT INTO `question` VALUES (78, 1, 'Linear Algebra Practice', 'Which of the following is true for Linear Algebra (Q75)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
+INSERT INTO `question` VALUES (79, 2, 'Probability Stats Fundamental', 'Select all correct options for Probability Stats (Q76).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
+INSERT INTO `question` VALUES (80, 5, 'College English I Deep Dive', 'Explain a key principle in College English I (Q77).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
+INSERT INTO `question` VALUES (81, 4, 'College English II Case Study', 'The primary component of College English II is related to ______ (Q78).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
+INSERT INTO `question` VALUES (82, 1, 'College Physics Algorithms', 'Which of the following is true for College Physics (Q79)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
+INSERT INTO `question` VALUES (83, 3, 'DATA Techology Principles', 'Statement about DATA Techology: This is a true statement (Q80).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
+INSERT INTO `question` VALUES (84, 1, 'Operating System Basics', 'Which of the following is true for Operating System (Q81)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
+INSERT INTO `question` VALUES (85, 2, 'Data Structures Advanced Concepts', 'Select all correct options for Data Structures (Q82).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
+INSERT INTO `question` VALUES (86, 5, 'Java Web Design Applications', 'Explain a key principle in Java Web Design (Q83).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
+INSERT INTO `question` VALUES (88, 1, 'Computer Networks Practice', 'Which of the following is true for Computer Networks (Q85)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 5);
+INSERT INTO `question` VALUES (89, 3, 'Software Engineering Fundamental', 'Statement about Software Engineering: This is a true statement (Q86).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 6);
+INSERT INTO `question` VALUES (90, 1, 'Intro to AI Deep Dive', 'Which of the following is true for Intro to AI (Q87)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 7);
+INSERT INTO `question` VALUES (91, 2, 'Machine Learning Case Study', 'Select all correct options for Machine Learning (Q88).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 8);
+INSERT INTO `question` VALUES (92, 5, 'Advanced Math I Algorithms', 'Explain a key principle in Advanced Math I (Q89).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 9);
+INSERT INTO `question` VALUES (93, 4, 'Advanced Math II Principles', 'The primary component of Advanced Math II is related to ______ (Q90).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 10);
+INSERT INTO `question` VALUES (94, 1, 'Linear Algebra Basics', 'Which of the following is true for Linear Algebra (Q91)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 11);
+INSERT INTO `question` VALUES (95, 3, 'Probability Stats Advanced Concepts', 'Statement about Probability Stats: This is a true statement (Q92).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 12);
+INSERT INTO `question` VALUES (96, 1, 'College English I Applications', 'Which of the following is true for College English I (Q93)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 13);
+INSERT INTO `question` VALUES (97, 2, 'College English II Theory', 'Select all correct options for College English II (Q94).', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A,C', NULL, 2, 8.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 14);
+INSERT INTO `question` VALUES (98, 5, 'College Physics Practice', 'Explain a key principle in College Physics (Q95).', NULL, NULL, 'A key principle involves efficient resource management.', NULL, 2, 12.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 15);
+INSERT INTO `question` VALUES (99, 4, 'DATA Techology Fundamental', 'The primary component of DATA Techology is related to ______ (Q96).', NULL, NULL, 'concepts', NULL, 2, 20.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 16);
+INSERT INTO `question` VALUES (100, 1, 'Operating System Deep Dive', 'Which of the following is true for Operating System (Q97)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 1);
+INSERT INTO `question` VALUES (101, 3, 'Data Structures Case Study', 'Statement about Data Structures: This is a true statement (Q98).', NULL, NULL, 'T', NULL, 2, 10.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 2);
+INSERT INTO `question` VALUES (102, 1, 'Java Web Design Algorithms', 'Which of the following is true for Java Web Design (Q99)?', NULL, '{\"A\": \"Option A\", \"B\": \"Option B\", \"C\": \"Option C\", \"D\": \"Option D\"}', 'A', NULL, 2, 15.00, 0, NULL, 1, 1, 1, '2025-11-10 21:31:34', '2025-11-10 21:31:34', 3);
+INSERT INTO `question` VALUES (104, 1, '你好', '你好', NULL, '{\"A\": \"一\", \"B\": \"二\", \"C\": \"三\", \"D\": \"四\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-11-10 22:25:59', '2025-11-10 22:25:59', 12);
+INSERT INTO `question` VALUES (106, 1, 'data', 'asfsf', NULL, '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:00:52', '2025-11-12 20:00:52', 2);
+INSERT INTO `question` VALUES (107, 1, '你好', 'safsaf', NULL, '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:01:26', '2025-11-12 20:01:25', 2);
+INSERT INTO `question` VALUES (109, 1, '	Data Structures Advanced Concepts', 'saf', NULL, '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:03:10', '2025-11-12 20:03:10', 2);
+INSERT INTO `question` VALUES (110, 5, 'asfsa', 'sasfas', NULL, NULL, 'safsafsa', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:54:21', '2025-11-12 20:54:20', 12);
+INSERT INTO `question` VALUES (111, 4, 'safsa', 'dsad', NULL, NULL, 'sadsa', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:54:28', '2025-11-12 20:54:28', 12);
+INSERT INTO `question` VALUES (112, 1, 'safsa', 'safsa', NULL, '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:54:42', '2025-11-12 20:54:41', 12);
+INSERT INTO `question` VALUES (113, 4, 'aFDSA', 'safsa', NULL, NULL, 'safsaf', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 20:54:49', '2025-11-12 20:54:49', 12);
+INSERT INTO `question` VALUES (114, 4, 'wqrwq', 'wqr', NULL, NULL, 'wqr', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 22:27:36', '2025-11-12 22:27:35', 2);
+INSERT INTO `question` VALUES (115, 4, 'sad', 'safsa', NULL, NULL, 'safsaf', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 22:27:48', '2025-11-12 22:27:47', 2);
+INSERT INTO `question` VALUES (116, 4, 'safasfsafsafsafsa', 'ssafsa', NULL, NULL, 'safsa', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 22:42:52', '2025-11-12 22:42:52', 2);
+INSERT INTO `question` VALUES (117, 4, 'safsafa', 'sdfsdfa', NULL, NULL, 'sadsaf', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-12 22:43:05', '2025-11-12 22:43:04', 2);
+INSERT INTO `question` VALUES (118, 1, 'DATA', 'HHHHHHHH', NULL, '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-11-17 22:11:05', '2025-11-17 22:11:05', 16);
+INSERT INTO `question` VALUES (119, 1, '数学', '1+1=？', NULL, '{\"A\": \"1\", \"B\": \"2\", \"C\": \"aa\", \"D\": \"不知道\"}', 'B', NULL, 3, 5.00, 0, NULL, 1, 0, 1, '2025-11-17 22:24:18', '2025-11-17 22:24:17', 18);
+INSERT INTO `question` VALUES (125, 1, '示例知识点', '示例：以下哪个是正确的？', NULL, '{\"A\": \"选项A内容\", \"B\": \"选项B内容\", \"C\": \"选项C内容\", \"D\": \"选项D内容\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-12-05 11:28:07', '2025-12-05 11:28:07', 2);
+INSERT INTO `question` VALUES (126, 2, '示例知识点', '示例：以下哪些是正确的？', NULL, '{\"A\": \"选项A\", \"B\": \"选项B\", \"C\": \"选项C\", \"D\": \"选项D\"}', 'A,B,C', NULL, 2, 10.00, 0, NULL, 1, 0, 1, '2025-12-05 11:28:08', '2025-12-05 11:28:07', 2);
+INSERT INTO `question` VALUES (127, 3, '示例知识点', '示例：这是判断题？', NULL, NULL, 'F', NULL, 1, 3.00, 0, NULL, 1, 0, 1, '2025-12-05 11:28:08', '2025-12-05 11:28:07', 2);
+INSERT INTO `question` VALUES (128, 4, '示例知识点', '示例：请填写____', NULL, NULL, '正确答案', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-12-05 11:28:08', '2025-12-05 11:28:07', 2);
+INSERT INTO `question` VALUES (129, 5, '示例知识点', '示例：请简述观点', NULL, NULL, '参考答案', NULL, 3, 20.00, 0, NULL, 1, 0, 1, '2025-12-05 11:28:08', '2025-12-05 11:28:08', 2);
+INSERT INTO `question` VALUES (130, 1, '示例知识点', '示例：以下哪个是正确的？', NULL, '{\"A\": \"选项A内容\", \"B\": \"选项B内容\", \"C\": \"选项C内容\", \"D\": \"选项D内容\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-12-06 00:43:34', '2025-12-06 00:43:34', 16);
+INSERT INTO `question` VALUES (131, 2, '示例知识点', '示例：以下哪些是正确的？', NULL, '{\"A\": \"选项A\", \"B\": \"选项B\", \"C\": \"选项C\", \"D\": \"选项D\"}', 'A,B,C', NULL, 2, 10.00, 0, NULL, 1, 0, 1, '2025-12-06 00:43:34', '2025-12-06 00:43:34', 16);
+INSERT INTO `question` VALUES (132, 3, '示例知识点', '示例：这是判断题？', NULL, NULL, 'F', NULL, 1, 3.00, 0, NULL, 1, 0, 1, '2025-12-06 00:43:34', '2025-12-06 00:43:34', 16);
+INSERT INTO `question` VALUES (133, 4, '示例知识点', '示例：请填写____', NULL, NULL, '正确答案', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-12-06 00:43:35', '2025-12-06 00:43:34', 16);
+INSERT INTO `question` VALUES (134, 5, '示例知识点', '示例：请简述观点', NULL, NULL, '参考答案', NULL, 3, 20.00, 0, NULL, 1, 0, 1, '2025-12-06 00:43:35', '2025-12-06 00:43:35', 16);
+INSERT INTO `question` VALUES (135, 1, 'DATA', 'safsafsa', '/uploads/questions/2025/12/07/30e70220973d4672b61d043aef6be29b.jpg', '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-12-07 20:47:42', '2025-12-07 20:47:41', 17);
+INSERT INTO `question` VALUES (136, 1, '示例知识点', '示例：以下哪个是正确的？', NULL, '{\"A\": \"选项A内容\", \"B\": \"选项B内容\", \"C\": \"选项C内容\", \"D\": \"选项D内容\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-12-07 20:48:53', '2025-12-07 20:48:53', 17);
+INSERT INTO `question` VALUES (137, 2, '示例知识点', '示例：以下哪些是正确的？', NULL, '{\"A\": \"选项A\", \"B\": \"选项B\", \"C\": \"选项C\", \"D\": \"选项D\"}', 'A,B,C', NULL, 2, 10.00, 0, NULL, 1, 0, 1, '2025-12-07 20:48:54', '2025-12-07 20:48:53', 17);
+INSERT INTO `question` VALUES (138, 3, '示例知识点', '示例：这是判断题？', NULL, NULL, 'F', NULL, 1, 3.00, 0, NULL, 1, 0, 1, '2025-12-07 20:48:54', '2025-12-07 20:48:53', 17);
+INSERT INTO `question` VALUES (139, 4, '示例知识点', '示例：请填写____', NULL, NULL, '正确答案', NULL, 2, 5.00, 0, NULL, 1, 0, 1, '2025-12-07 20:48:54', '2025-12-07 20:48:53', 17);
+INSERT INTO `question` VALUES (140, 5, '示例知识点', '示例：请简述观点', NULL, NULL, '参考答案', NULL, 3, 20.00, 0, NULL, 1, 0, 1, '2025-12-07 20:48:54', '2025-12-07 20:48:53', 17);
+INSERT INTO `question` VALUES (141, 1, 'DATA technolog', 'safsa', '/uploads/questions/2025/12/09/c77a8f7325c741b9919068c121b94991.jpg', '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-12-09 16:25:09', '2025-12-09 16:25:08', 12);
+INSERT INTO `question` VALUES (142, 2, 'saf', 'DATAsafsafasfasfa', '/uploads/questions/2025/12/09/27ead2d8bccf422f96af68045770480d.png', '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A,B', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-12-09 16:54:21', '2025-12-09 16:54:20', 18);
+INSERT INTO `question` VALUES (143, 1, '111', 'safsafasf', '/uploads/questions/2025/12/09/f9617eb9cbea480d89f3f443d11cc822.jpg', '{\"A\": \"A\", \"B\": \"B\", \"C\": \"C\", \"D\": \"D\"}', 'A', NULL, 1, 5.00, 0, NULL, 1, 0, 1, '2025-12-09 23:44:03', '2025-12-09 23:44:03', 13);
 
 -- ----------------------------
 -- Table structure for student
@@ -913,18 +990,19 @@ CREATE TABLE `student`  (
   `status` tinyint NOT NULL DEFAULT 1 COMMENT '鐘舵?: 0-绂佺敤 1-鍚?敤',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '鍒涘缓鏃堕棿',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '鏇存柊鏃堕棿',
+  `current_token` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '褰撳墠鐧诲綍Token锛堢敤浜庡崟璁惧?闄愬埗锛',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_username`(`username` ASC) USING BTREE,
   UNIQUE INDEX `uk_student_no`(`student_no` ASC) USING BTREE,
   INDEX `idx_status`(`status` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '瀛︾敓琛' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '瀛︾敓琛' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of student
 -- ----------------------------
-INSERT INTO `student` VALUES (1, 'student1', '$2a$10$ItD5NsBJq9dK93hA3iY7COR/vPNnkPeOkkMa2wIvtEIXTSkOziIbC', 'Zhang San', '2024001', 1, NULL, 'iwei_2023@qq.com', '32535325325', 'Computer Science', '2024', 1, '2025-11-08 15:36:20', '2025-11-18 10:24:03');
-INSERT INTO `student` VALUES (2, 'student2', '$2a$10$ysir9glHJqXM4ZlROrHEDuVDaXTb2rjz4CavXGga5SZzr7IaUjNlG', 'Li Si', '2024002', 0, NULL, 'aaa', 'eee', 'Software Engineering', '2024', 1, '2025-11-08 15:36:20', '2025-11-17 19:46:34');
-INSERT INTO `student` VALUES (3, 'student3', '$2a$10$PqyZKkF3ag6/tGQungV3N.7vgr036IVd.RUNZn76ZRUFkwqYtXX96', 'Wang Wu', '2024003', 1, NULL, 'wangwu@exam.com', '13800001003', 'Information Security', '2024', 1, '2025-11-08 15:36:20', '2025-11-08 15:36:20');
+INSERT INTO `student` VALUES (1, 'student1', '$2a$10$ItD5NsBJq9dK93hA3iY7COR/vPNnkPeOkkMa2wIvtEIXTSkOziIbC', 'Zhang San', '2024001', 1, '/uploads/avatars/2025/12/10/4185afd87a17424a8676e5b14869d7a1.jpg', '1813876172@qq.com', '16691760624', 'Computer Science', '2024', 1, '2025-11-08 15:36:20', '2025-12-10 18:25:16', 'eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjowLCJleHAiOjE3NjU5NjcxMTYsInVzZXJJZCI6MSwiaWF0IjoxNzY1MzYyMzE2LCJ1c2VybmFtZSI6InN0dWRlbnQxIn0.YQEo13nEmdqdGdDOetRMT6LZbKJWVFCNsPVXHlUWjPkfvHW_Utd8xxwVfFR2Q5H38bYgZ3B6_XMl24LQAicRPQ');
+INSERT INTO `student` VALUES (2, 'student2', '$2a$10$Xj0iIHy9RO8ntJqzRGtFzefy3kUYspBxNHAYu7/PAQKca4I6PVIau', 'Li Si', '2024002', 0, NULL, 'aaa', 'eee', 'Software Engineering', '2024', 1, '2025-11-08 15:36:20', '2025-12-10 18:29:38', NULL);
+INSERT INTO `student` VALUES (3, 'student3', '$2a$10$PqyZKkF3ag6/tGQungV3N.7vgr036IVd.RUNZn76ZRUFkwqYtXX96', 'Wang Wu', '2024003', 1, NULL, 'wangwu@exam.com', '13800001003', 'Information Security', '2024', 1, '2025-11-08 15:36:20', '2025-11-08 15:36:20', NULL);
 
 -- ----------------------------
 -- Table structure for student_class
@@ -941,7 +1019,7 @@ CREATE TABLE `student_class`  (
   UNIQUE INDEX `uk_student_class`(`student_id` ASC, `class_id` ASC) USING BTREE,
   INDEX `idx_student`(`student_id` ASC) USING BTREE,
   INDEX `idx_class`(`class_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '瀛︾敓-鐝?骇鍏宠仈琛' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '瀛︾敓-鐝?骇鍏宠仈琛' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of student_class
@@ -1002,19 +1080,20 @@ CREATE TABLE `teacher`  (
   `status` tinyint NOT NULL DEFAULT 1 COMMENT '鐘舵?: 0-绂佺敤 1-鍚?敤',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '鍒涘缓鏃堕棿',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '鏇存柊鏃堕棿',
+  `current_token` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '当前登录Token（用于单设备限制）',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_username`(`username` ASC) USING BTREE,
   UNIQUE INDEX `uk_teacher_no`(`teacher_no` ASC) USING BTREE,
   INDEX `idx_department`(`department` ASC) USING BTREE,
   INDEX `idx_status`(`status` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '鏁欏笀琛' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '鏁欏笀琛' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of teacher
 -- ----------------------------
-INSERT INTO `teacher` VALUES (1, 'teacher1', '$2a$10$PqyZKkF3ag6/tGQungV3N.7vgr036IVd.RUNZn76ZRUFkwqYtXX96', 'Liu Yang', 'T001', 1, NULL, 'Computer Science', 'Professor', 'liuyang@exam.com', '13900001001', NULL, 1, '2025-11-08 15:36:20', '2025-11-08 15:36:20');
-INSERT INTO `teacher` VALUES (2, 'teacher2', '$2a$10$PqyZKkF3ag6/tGQungV3N.7vgr036IVd.RUNZn76ZRUFkwqYtXX96', 'Yu Jingze', 'T002', 1, NULL, 'Computer Science', 'Associate Professor', 'yujingze@exam.com', '13900001002', NULL, 1, '2025-11-08 15:36:20', '2025-11-08 15:36:20');
-INSERT INTO `teacher` VALUES (3, 'teacher3', '$2a$10$zT03hBeuW2yL5klae5yBcetg3wBw3oIEWkAQtnQSmK.QrJV46RvwG', 'Chen Xiaopan', 'T003', 0, NULL, 'Software Engineering', 'Lecturer', 'chenxiaopan@exam.com', '13900001003', NULL, 1, '2025-11-08 15:36:20', '2025-11-17 22:20:53');
+INSERT INTO `teacher` VALUES (1, 'teacher1', '$2a$10$PqyZKkF3ag6/tGQungV3N.7vgr036IVd.RUNZn76ZRUFkwqYtXX96', 'Liu Yang', 'T001', 1, '/uploads/avatars/2025/12/09/d77d3fcd7ce94ba682b5f64c8732de47.jpg', 'Computer Science', 'Professor', '1813876172@qq.com', '166917606241', NULL, 1, '2025-11-08 15:36:20', '2025-12-10 18:37:16', 'eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoxLCJleHAiOjE3NjU5Njc4MzYsInVzZXJJZCI6MSwiaWF0IjoxNzY1MzYzMDM2LCJ1c2VybmFtZSI6InRlYWNoZXIxIn0.lR0hjIgy4u-SVNAXo0mTEp4VgOBbYprLV10SKPO8kx2fi2_tGGjVPGGvKns6gi8h7sl6cgSHT7QpvRRw2XfDYQ');
+INSERT INTO `teacher` VALUES (2, 'teacher2', '$2a$10$n96nzpUP2eyT4aWy2o2fQeM1hZVGLoIPPF4HXSS4zkWstVe2ciP4G', 'Yu Jingze', 'T002', 1, NULL, 'Computer Science', 'Associate Professor', 'yujingze@exam.com', '13900001002', NULL, 1, '2025-11-08 15:36:20', '2025-12-10 18:30:33', NULL);
+INSERT INTO `teacher` VALUES (3, 'teacher3', '$2a$10$zT03hBeuW2yL5klae5yBcetg3wBw3oIEWkAQtnQSmK.QrJV46RvwG', 'Chen Xiaopan', 'T003', 0, NULL, 'Software Engineering', 'Lecturer', 'chenxiaopan@exam.com', '13900001003', NULL, 1, '2025-11-08 15:36:20', '2025-11-17 22:20:53', NULL);
 
 -- ----------------------------
 -- View structure for v_exam_statistics
