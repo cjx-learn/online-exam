@@ -49,7 +49,7 @@
             <el-avatar 
               :size="42" 
               :icon="userInfo.avatar ? undefined : UserFilled" 
-              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              :src="getAvatarUrl(userInfo.avatar)"
               class="avatar-img" 
             />
             <span class="user-name">{{ userInfo.realName || '学生' }}</span>
@@ -281,9 +281,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getAvatarUrl } from '@/utils/file'
 import { 
   Search, Plus, UserFilled, User, Setting, SwitchButton,
   Monitor, DataLine, DocumentCopy, Lock, Key, InfoFilled

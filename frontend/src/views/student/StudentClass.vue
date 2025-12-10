@@ -20,7 +20,7 @@
             <el-avatar 
               :size="42" 
               :icon="userInfo.avatar ? undefined : UserFilled" 
-              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              :src="getAvatarUrl(userInfo.avatar)"
               class="avatar-img" 
             />
             <span class="user-name">{{ userInfo.realName || '个人设置' }}</span>
@@ -348,9 +348,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, reactive } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { ElMessage, ElMessageBox, ElLoading, ElDropdown, ElDropdownMenu, ElDropdownItem, ElAvatar } from 'element-plus';
+import { ref, reactive, onMounted, computed, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
+import { getAvatarUrl } from '@/utils/file'
 import request from '@/utils/request';
 import { Clock, CircleCheck, CircleClose, Timer, Reading, TrophyBase, ArrowRight, Back, Document, UserFilled, User, Setting, SwitchButton, Edit, Lock, Key, InfoFilled } from '@element-plus/icons-vue';
 import AvatarUpload from '@/components/AvatarUpload.vue';

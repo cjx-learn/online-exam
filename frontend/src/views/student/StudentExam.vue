@@ -155,6 +155,16 @@
                 <span class="q-content" v-text="q.content" />
                 <el-tag class="q-score" type="info">{{ q.score ?? '-' }} 分</el-tag>
               </div>
+              <!-- 题目图片 -->
+              <div v-if="q.image" class="q-image-wrapper">
+                <el-image 
+                  :src="getImageUrl(q.image)" 
+                  :preview-src-list="[getImageUrl(q.image)]"
+                  fit="contain"
+                  class="q-image"
+                  :preview-teleported="true"
+                />
+              </div>
               <div class="q-body">
                 <template v-if="[1,2,3].includes(q.type)">
                   <el-radio-group v-if="q.type===1 || q.type===3" v-model="answers[q.id]" class="q-options">
@@ -206,9 +216,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, reactive, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
+import { getImageUrl } from '@/utils/file'
 import { Loading, Timer, Trophy, Select, Grid, Checked, WarningFilled } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
@@ -980,6 +991,40 @@ onBeforeUnmount(() => {
 .q-score:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(251, 146, 60, 0.25);
+}
+
+/* 题目图片样式 */
+.q-image-wrapper {
+  margin: 20px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.q-image-wrapper:hover {
+  border-color: rgba(102, 126, 234, 0.25);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.q-image {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.q-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .q-body {

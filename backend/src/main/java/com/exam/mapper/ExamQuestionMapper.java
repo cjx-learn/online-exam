@@ -27,6 +27,6 @@ public interface ExamQuestionMapper {
             "SELECT #{examId}, #{questionId}, COALESCE(q.score, 0) FROM question q WHERE q.id = #{questionId}")
     int insertWithScore(@Param("examId") Long examId, @Param("questionId") Long questionId);
 
-    @Select("SELECT q.id AS id, q.course_id AS courseId, q.type AS type, q.content AS content, q.options AS options, q.answer AS answer, COALESCE(eq.score, q.score) AS score, q.category AS category, q.difficulty AS difficulty, q.creator_id AS creatorId, q.create_time AS createTime FROM exam_question eq JOIN question q ON eq.question_id = q.id WHERE eq.exam_id = #{examId} ORDER BY q.type ASC, eq.id ASC")
+    @Select("SELECT q.id AS id, q.course_id AS courseId, q.type AS type, q.content AS content, q.image AS image, q.options AS options, q.answer AS answer, COALESCE(eq.score, q.score) AS score, q.category AS category, q.difficulty AS difficulty, q.creator_id AS creatorId, q.create_time AS createTime FROM exam_question eq JOIN question q ON eq.question_id = q.id WHERE eq.exam_id = #{examId} ORDER BY q.type ASC, eq.id ASC")
     List<Question> selectQuestionsByExamId(@Param("examId") Long examId);
 }

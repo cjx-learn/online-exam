@@ -34,5 +34,10 @@ public interface AdminMapper {
      * 删除管理员
      */
     int deleteById(@Param("id") Long id);
+
+    /**
+     * 更新管理员的当前Token
+     */
+    int updateCurrentToken(@Param("id") Long id, @Param("currentToken") String currentToken);
 }
 

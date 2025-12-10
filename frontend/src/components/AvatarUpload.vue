@@ -26,6 +26,8 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+import { API_URL } from '@/config/api'
+import { getAvatarUrl } from '@/utils/file'
 
 const props = defineProps({
   modelValue: {
@@ -40,7 +42,7 @@ const imageUrl = ref('')
 
 // 上传地址
 const uploadUrl = computed(() => {
-  return 'http://localhost:8080/api/file/upload/avatar'
+  return `${API_URL}/file/upload/avatar`
 })
 
 // 请求头
@@ -70,8 +72,7 @@ const beforeUpload = (file) => {
 // 上传成功
 const handleSuccess = (response) => {
   if (response.code === 200 && response.data.url) {
-    const fullUrl = 'http://localhost:8080/api' + response.data.url
-    imageUrl.value = fullUrl
+    imageUrl.value = getAvatarUrl(response.data.url)
     emit('update:modelValue', response.data.url)
     ElMessage.success('头像上传成功')
   } else {
@@ -88,11 +89,11 @@ const handleError = (error) => {
 // 监听外部传入的值
 watch(() => props.modelValue, (newValue) => {
   if (newValue) {
-    // 如果是完整URL，直接使用；否则拼接
+    // 如果是完整URL，直接使用；否则使用工具函数拼接
     if (newValue.startsWith('http')) {
       imageUrl.value = newValue
     } else {
-      imageUrl.value = 'http://localhost:8080/api' + newValue
+      imageUrl.value = getAvatarUrl(newValue)
     }
   } else {
     imageUrl.value = ''

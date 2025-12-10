@@ -14,7 +14,7 @@
             <el-avatar 
               :size="42" 
               :icon="userInfo.avatar ? undefined : UserFilled" 
-              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              :src="getAvatarUrl(userInfo.avatar)"
               class="avatar-img" 
             />
             <span class="user-name">{{ userInfo.realName || '教师' }}</span>
@@ -145,8 +145,18 @@
             <div class="question" v-for="(q, idx) in section.items" :key="q.id">
               <div class="q-header">
                 <span class="q-no">{{ idx + 1 }}.</span>
-                <span class="q-content" v-text="q.content" />
+                <span class="q-content">{{ q.content }}</span>
                 <el-tag class="q-score" type="warning">{{ q.score ?? '-' }} 分</el-tag>
+              </div>
+              <!-- 题目图片 -->
+              <div v-if="q.image" class="q-image-wrapper">
+                <el-image 
+                  :src="getImageUrl(q.image)" 
+                  :preview-src-list="[getImageUrl(q.image)]"
+                  fit="contain"
+                  class="q-image"
+                  :preview-teleported="true"
+                />
               </div>
               <div class="q-body">
                 <!-- 选择题选项 -->
@@ -219,6 +229,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Back, Loading, Printer, User, UserFilled, SwitchButton, TrendCharts, Timer, Clock, CircleCheck, Document } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import AvatarUpload from '@/components/AvatarUpload.vue'
+import { getAvatarUrl, getImageUrl } from '@/utils/file'
 
 const route = useRoute()
 const router = useRouter()
@@ -847,6 +858,7 @@ onMounted(loadData)
 .user-avatar:hover .user-name { color: var(--primary); transform: translateY(-1px); }
 .section {
   margin-bottom: 32px;
+  padding-top: 16px;
   animation: fadeInUp 0.6s ease-out backwards;
 }
 
@@ -857,14 +869,12 @@ onMounted(loadData)
 .section:nth-child(5) { animation-delay: 0.5s; }
 
 .section-header {
-  position: sticky;
-  top: 90px;
-  z-index: 5;
+  position: relative;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 16px 20px;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(102, 126, 234, 0.25);
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   transition: all 0.3s ease;
 }
 
@@ -902,6 +912,10 @@ onMounted(loadData)
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+}
+
+.question:first-child {
+  margin-top: 0;
 }
 
 .question::before {
@@ -1007,6 +1021,41 @@ onMounted(loadData)
   font-size: 15px;
   line-height: 1.5;
 }
+
+/* 题目图片样式 */
+.q-image-wrapper {
+  margin: 20px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.q-image-wrapper:hover {
+  border-color: rgba(102, 126, 234, 0.25);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.q-image {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.q-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
 .q-answer {
   margin-top: 12px;
   padding: 14px 18px;

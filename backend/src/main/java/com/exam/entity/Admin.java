@@ -21,6 +21,7 @@ public class Admin implements Serializable {
     private String avatar;      // 头像URL
     private Integer superAdmin; // 0-否 1-是
     private Integer status;     // 0-禁用 1-启用
+    private String currentToken; // 当前登录Token（用于单设备限制）
     private Date createTime;
     private Date updateTime;
 }

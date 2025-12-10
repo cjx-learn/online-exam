@@ -15,7 +15,7 @@
             <el-avatar 
               :size="36" 
               :icon="userInfo.avatar ? undefined : UserFilled" 
-              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              :src="getAvatarUrl(userInfo.avatar)"
               class="user-avatar" 
             />
             <span class="user-name">{{ userInfo.realName || '教师' }}</span>
@@ -260,7 +260,17 @@
                             {{ '⭐'.repeat(question.difficulty) }}
                           </span>
                         </div>
-                        <div class="selected-item-content">{{ question.content }}</div>
+                        <div class="selected-item-content">
+                          {{ question.content }}
+                          <div v-if="question.image" class="question-image-thumb">
+                            <el-image 
+                              :src="getImageUrl(question.image)" 
+                              :preview-src-list="[getImageUrl(question.image)]"
+                              fit="cover"
+                              style="width: 60px; height: 60px; border-radius: 4px; margin-top: 8px; cursor: pointer;"
+                            />
+                          </div>
+                        </div>
                       </div>
                       <el-button 
                         size="small" 
@@ -294,6 +304,14 @@
               </el-descriptions-item>
               <el-descriptions-item label="题干">
                 {{ detailQuestion.content }}
+              </el-descriptions-item>
+              <el-descriptions-item label="题目图片" v-if="detailQuestion.image">
+                <el-image 
+                  :src="getImageUrl(detailQuestion.image)" 
+                  :preview-src-list="[getImageUrl(detailQuestion.image)]"
+                  fit="contain"
+                  style="max-width: 100%; width: auto; height: auto; cursor: pointer; display: block;"
+                />
               </el-descriptions-item>
               <el-descriptions-item label="选项" v-if="[1,2].includes(detailQuestion.type)">
                 <div v-if="detailParsedOptions">
@@ -496,7 +514,12 @@
                         {{ getQuestionTypeText(question.type) }}
                       </el-tag>
                     </span>
-                    <span class="item-content">{{ question.content }}</span>
+                    <span class="item-content">
+                      {{ question.content }}
+                      <el-icon v-if="question.image" style="margin-left: 8px; color: #409eff; vertical-align: middle;" title="包含图片">
+                        <Picture />
+                      </el-icon>
+                    </span>
                     <span class="item-difficulty">
                       <span v-if="question.difficulty" :style="{ color: getDifficultyColor(question.difficulty) }">
                         {{ '⭐'.repeat(question.difficulty) }}
@@ -578,10 +601,11 @@
 import { ref, reactive, onMounted, computed, h } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus';
-import { Back, UserFilled, User, SwitchButton, Document, Edit, CircleCheck, Plus, Clock, Timer, Reading, Search, Grid, Refresh, TrendCharts, MagicStick, Top, Bottom, Close, Delete } from '@element-plus/icons-vue';
+import { Back, UserFilled, User, SwitchButton, Document, Edit, CircleCheck, Plus, Clock, Timer, Reading, Search, Grid, Refresh, TrendCharts, MagicStick, Top, Bottom, Close, Delete, Picture } from '@element-plus/icons-vue';
 import request from '@/utils/request';
 import QuestionSelectionTable from '@/components/QuestionSelectionTable.vue'; // 显式导入 QuestionSelectionTable 组件
 import AvatarUpload from '@/components/AvatarUpload.vue';
+import { getAvatarUrl, getImageUrl } from '@/utils/file';
 
 const route = useRoute();
 const router = useRouter();

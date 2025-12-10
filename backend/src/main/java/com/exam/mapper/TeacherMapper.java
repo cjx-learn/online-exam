@@ -39,5 +39,10 @@ public interface TeacherMapper {
      * 删除教师
      */
     int deleteById(@Param("id") Long id);
+
+    /**
+     * 更新教师的当前Token
+     */
+    int updateCurrentToken(@Param("id") Long id, @Param("currentToken") String currentToken);
 }
 

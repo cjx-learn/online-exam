@@ -141,6 +141,11 @@ const handleLogin = async () => {
       ElMessage.success('登录成功')
       // 保存token和用户信息
       if (response.data) {
+        // 保存Token
+        if (response.data.token) {
+          localStorage.setItem('token', response.data.token)
+        }
+        // 保存用户信息
         localStorage.setItem('userInfo', JSON.stringify(response.data))
       }
       

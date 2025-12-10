@@ -30,8 +30,29 @@ public class FileUtil {
      * 上传头像
      */
     public static String uploadAvatar(MultipartFile file) throws IOException {
+        return uploadFile(file, "avatars");
+    }
+    
+    /**
+     * 通用文件上传方法（使用默认文件大小限制）
+     * @param file 上传的文件
+     * @param subDir 子目录名称（如 "avatars"、"questions" 等）
+     * @return 文件访问路径
+     */
+    public static String uploadFile(MultipartFile file, String subDir) throws IOException {
+        return uploadFile(file, subDir, MAX_FILE_SIZE);
+    }
+    
+    /**
+     * 通用文件上传方法（支持自定义文件大小限制）
+     * @param file 上传的文件
+     * @param subDir 子目录名称（如 "avatars"、"questions" 等）
+     * @param maxSize 最大文件大小（字节）
+     * @return 文件访问路径
+     */
+    public static String uploadFile(MultipartFile file, String subDir, long maxSize) throws IOException {
         // 验证文件
-        validateFile(file);
+        validateFile(file, maxSize);
         
         // 生成文件名
         String originalFilename = file.getOriginalFilename();
@@ -40,7 +61,7 @@ public class FileUtil {
         
         // 按日期分目录存储
         String dateDir = new SimpleDateFormat("yyyy" + File.separator + "MM" + File.separator + "dd").format(new Date());
-        String relativePath = AVATAR_DIR + dateDir + File.separator;
+        String relativePath = subDir + File.separator + dateDir + File.separator;
         String absolutePath = UPLOAD_DIR + relativePath;
         
         // 创建目录
@@ -60,16 +81,26 @@ public class FileUtil {
     }
     
     /**
-     * 验证文件
+     * 验证文件（使用默认大小限制）
      */
     private static void validateFile(MultipartFile file) {
+        validateFile(file, MAX_FILE_SIZE);
+    }
+    
+    /**
+     * 验证文件（支持自定义大小限制）
+     * @param file 上传的文件
+     * @param maxSize 最大文件大小（字节）
+     */
+    private static void validateFile(MultipartFile file, long maxSize) {
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("文件不能为空");
         }
         
         // 检查文件大小
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new RuntimeException("文件大小不能超过2MB");
+        if (file.getSize() > maxSize) {
+            long maxMB = maxSize / (1024 * 1024);
+            throw new RuntimeException("文件大小不能超过" + maxMB + "MB");
         }
         
         // 检查文件类型

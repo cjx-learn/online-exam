@@ -53,7 +53,12 @@ public class UserService {
                 throw new RuntimeException("账号已被禁用");
             }
             
-            String token = jwtUtil.generateToken(student.getId(), student.getUsername());
+            // 生成新Token（包含角色信息）
+            String token = jwtUtil.generateToken(student.getId(), student.getUsername(), 0);
+            
+            // 学生账号：单设备登录限制，保存新Token到数据库
+            studentMapper.updateCurrentToken(student.getId(), token);
+            
             Map<String, Object> result = new HashMap<>();
             result.put("token", token);
             result.put("userId", student.getId());
@@ -81,7 +86,12 @@ public class UserService {
                 throw new RuntimeException("账号已被禁用");
             }
             
-            String token = jwtUtil.generateToken(teacher.getId(), teacher.getUsername());
+            // 生成新Token（包含角色信息）
+            String token = jwtUtil.generateToken(teacher.getId(), teacher.getUsername(), 1);
+            
+            // 教师账号：单设备登录限制，保存新Token到数据库
+            teacherMapper.updateCurrentToken(teacher.getId(), token);
+            
             Map<String, Object> result = new HashMap<>();
             result.put("token", token);
             result.put("userId", teacher.getId());
@@ -110,7 +120,12 @@ public class UserService {
                 throw new RuntimeException("账号已被禁用");
             }
             
-            String token = jwtUtil.generateToken(admin.getId(), admin.getUsername());
+            // 生成新Token（包含角色信息）
+            String token = jwtUtil.generateToken(admin.getId(), admin.getUsername(), 2);
+            
+            // 管理员账号：单设备登录限制，保存新Token到数据库
+            adminMapper.updateCurrentToken(admin.getId(), token);
+            
             Map<String, Object> result = new HashMap<>();
             result.put("token", token);
             result.put("userId", admin.getId());

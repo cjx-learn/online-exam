@@ -10,6 +10,7 @@
         <result property="courseId" column="course_id"/>
         <result property="type" column="type"/>
         <result property="content" column="content"/>
+        <result property="image" column="image"/>
         <result property="options" column="options"/>
         <result property="answer" column="answer"/>
         <result property="score" column="score"/>
@@ -26,7 +27,7 @@
 
     <!-- 基本列 -->
     <sql id="Base_Column_List">
-        id, course_id, type, content, options, answer, score, category, difficulty, creator_id, create_time
+        id, course_id, type, content, image, options, answer, score, category, difficulty, creator_id, create_time
     </sql>
 
     <!-- 根据ID查询 -->
@@ -51,8 +52,8 @@
 
     <!-- 插入题目 -->
     <insert id="insert" parameterType="com.exam.entity.Question" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO question (course_id, type, content, options, answer, score, category, difficulty, creator_id, create_time)
-        VALUES (#{courseId}, #{type}, #{content}, #{options}, #{answer}, #{score}, #{category}, #{difficulty}, #{creatorId}, #{createTime})
+        INSERT INTO question (course_id, type, content, image, options, answer, score, category, difficulty, creator_id, create_time)
+        VALUES (#{courseId}, #{type}, #{content}, #{image}, #{options}, #{answer}, #{score}, #{category}, #{difficulty}, #{creatorId}, #{createTime})
     </insert>
 
     <!-- 更新题目 -->
@@ -62,6 +63,7 @@
             <if test="courseId != null">course_id = #{courseId},</if>
             <if test="type != null">type = #{type},</if>
             <if test="content != null">content = #{content},</if>
+            <if test="image != null">image = #{image},</if>
             <if test="options != null">options = #{options},</if>
             <if test="answer != null">answer = #{answer},</if>
             <if test="score != null">score = #{score},</if>

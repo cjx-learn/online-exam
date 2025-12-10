@@ -33,6 +33,17 @@ public class JwtUtil {
     }
 
     /**
+     * 生成包含角色的 Token
+     */
+    public String generateToken(Long userId, String username, Integer role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("username", username);
+        claims.put("role", role);
+        return createToken(claims);
+    }
+
+    /**
      * 创建 Token
      */
     private String createToken(Map<String, Object> claims) {
@@ -61,6 +72,17 @@ public class JwtUtil {
     public String getUsernameFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims != null ? claims.get("username").toString() : null;
+    }
+
+    /**
+     * 从 Token 中获取角色
+     */
+    public Integer getRoleFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        if (claims != null && claims.get("role") != null) {
+            return Integer.valueOf(claims.get("role").toString());
+        }
+        return null;
     }
 
     /**

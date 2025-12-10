@@ -14,6 +14,7 @@ public class Question {
     private Long courseId; // 课程ID，关联到 Course
     private Integer type; // 题型：1-单选，2-多选，3-判断，4-填空，5-简答
     private String content; // 题干
+    private String image; // 题目图片URL
     private String options; // 选项 (JSON格式，仅适用于选择题)
     private String answer; // 答案
     private Double score; // 分值

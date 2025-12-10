@@ -23,6 +23,9 @@
           <div class="question-content">
             <el-icon class="content-icon"><Document /></el-icon>
             <span>{{ scope.row.content }}</span>
+            <el-icon v-if="scope.row.image" class="image-icon" title="包含图片">
+              <Picture />
+            </el-icon>
           </div>
         </template>
       </el-table-column>
@@ -97,6 +100,15 @@
       <el-descriptions-item label="题干">
         {{ currentQuestion.content }}
       </el-descriptions-item>
+      <el-descriptions-item label="题目图片" v-if="currentQuestion.image">
+        <el-image 
+          :src="getImageUrl(currentQuestion.image)" 
+          :preview-src-list="[getImageUrl(currentQuestion.image)]"
+          fit="contain"
+          style="max-width: 500px; max-height: 300px; cursor: pointer;"
+          :preview-teleported="true"
+        />
+      </el-descriptions-item>
       <el-descriptions-item label="选项" v-if="[1, 2].includes(currentQuestion.type)">
         <div v-if="currentQuestion.options">
           <p v-for="(opt, key) in JSON.parse(currentQuestion.options)" :key="key">
@@ -129,7 +141,8 @@
 <script setup>
 import { ref, reactive, watch, computed, onMounted, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
-import { Document, View, DocumentDelete } from '@element-plus/icons-vue';
+import { Document, View, DocumentDelete, Picture } from '@element-plus/icons-vue';
+import { getImageUrl } from '@/utils/file';
 
 const props = defineProps({
   questions: { type: Array, default: () => [] },
@@ -373,6 +386,13 @@ onMounted(() => {
 .content-icon {
   color: #667eea;
   font-size: 16px;
+  flex-shrink: 0;
+}
+
+.image-icon {
+  color: #409eff;
+  font-size: 16px;
+  margin-left: 6px;
   flex-shrink: 0;
 }
 

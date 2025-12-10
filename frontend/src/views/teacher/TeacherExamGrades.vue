@@ -17,15 +17,18 @@
             <el-icon><ArrowLeft /></el-icon>
           </button>
           <div class="header-info">
-            <h1 class="grades-title">{{ exam.title || '考试成绩' }}</h1>
-            <p v-if="exam" class="grades-subtitle">
-              <el-icon class="time-icon"><Calendar /></el-icon>
-              {{ formatTime(exam.startTime) }} - {{ formatTime(exam.endTime) }}
-            </p>
+            <div class="title-row">
+              <h1 class="grades-title">{{ exam.title || '考试成绩' }}</h1>
+              <span v-if="exam" class="grades-time">
+                <el-icon class="time-icon"><Calendar /></el-icon>
+                {{ formatTime(exam.startTime) }} - {{ formatTime(exam.endTime) }}
+              </span>
+            </div>
           </div>
         </div>
         <div class="header-right">
           <div class="exam-status-tag" :class="{ ended: isExamEnded }">
+            <span class="status-dot" :class="{ 'breathing': !isExamEnded }"></span>
             {{ isExamEnded ? '已结束' : '进行中' }}
           </div>
           
@@ -34,8 +37,14 @@
           <!-- 用户头像下拉菜单 -->
           <el-dropdown @command="handleUserCommand" trigger="click">
             <div class="user-avatar">
-              <el-avatar :size="34" :icon="UserFilled" class="avatar-img" />
+              <el-avatar 
+                :size="42" 
+                :icon="userInfo.avatar ? undefined : UserFilled" 
+                :src="getAvatarUrl(userInfo.avatar)"
+                class="avatar-img" 
+              />
               <span class="user-name">{{ userInfo.realName }}</span>
+              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
             </div>
             <template #dropdown>
               <el-dropdown-menu class="user-dropdown">
@@ -309,6 +318,7 @@
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getAvatarUrl } from '@/utils/file'
 import { ArrowLeft, Loading, Search, Document, TrendCharts, DataLine, Trophy, Bottom, CircleCheck, Calendar, UserFilled, User, SwitchButton, Download, DataAnalysis, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import * as echarts from 'echarts'
@@ -333,7 +343,8 @@ const typeRateChart = ref(null)
 
 // 用户信息
 const userInfo = reactive({
-  realName: '教师'
+  realName: '教师',
+  avatar: ''
 })
 
 // 加载用户信息
@@ -342,6 +353,7 @@ try {
   if (storedUserInfo) {
     const parsed = JSON.parse(storedUserInfo)
     if (parsed.realName) userInfo.realName = parsed.realName
+    if (parsed.avatar) userInfo.avatar = parsed.avatar
   }
 } catch (e) {}
 
@@ -1133,16 +1145,17 @@ onMounted(loadData)
 }
 
 /* ============ 顶部导航栏 ============ */
+/* 毛玻璃导航栏 */
 .grades-header {
   position: sticky;
   top: 0;
   z-index: 100;
   height: 70px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.08), 0 1px 3px rgba(102, 126, 234, 0.06);
   display: flex;
   align-items: center;
   padding: 0 32px;
@@ -1178,19 +1191,53 @@ onMounted(loadData)
   gap: 16px;
 }
 
+/* 状态标签优化 */
 .exam-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 6px 16px;
   border-radius: 20px;
   font-size: 13px;
   font-weight: 600;
-  background: #f3f4f6;
-  color: #606266;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(103, 194, 58, 0.1);
+  color: #67c23a;
+  border: 1px solid rgba(103, 194, 58, 0.2);
 }
 
 .exam-status-tag.ended {
-  background: #f3f4f6;
+  background: rgba(144, 147, 153, 0.1);
   color: #909399;
+  border: 1px solid rgba(144, 147, 153, 0.2);
+}
+
+/* 状态圆点 */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #67c23a;
+}
+
+.exam-status-tag.ended .status-dot {
+  background: #909399;
+}
+
+/* 呼吸灯动画 */
+.status-dot.breathing {
+  animation: breathing 2s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(103, 194, 58, 0.6);
+}
+
+@keyframes breathing {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
 }
 
 .header-divider {
@@ -1200,90 +1247,130 @@ onMounted(loadData)
   margin: 0 20px;
 }
 
+/* 用户头像区域 - 精致设计 */
 .user-avatar {
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  padding: 4px 8px 4px 4px;
-  border-radius: 24px;
+  padding: 8px 16px;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(102, 126, 234, 0.15);
   transition: all 0.3s ease;
-  border: 1px solid transparent;
 }
 
 .user-avatar:hover {
-  background: rgba(255, 255, 255, 0.5);
-  border-color: rgba(102, 126, 234, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  transform: translateY(-1px);
 }
 
 .avatar-img {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: transform 0.3s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
   border: 2px solid #fff;
-  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
-  transition: transform 0.3s ease;
+  position: relative;
 }
 
+/* 头像外描边 */
 .user-avatar:hover .avatar-img {
-  transform: scale(1.05);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15), 0 2px 8px rgba(102, 126, 234, 0.25);
 }
+
 
 .user-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #606266;
-  margin-right: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  letter-spacing: 0.3px;
+  transition: all 0.3s;
 }
 
+.user-avatar:hover .user-name {
+  color: var(--primary);
+}
+
+/* 下拉箭头 */
+.dropdown-icon {
+  font-size: 12px;
+  color: #909399;
+  transition: all 0.3s ease;
+}
+
+.user-avatar:hover .dropdown-icon {
+  color: var(--primary);
+  transform: translateY(2px);
+}
+
+/* 用户下拉菜单美化 */
+:deep(.user-dropdown) {
+  margin-top: 8px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  overflow: hidden;
+}
+
+:deep(.user-dropdown .el-dropdown-menu__item) {
+  padding: 12px 20px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+:deep(.user-dropdown .el-dropdown-menu__item:hover) {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  color: var(--primary);
+}
+
+:deep(.user-dropdown .el-dropdown-menu__item .el-icon) {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+/* 弱化返回按钮 */
 .back-btn {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
   border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  border-radius: 50%;
+  background: transparent;
+  color: #909399;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
   position: relative;
-  overflow: hidden;
-}
-
-.back-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s;
-}
-
-.back-btn:hover::before {
-  left: 100%;
 }
 
 .back-btn:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  transform: translateX(-2px);
 }
 
 .back-btn:active {
-  transform: translateY(-1px);
+  transform: translateX(-1px) scale(0.95);
 }
 
 .back-btn :deep(.el-icon) {
   font-size: 20px;
+  transition: all 0.3s ease;
 }
 
 .header-info {
   flex: 1;
   min-width: 0;
+}
+
+/* 标题和时间同行显示 */
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .grades-title {
@@ -1300,16 +1387,21 @@ onMounted(loadData)
   text-overflow: ellipsis;
 }
 
-.grades-subtitle {
-  margin: 6px 0 0;
+.grades-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
   color: #909399;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  padding: 4px 12px;
+  background: rgba(144, 147, 153, 0.08);
+  border-radius: 12px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.grades-time .time-icon {
+  font-size: 14px;
 }
 
 .time-icon {

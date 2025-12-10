@@ -34,6 +34,26 @@ public class FileController {
     }
     
     /**
+     * 上传题目图片（最大5MB）
+     */
+    @PostMapping("/upload/question-image")
+    public Result<?> uploadQuestionImage(@RequestParam("file") MultipartFile file) {
+        try {
+            // 5MB = 5 * 1024 * 1024 字节
+            long maxSize = 5 * 1024 * 1024;
+            String url = FileUtil.uploadFile(file, "questions", maxSize);
+            
+            Map<String, String> result = new HashMap<>();
+            result.put("url", url);
+            result.put("filename", file.getOriginalFilename());
+            
+            return Result.success(result);
+        } catch (Exception e) {
+            return Result.error("上传失败: " + e.getMessage());
+        }
+    }
+    
+    /**
      * 删除文件
      */
     @DeleteMapping("/delete")

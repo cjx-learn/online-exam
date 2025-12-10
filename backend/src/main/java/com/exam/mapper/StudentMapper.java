@@ -46,5 +46,10 @@ public interface StudentMapper {
      * 删除学生
      */
     int deleteById(@Param("id") Long id);
+
+    /**
+     * 更新学生的当前Token
+     */
+    int updateCurrentToken(@Param("id") Long id, @Param("currentToken") String currentToken);
 }
 

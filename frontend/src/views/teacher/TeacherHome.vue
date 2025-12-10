@@ -30,7 +30,7 @@
             <el-avatar 
               :size="42" 
               :icon="userInfo.avatar ? undefined : UserFilled" 
-              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              :src="getAvatarUrl(userInfo.avatar)"
               class="avatar-img" 
             />
             <span class="user-name">{{ userInfo.realName || '教师' }}</span>
@@ -246,9 +246,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getAvatarUrl } from '@/utils/file'
 import { 
   Plus, UserFilled, User, SwitchButton, Monitor, Loading, Document
 } from '@element-plus/icons-vue'

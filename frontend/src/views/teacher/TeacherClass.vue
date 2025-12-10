@@ -17,7 +17,7 @@
             <el-avatar 
               :size="42" 
               :icon="userInfo.avatar ? undefined : UserFilled" 
-              :src="userInfo.avatar ? 'http://localhost:8080/api' + userInfo.avatar : undefined"
+              :src="getAvatarUrl(userInfo.avatar)"
               class="avatar-img" 
             />
             <span class="user-name">{{ userInfo.realName || '教师' }}</span>
@@ -343,59 +343,150 @@
     <el-dialog
       v-model="questionDialogVisible"
       title="添加题目"
-      width="700px"
+      width="750px"
       :close-on-click-modal="false"
+      class="question-dialog"
     >
-      <el-form :model="questionForm" :rules="questionRules" ref="questionFormRef" label-width="100px">
-        <el-form-item label="题型" prop="type">
-          <el-radio-group v-model="questionForm.type">
-            <el-radio :value="1">单选题</el-radio>
-            <el-radio :value="2">多选题</el-radio>
-            <el-radio :value="3">判断题</el-radio>
-            <el-radio :value="4">填空题</el-radio>
-            <el-radio :value="5">简答题</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="题干" prop="content">
-          <el-input
-            v-model="questionForm.content"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入题干"
-          />
-        </el-form-item>
-        <el-form-item label="选项A" prop="optionA" v-if="[1, 2].includes(questionForm.type)">
-          <el-input v-model="questionForm.optionA" placeholder="请输入选项A" />
-        </el-form-item>
-        <el-form-item label="选项B" prop="optionB" v-if="[1, 2].includes(questionForm.type)">
-          <el-input v-model="questionForm.optionB" placeholder="请输入选项B" />
-        </el-form-item>
-        <el-form-item label="选项C" prop="optionC" v-if="[1, 2].includes(questionForm.type)">
-          <el-input v-model="questionForm.optionC" placeholder="请输入选项C" />
-        </el-form-item>
-        <el-form-item label="选项D" prop="optionD" v-if="[1, 2].includes(questionForm.type)">
-          <el-input v-model="questionForm.optionD" placeholder="请输入选项D" />
-        </el-form-item>
-        <el-form-item label="答案" prop="answer">
-          <el-input v-model="questionForm.answer" placeholder="请输入答案" />
-        </el-form-item>
-        <el-form-item label="分值" prop="score">
-          <el-input-number v-model="questionForm.score" :min="1" :max="100" />
-        </el-form-item>
-        <el-form-item label="知识点" prop="category">
-          <el-input v-model="questionForm.category" placeholder="请输入知识点" />
-        </el-form-item>
-        <el-form-item label="难度" prop="difficulty">
-          <el-radio-group v-model="questionForm.difficulty">
-            <el-radio :value="1">⭐ 简单</el-radio>
-            <el-radio :value="2">⭐⭐ 中等</el-radio>
-            <el-radio :value="3">⭐⭐⭐ 困难</el-radio>
-          </el-radio-group>
-        </el-form-item>
+      <el-form 
+        :model="questionForm" 
+        :rules="questionRules" 
+        ref="questionFormRef" 
+        label-position="top"
+        class="question-form"
+      >
+        <!-- 基础信息区域 -->
+        <div class="form-section">
+          <div class="form-row two-col">
+            <el-form-item label="题型" prop="type">
+              <el-radio-group v-model="questionForm.type" class="type-radio-group">
+                <el-radio :value="1">📝 单选</el-radio>
+                <el-radio :value="2">☑️ 多选</el-radio>
+                <el-radio :value="3">✓ 判断</el-radio>
+                <el-radio :value="4">📋 填空</el-radio>
+                <el-radio :value="5">📄 简答</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="难度" prop="difficulty">
+              <el-radio-group v-model="questionForm.difficulty" class="difficulty-radio-group">
+                <el-radio :value="1">⭐ 简单</el-radio>
+                <el-radio :value="2">⭐⭐ 中等</el-radio>
+                <el-radio :value="3">⭐⭐⭐ 困难</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </div>
+
+          <div class="form-row two-col">
+            <el-form-item label="分值" prop="score">
+              <el-input-number v-model="questionForm.score" :min="1" :max="100" style="width: 100%;" />
+            </el-form-item>
+            <el-form-item label="知识点" prop="category">
+              <el-input v-model="questionForm.category" placeholder="请输入知识点" />
+            </el-form-item>
+          </div>
+        </div>
+
+        <!-- 题目内容区域 -->
+        <div class="form-section">
+          <el-form-item label="题干" prop="content">
+            <el-input
+              v-model="questionForm.content"
+              type="textarea"
+              :rows="3"
+              placeholder="请输入题干内容..."
+            />
+          </el-form-item>
+          <el-form-item label="题目图片">
+            <QuestionImageUpload v-model="questionForm.image" />
+          </el-form-item>
+        </div>
+
+        <!-- 选项区域 (仅选择题显示) -->
+        <div class="form-section" v-if="[1, 2].includes(questionForm.type)">
+          <div class="section-title">选项设置</div>
+          <div class="options-grid">
+            <el-form-item label="选项 A" prop="optionA">
+              <el-input v-model="questionForm.optionA" placeholder="请输入选项A内容" />
+            </el-form-item>
+            <el-form-item label="选项 B" prop="optionB">
+              <el-input v-model="questionForm.optionB" placeholder="请输入选项B内容" />
+            </el-form-item>
+            <el-form-item label="选项 C" prop="optionC">
+              <el-input v-model="questionForm.optionC" placeholder="请输入选项C内容" />
+            </el-form-item>
+            <el-form-item label="选项 D" prop="optionD">
+              <el-input v-model="questionForm.optionD" placeholder="请输入选项D内容" />
+            </el-form-item>
+          </div>
+        </div>
+
+        <!-- 答案区域 -->
+        <div class="form-section answer-section">
+          <div class="section-title">
+            <span>正确答案</span>
+            <div class="form-tip-inline">
+              <span v-if="questionForm.type === 1"><el-icon><InfoFilled /></el-icon> 请选择唯一的正确答案</span>
+              <span v-else-if="questionForm.type === 2"><el-icon><InfoFilled /></el-icon> 请选择所有正确答案（至少2个）</span>
+              <span v-else-if="questionForm.type === 3"><el-icon><InfoFilled /></el-icon> 请输入 "正确" 或 "错误"</span>
+              <span v-else><el-icon><InfoFilled /></el-icon> 请输入参考答案</span>
+            </div>
+          </div>
+          
+          <el-form-item prop="answer" label-width="0">
+            <!-- 单选题：使用单选按钮 -->
+            <el-radio-group v-if="questionForm.type === 1" v-model="questionForm.answer" class="answer-card-group">
+              <el-radio label="A" :disabled="!questionForm.optionA">
+                <span class="option-label">A</span>
+                <span class="option-text">{{ questionForm.optionA || '请先输入选项A' }}</span>
+              </el-radio>
+              <el-radio label="B" :disabled="!questionForm.optionB">
+                <span class="option-label">B</span>
+                <span class="option-text">{{ questionForm.optionB || '请先输入选项B' }}</span>
+              </el-radio>
+              <el-radio label="C" :disabled="!questionForm.optionC">
+                <span class="option-label">C</span>
+                <span class="option-text">{{ questionForm.optionC || '请先输入选项C' }}</span>
+              </el-radio>
+              <el-radio label="D" :disabled="!questionForm.optionD">
+                <span class="option-label">D</span>
+                <span class="option-text">{{ questionForm.optionD || '请先输入选项D' }}</span>
+              </el-radio>
+            </el-radio-group>
+            
+            <!-- 多选题：使用复选框 -->
+            <el-checkbox-group v-else-if="questionForm.type === 2" v-model="questionForm.answerArray" class="answer-card-group">
+              <el-checkbox label="A" :disabled="!questionForm.optionA">
+                <span class="option-label">A</span>
+                <span class="option-text">{{ questionForm.optionA || '请先输入选项A' }}</span>
+              </el-checkbox>
+              <el-checkbox label="B" :disabled="!questionForm.optionB">
+                <span class="option-label">B</span>
+                <span class="option-text">{{ questionForm.optionB || '请先输入选项B' }}</span>
+              </el-checkbox>
+              <el-checkbox label="C" :disabled="!questionForm.optionC">
+                <span class="option-label">C</span>
+                <span class="option-text">{{ questionForm.optionC || '请先输入选项C' }}</span>
+              </el-checkbox>
+              <el-checkbox label="D" :disabled="!questionForm.optionD">
+                <span class="option-label">D</span>
+                <span class="option-text">{{ questionForm.optionD || '请先输入选项D' }}</span>
+              </el-checkbox>
+            </el-checkbox-group>
+            
+            <!-- 其他题型：保持输入框 -->
+            <el-input 
+              v-else
+              v-model="questionForm.answer" 
+              :placeholder="getAnswerPlaceholder()"
+              class="answer-input"
+            />
+          </el-form-item>
+        </div>
       </el-form>
       <template #footer>
-        <el-button @click="questionDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmAddQuestion">确定</el-button>
+        <div class="dialog-footer">
+          <el-button @click="questionDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmAddQuestion">确定添加</el-button>
+        </div>
       </template>
     </el-dialog>
 
@@ -411,6 +502,14 @@
         </el-descriptions-item>
         <el-descriptions-item label="题干">
           {{ currentQuestion.content }}
+        </el-descriptions-item>
+        <el-descriptions-item label="题目图片" v-if="currentQuestion.image">
+          <el-image 
+            :src="getImageUrl(currentQuestion.image)" 
+            :preview-src-list="[getImageUrl(currentQuestion.image)]"
+            fit="contain"
+            style="max-width: 100%; width: auto; height: auto; cursor: pointer; display: block;"
+          />
         </el-descriptions-item>
         <el-descriptions-item label="选项" v-if="[1, 2].includes(currentQuestion.type)">
           <div v-if="currentQuestion.options">
@@ -488,6 +587,8 @@ import {
 import request from '@/utils/request'
 import * as XLSX from 'xlsx'
 import AvatarUpload from '@/components/AvatarUpload.vue'
+import QuestionImageUpload from '@/components/QuestionImageUpload.vue'
+import { getAvatarUrl, getImageUrl } from '@/utils/file'
 
 const route = useRoute()
 const router = useRouter()
@@ -610,11 +711,13 @@ const excelUploadRef = ref(null)
 const questionForm = reactive({
   type: 1,
   content: '',
+  image: '', // 题目图片
   optionA: '',
   optionB: '',
   optionC: '',
   optionD: '',
   answer: '',
+  answerArray: [], // 多选题答案数组
   score: 5,
   category: '',
   difficulty: 1, // 添加 difficulty 字段，默认为简单
@@ -811,16 +914,44 @@ const handleDeleteStudent = (row) => {
   }).catch(() => {})
 }
 
+// 根据题型获取答案输入框的占位符文本
+const getAnswerPlaceholder = () => {
+  switch (questionForm.type) {
+    case 1:
+      return '请输入 A、B、C、D 中的一个字母'
+    case 2:
+      return '请输入多个选项，用英文逗号分隔（如：A,B,C）'
+    case 3:
+      return '请输入"正确"或"错误"'
+    case 4:
+      return '请输入填空题答案'
+    case 5:
+      return '请输入简答题参考答案'
+    default:
+      return '请输入答案'
+  }
+}
+
+// 处理答案输入，自动转换大写（仅针对单选题和多选题）
+const handleAnswerInput = () => {
+  if ([1, 2].includes(questionForm.type)) {
+    // 将小写字母转为大写
+    questionForm.answer = questionForm.answer.toUpperCase()
+  }
+}
+
 // 显示添加题目对话框
 const showAddQuestionDialog = () => {
   Object.assign(questionForm, {
     type: 1,
     content: '',
+    image: '', // 重置图片
     optionA: '',
     optionB: '',
     optionC: '',
     optionD: '',
     answer: '',
+    answerArray: [], // 重置多选答案数组
     score: 5,
     category: '',
     difficulty: 1, // 默认难度为简单
@@ -851,6 +982,32 @@ const confirmAddQuestion = async () => {
       ElMessage.warning('请输入选项D')
       return
     }
+    
+    // 验证答案格式
+    if (questionForm.type === 1) {
+      // 单选题：验证answer字段
+      const answer = questionForm.answer.trim()
+      if (!answer) {
+        ElMessage.warning('请选择正确答案')
+        return
+      }
+      if (!/^[A-D]$/.test(answer)) {
+        ElMessage.warning('单选题答案必须是 A、B、C、D 中的一个')
+        return
+      }
+    } else if (questionForm.type === 2) {
+      // 多选题：验证answerArray数组
+      if (!questionForm.answerArray || questionForm.answerArray.length === 0) {
+        ElMessage.warning('请至少选择一个答案')
+        return
+      }
+      
+      // 至少要有2个选项
+      if (questionForm.answerArray.length < 2) {
+        ElMessage.warning('多选题答案至少要包含2个选项')
+        return
+      }
+    }
   }
   
   await questionFormRef.value.validate(async (valid) => {
@@ -869,6 +1026,15 @@ const confirmAddQuestion = async () => {
             C: questionForm.optionC,
             D: questionForm.optionD
           })
+          
+          // 处理答案
+          if (questionForm.type === 1) {
+            // 单选题：直接使用answer字段
+            data.answer = questionForm.answer.trim().toUpperCase()
+          } else if (questionForm.type === 2) {
+            // 多选题：将answerArray转换为逗号分隔的字符串
+            data.answer = questionForm.answerArray.sort().join(',')
+          }
         }
         
         const response = await request.post('/question', data)
@@ -2197,5 +2363,348 @@ watch(classId, (newClassId) => {
 .btn-grades-disabled:hover { 
   transform: none; 
   filter: none;
+}
+
+/* 答案选择样式 */
+:deep(.el-radio-group) {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+:deep(.el-checkbox-group) {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+:deep(.el-radio),
+:deep(.el-checkbox) {
+  margin: 0;
+  padding: 12px 16px;
+  border: 2px solid #e4e7ed;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-radio:hover),
+:deep(.el-checkbox:hover) {
+  border-color: #667eea;
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+:deep(.el-radio.is-checked),
+:deep(.el-checkbox.is-checked) {
+  border-color: #667eea;
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+:deep(.el-radio.is-disabled),
+:deep(.el-checkbox.is-disabled) {
+  background-color: #f5f7fa;
+  cursor: not-allowed;
+}
+
+/* 题目表单样式优化 */
+.question-form {
+  padding: 0 10px;
+}
+
+.form-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #f1f5f9;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: 14px;
+  background: #667eea;
+  border-radius: 2px;
+}
+
+.form-row {
+  display: grid;
+  gap: 20px;
+}
+
+.two-col {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* 选项网格布局 */
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.answer-section {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: #bbf7d0;
+}
+
+.form-tip {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 10px;
+}
+
+/* 隐藏原生 Radio/Checkbox */
+.type-radio-group :deep(.el-radio__input),
+.difficulty-radio-group :deep(.el-radio__input) {
+  display: none;
+}
+
+/* 题型选择 - 纯卡片样式 */
+.type-radio-group :deep(.el-radio) {
+  margin: 0;
+  padding: 0;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  width: 100%; /* 让每个选项占满网格单元 */
+}
+
+.type-radio-group :deep(.el-radio__label) {
+  padding: 0 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.type-radio-group :deep(.el-radio:hover) {
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.type-radio-group :deep(.el-radio.is-checked) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.type-radio-group :deep(.el-radio.is-checked .el-radio__label) {
+  color: white;
+  font-weight: 600;
+}
+
+/* 难度选择 - 纯卡片样式 */
+.difficulty-radio-group :deep(.el-radio) {
+  margin: 0;
+  padding: 0;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  width: 100%;
+}
+
+.difficulty-radio-group :deep(.el-radio__label) {
+  padding: 0 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.difficulty-radio-group :deep(.el-radio:hover) {
+  border-color: #67c23a;
+  color: #67c23a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(103, 194, 58, 0.1);
+}
+
+.difficulty-radio-group :deep(.el-radio.is-checked) {
+  background: linear-gradient(135deg, #67c23a 0%, #409eff 100%); /* 渐变绿到蓝，更时尚 */
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(103, 194, 58, 0.25);
+}
+
+.difficulty-radio-group :deep(.el-radio.is-checked .el-radio__label) {
+  color: white;
+  font-weight: 600;
+}
+
+/* 网格布局修正 */
+.type-radio-group,
+.difficulty-radio-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+/* 输入框美化 */
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner) {
+  box-shadow: 0 0 0 1px #e4e7ed inset;
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-input__wrapper:hover),
+:deep(.el-textarea__inner:hover) {
+  box-shadow: 0 0 0 1px #c0c4cc inset;
+  background-color: #fcfcfc;
+}
+
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-textarea__inner:focus) {
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2) inset, 0 0 0 1px #667eea inset !important;
+  background-color: white;
+}
+
+/* 答案区域样式优化 */
+.form-tip-inline {
+  margin-left: auto;
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: normal;
+}
+
+.answer-card-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+.answer-card-group :deep(.el-radio),
+.answer-card-group :deep(.el-checkbox) {
+  margin: 0;
+  padding: 0;
+  height: auto;
+  border: 1px solid rgba(102, 126, 234, 0.15);
+  border-radius: 8px;
+  background: white;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.answer-card-group :deep(.el-radio__input),
+.answer-card-group :deep(.el-checkbox__input) {
+  display: none;
+}
+
+.answer-card-group :deep(.el-radio__label),
+.answer-card-group :deep(.el-checkbox__label) {
+  padding: 12px 16px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.option-label {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.option-text {
+  font-size: 14px;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* 选中状态 */
+.answer-card-group :deep(.el-radio.is-checked),
+.answer-card-group :deep(.el-checkbox.is-checked) {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.answer-card-group :deep(.el-radio.is-checked) .option-label,
+.answer-card-group :deep(.el-checkbox.is-checked) .option-label {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.answer-card-group :deep(.el-radio.is-checked) .option-text,
+.answer-card-group :deep(.el-checkbox.is-checked) .option-text {
+  color: #667eea;
+  font-weight: 500;
+}
+
+/* 悬停效果 */
+.answer-card-group :deep(.el-radio:hover),
+.answer-card-group :deep(.el-checkbox:hover) {
+  border-color: #667eea;
+  transform: translateY(-1px);
+}
+
+/* 禁用状态 */
+.answer-card-group :deep(.el-radio.is-disabled),
+.answer-card-group :deep(.el-checkbox.is-disabled) {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.answer-input :deep(.el-input__wrapper) {
+  background: white;
 }
 </style>

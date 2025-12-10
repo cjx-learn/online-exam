@@ -14,6 +14,7 @@
         <result column="phone" property="phone"/>
         <result column="avatar" property="avatar"/>
         <result column="status" property="status"/>
+        <result column="current_token" property="currentToken"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
@@ -63,6 +64,12 @@
     <delete id="deleteById">
         DELETE FROM student WHERE id = #{id}
     </delete>
+
+    <update id="updateCurrentToken">
+        UPDATE student
+        SET current_token = #{currentToken}
+        WHERE id = #{id}
+    </update>
 
 </mapper>
 

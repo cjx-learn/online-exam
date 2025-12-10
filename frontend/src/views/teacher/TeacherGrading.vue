@@ -40,7 +40,12 @@
             :class="{ 'is-current': currentQuestionId === question.questionId }"
             @click="selectQuestion(question)"
           >
-            <div class="question-num"> 第 {{ index + 1 }} 题</div>
+            <div class="question-num"> 
+              第 {{ index + 1 }} 题
+              <el-icon v-if="question.image" style="margin-left: 6px; color: #409eff; font-size: 14px;" title="包含图片">
+                <Picture />
+              </el-icon>
+            </div>
             <div class="question-status">
               <span class="status-badge" :class="getQuestionStatusClass(question)">
                 {{ getQuestionStatusText(question) }}
@@ -64,6 +69,16 @@
               <div class="q-number"> {{ currentQuestionIndex + 1 }} </div>
               <div class="q-info">
                 <div class="q-content">{{ currentQuestion.content }}</div>
+                <!-- 题目图片 -->
+                <div v-if="currentQuestion.image" class="q-image-wrapper">
+                  <el-image 
+                    :src="getImageUrl(currentQuestion.image)" 
+                    :preview-src-list="[getImageUrl(currentQuestion.image)]"
+                    fit="contain"
+                    class="q-image"
+                    :preview-teleported="true"
+                  />
+                </div>
                 <div class="q-meta">
                   <span class="q-score">满分 <strong>{{ currentQuestion.score }}</strong> 分</span>
                   <span class="q-count">{{ currentQuestionAnswers.length }} 个学生</span>
@@ -203,10 +218,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowLeft, ArrowRight, Check } from '@element-plus/icons-vue'
+import { getImageUrl } from '@/utils/file'
+import { ArrowLeft, ArrowRight, Check, Picture } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -1259,6 +1275,40 @@ onUnmounted(() => {
   line-height: 1.6;
   word-break: break-word;
   margin-bottom: 8px;
+}
+
+/* 题目图片样式 */
+.q-image-wrapper {
+  margin: 16px 0;
+  padding: 12px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08);
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.q-image-wrapper:hover {
+  border-color: rgba(102, 126, 234, 0.25);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.q-image {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.q-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .q-meta {
