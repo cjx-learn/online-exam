@@ -7,7 +7,7 @@
           <el-icon><ArrowLeft /></el-icon>
         </button>
         <div class="header-info">
-          <h1 class="grading-title">✏️ 主观题试卷批改</h1>
+          <h1 class="grading-title">主观题试卷批改</h1>
           <p class="grading-subtitle">{{ examInfo.title }}</p>
         </div>
       </div>
