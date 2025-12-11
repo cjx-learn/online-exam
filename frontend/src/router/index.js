@@ -36,6 +36,7 @@ const routes = [
   {
     path: '/student',
     name: 'StudentLayout',
+    component: () => import('@/layouts/StudentLayout.vue'),
     redirect: '/student/home',
     children: [
       {
@@ -63,6 +64,7 @@ const routes = [
   {
     path: '/teacher',
     name: 'TeacherLayout',
+    component: () => import('@/layouts/TeacherLayout.vue'),
     redirect: '/teacher/home',
     children: [
       {
@@ -105,6 +107,7 @@ const routes = [
   {
     path: '/admin',
     name: 'AdminLayout',
+    component: () => import('@/layouts/AdminLayout.vue'),
     redirect: '/admin/home',
     children: [
       {
