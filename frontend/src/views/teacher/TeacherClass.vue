@@ -190,22 +190,11 @@
                 <span v-else style="color: #d9d9d9;">-</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="150" fixed="right">
+            <el-table-column label="操作" width="180" fixed="right" align="center">
               <template #default="scope">
-                <el-button
-                  type="primary"
-                  size="small"
-                  @click="handleViewQuestion(scope.row)"
-                >
-                  查看
-                </el-button>
-                <el-button
-                  type="danger"
-                  size="small"
-                  @click="handleDeleteQuestion(scope.row)"
-                >
-                  删除
-                </el-button>
+                <el-button class="action-btn btn-view" size="small" @click="handleViewQuestion(scope.row)">查看</el-button>
+                <el-button class="action-btn btn-edit" size="small" @click="handleEditQuestion(scope.row)">编辑</el-button>
+                <el-button class="action-btn btn-delete" size="small" @click="handleDeleteQuestion(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -339,10 +328,10 @@
       </div>
     </div>
 
-    <!-- 添加题目对话框 -->
+    <!-- 添加/编辑题目对话框 -->
     <el-dialog
       v-model="questionDialogVisible"
-      title="添加题目"
+      :title="isEditMode ? '编辑题目' : '添加题目'"
       width="750px"
       :close-on-click-modal="false"
       class="question-dialog"
@@ -485,7 +474,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="questionDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="confirmAddQuestion">确定添加</el-button>
+          <el-button type="primary" @click="confirmAddQuestion">{{ isEditMode ? '保存修改' : '确定添加' }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -727,6 +716,10 @@ const questionForm = reactive({
 // 当前查看的题目
 const currentQuestion = ref({})
 
+// 编辑模式标识
+const isEditMode = ref(false)
+const editingQuestionId = ref(null)
+
 // 表单验证规则
 const questionRules = {
   type: [{ required: true, message: '请选择题型', trigger: 'change' }],
@@ -942,6 +935,8 @@ const handleAnswerInput = () => {
 
 // 显示添加题目对话框
 const showAddQuestionDialog = () => {
+  isEditMode.value = false
+  editingQuestionId.value = null
   Object.assign(questionForm, {
     type: 1,
     content: '',
@@ -956,6 +951,49 @@ const showAddQuestionDialog = () => {
     category: '',
     difficulty: 1, // 默认难度为简单
     courseId: classInfo.courseId, // 确保 courseId 正确设置
+  })
+  questionDialogVisible.value = true
+}
+
+// 编辑题目
+const handleEditQuestion = (row) => {
+  isEditMode.value = true
+  editingQuestionId.value = row.id
+  
+  // 解析选项
+  let optionA = '', optionB = '', optionC = '', optionD = ''
+  if (row.options && [1, 2].includes(row.type)) {
+    try {
+      const options = JSON.parse(row.options)
+      optionA = options.A || ''
+      optionB = options.B || ''
+      optionC = options.C || ''
+      optionD = options.D || ''
+    } catch (e) {
+      console.error('解析选项失败:', e)
+    }
+  }
+  
+  // 处理多选题答案
+  let answerArray = []
+  if (row.type === 2 && row.answer) {
+    answerArray = row.answer.split(',').map(a => a.trim())
+  }
+  
+  Object.assign(questionForm, {
+    type: row.type,
+    content: row.content,
+    image: row.image || '',
+    optionA,
+    optionB,
+    optionC,
+    optionD,
+    answer: row.answer || '',
+    answerArray,
+    score: row.score,
+    category: row.category || '',
+    difficulty: row.difficulty || 1,
+    courseId: classInfo.courseId,
   })
   questionDialogVisible.value = true
 }
@@ -1037,17 +1075,26 @@ const confirmAddQuestion = async () => {
           }
         }
         
-        const response = await request.post('/question', data)
+        let response
+        if (isEditMode.value) {
+          // 编辑模式 - 更新题目
+          data.id = editingQuestionId.value
+          response = await request.put('/question', data)
+        } else {
+          // 添加模式 - 新增题目
+          response = await request.post('/question', data)
+        }
+        
         if (response.code === 200) {
-          ElMessage.success('添加成功')
+          ElMessage.success(isEditMode.value ? '修改成功' : '添加成功')
           questionDialogVisible.value = false
           loadQuestionList()
         } else {
-          ElMessage.error(response.message || '添加失败')
+          ElMessage.error(response.message || (isEditMode.value ? '修改失败' : '添加失败'))
         }
       } catch (error) {
-        console.error('添加题目失败:', error)
-        ElMessage.error('添加失败')
+        console.error(isEditMode.value ? '修改题目失败:' : '添加题目失败:', error)
+        ElMessage.error(isEditMode.value ? '修改失败' : '添加失败')
       }
     }
   })
@@ -2338,21 +2385,52 @@ watch(classId, (newClassId) => {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
+/* 操作按钮样式 */
+.action-btn {
+  border: none !important;
+  border-radius: 6px !important;
+  padding: 4px 10px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  margin: 2px !important;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.btn-view {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #fff !important;
+}
+
+.btn-view:hover {
+  background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%) !important;
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #fff !important;
+}
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: #fff !important;
+}
+
+.btn-delete:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+}
+
 /* 考试管理 - 操作按钮美化 */
 .action-buttons { gap: 8px; }
-.action-btn {
-  border: none;
-  border-radius: 18px;
-  padding: 6px 12px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.06);
-}
-.action-btn .el-icon { font-size: 14px; }
-.btn-view { background: linear-gradient(135deg, #e3f2fd, #e8eaf6); color: #3f51b5; }
-.btn-view:hover { filter: brightness(0.98); transform: translateY(-1px); }
 .btn-grades { background: linear-gradient(135deg, #e8f5e9, #f1f8e9); color: #2e7d32; }
 .btn-grades:hover { filter: brightness(0.98); transform: translateY(-1px); }
 .btn-grades-disabled { 

@@ -27,19 +27,7 @@
       </div>
       
       <div class="nav-right">
-        <!-- 搜索框 -->
-        <el-input
-          v-model="searchKeyword"
-          placeholder="输入邀请码加入班级"
-          class="search-input"
-          clearable
-        >
-          <template #prefix>
-            <el-icon class="search-icon"><Search /></el-icon>
-          </template>
-        </el-input>
-        
-        <el-button type="primary" @click="joinClassByCode" :icon="Plus" class="join-btn">
+        <el-button type="primary" @click="showJoinDialog" :icon="Plus" class="join-btn">
           加入班级
         </el-button>
         
@@ -86,13 +74,22 @@
       <div class="class-list-section">
         <div class="section-header">
           <h3>我的班级</h3>
-          <span class="class-count">全部班级</span>
+          <div class="header-right">
+            <el-input
+              v-model="searchKeyword"
+              placeholder="搜索班级名称或教师"
+              class="search-input"
+              clearable
+              :prefix-icon="Search"
+            />
+            <span class="class-count">共 {{ filteredClassList.length }} 个班级</span>
+          </div>
         </div>
         
         <div class="class-grid">
           <!-- 班级卡片 -->
           <div 
-            v-for="(item, index) in classList" 
+            v-for="(item, index) in filteredClassList" 
             :key="item.id" 
             class="class-card"
             :class="`class-card-${index + 1}`"
@@ -121,6 +118,11 @@
           </div>
           
           <!-- 空状态 -->
+          <el-empty 
+            v-if="filteredClassList.length === 0 && classList.length > 0" 
+            description="没有找到匹配的班级"
+            class="empty-state"
+          />
           <el-empty 
             v-if="classList.length === 0" 
             description="还没有加入任何班级"
@@ -286,8 +288,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAvatarUrl } from '@/utils/file'
 import { 
-  Search, Plus, UserFilled, User, Setting, SwitchButton,
-  Monitor, DataLine, DocumentCopy, Lock, Key, InfoFilled
+  Plus, UserFilled, User, Setting, SwitchButton,
+  Monitor, DataLine, DocumentCopy, Lock, Key, InfoFilled, Search
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import AvatarUpload from '@/components/AvatarUpload.vue'
@@ -322,10 +324,22 @@ const userForm = reactive({ ...userInfo })
 
 // 班级列表
 const classList = ref([])
+const searchKeyword = ref('')
+
+// 过滤后的班级列表
+const filteredClassList = computed(() => {
+  if (!searchKeyword.value) {
+    return classList.value
+  }
+  const keyword = searchKeyword.value.toLowerCase()
+  return classList.value.filter(item => 
+    item.name?.toLowerCase().includes(keyword) ||
+    item.teacherName?.toLowerCase().includes(keyword)
+  )
+})
 
 // 状态变量
 const activeTab = ref('classes')
-const searchKeyword = ref('')
 const profileDialogVisible = ref(false)
 const joinDialogVisible = ref(false)
 const passwordDialogVisible = ref(false)
@@ -469,16 +483,6 @@ const showJoinDialog = () => {
   joinDialogVisible.value = true
 }
 
-// 通过邀请码加入班级
-const joinClassByCode = () => {
-  if (!searchKeyword.value) {
-    showJoinDialog()
-    return
-  }
-  joinForm.inviteCode = searchKeyword.value
-  confirmJoinClass()
-}
-
 // 确认加入班级
 const confirmJoinClass = async () => {
   if (!joinForm.inviteCode) {
@@ -502,7 +506,6 @@ const confirmJoinClass = async () => {
       ElMessage.success('加入班级成功！')
       joinDialogVisible.value = false
       joinForm.inviteCode = ''
-      searchKeyword.value = ''
       // 重新加载班级列表
       loadClassList()
     } else {
@@ -807,40 +810,6 @@ onMounted(() => {
   gap: 18px;
 }
 
-/* 搜索框优化 */
-.search-input {
-  width: 320px;
-}
-
-.search-input :deep(.el-input__wrapper) {
-  border-radius: 12px;
-  border: 2px solid #e5e8f0;
-  padding: 6px 18px;
-  background: #fafbff;
-  transition: all 0.3s;
-}
-
-.search-input :deep(.el-input__wrapper:hover) {
-  border-color: #d0d5e8;
-  background: #ffffff;
-}
-
-.search-input :deep(.el-input__wrapper.is-focus) {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  background: linear-gradient(to right, #ffffff, #fafbff);
-}
-
-.search-icon {
-  color: #667eea;
-  font-size: 16px;
-  transition: all 0.3s;
-}
-
-.search-input :deep(.el-input__wrapper.is-focus) .search-icon {
-  transform: scale(1.1);
-}
-
 /* 加入班级按钮优化 */
 .join-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -984,10 +953,40 @@ onMounted(() => {
   margin: 0;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.search-input {
+  width: 260px;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 10px;
+  border: 2px solid #e5e8f0;
+  padding: 4px 14px;
+  background: #fafbff;
+  transition: all 0.3s;
+}
+
+.search-input :deep(.el-input__wrapper:hover) {
+  border-color: #d0d5e8;
+  background: #ffffff;
+}
+
+.search-input :deep(.el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: #ffffff;
+}
+
 .class-count {
   font-size: 14px;
   color: #b0b3c1;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 .class-grid {
@@ -1375,11 +1374,6 @@ onMounted(() => {
   .nav-left, .nav-right {
     width: 100%;
     justify-content: center;
-  }
-  
-  .search-input {
-    width: 100%;
-    max-width: 300px;
   }
   
   .welcome-title {

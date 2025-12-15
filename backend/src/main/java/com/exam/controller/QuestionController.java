@@ -77,4 +77,24 @@ public class QuestionController {
             return Result.error("获取题目详情失败：" + e.getMessage());
         }
     }
+
+    /**
+     * 更新题目
+     */
+    @PutMapping
+    public Result updateQuestion(@RequestBody Question question) {
+        try {
+            if (question.getId() == null) {
+                return Result.error("题目ID不能为空");
+            }
+            boolean success = questionService.updateQuestion(question);
+            if (success) {
+                return Result.success("更新题目成功");
+            } else {
+                return Result.error("更新题目失败");
+            }
+        } catch (Exception e) {
+            return Result.error("更新题目失败：" + e.getMessage());
+        }
+    }
 }
