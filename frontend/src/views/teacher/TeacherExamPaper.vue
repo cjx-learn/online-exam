@@ -160,8 +160,8 @@
               </div>
               <div class="q-body">
                 <!-- 选择题选项 -->
-                <div v-if="[1,2,3].includes(q.type) && q.options" class="q-options">
-                  <div v-for="(opt, key) in parseOptions(q.options)" :key="key" class="opt">
+                <div v-if="[1,2,3].includes(q.type)" class="q-options">
+                  <div v-for="(opt, key) in parseOptions(q.options, q.type)" :key="key" class="opt">
                     <span class="opt-key">{{ key }}.</span>
                     <span class="opt-text">{{ opt }}</span>
                   </div>
@@ -170,7 +170,7 @@
                 <!-- 答案显示（教师可见） -->
                 <div class="q-answer">
                   <b>答案：</b>
-                  <span>{{ q.answer }}</span>
+                  <span>{{ formatAnswer(q.type, q.answer) }}</span>
                 </div>
               </div>
               <el-divider class="q-divider" />
@@ -345,6 +345,19 @@ const formatTime = (time) => {
   return `${y}-${m}-${day} ${hh}:${mm}`
 }
 
+// 格式化答案显示（判断题 T/F 转为 正确/错误）
+const formatAnswer = (type, answer) => {
+  if (type === 3) {
+    // 判断题
+    if (answer === 'T' || answer === '正确' || answer === '对' || answer === 'true') {
+      return '正确'
+    } else if (answer === 'F' || answer === '错误' || answer === '错' || answer === 'false') {
+      return '错误'
+    }
+  }
+  return answer
+}
+
 const examStatusTag = computed(() => {
   if (!exam.startTime || !exam.endTime) return 'info'
   const now = new Date()
@@ -365,8 +378,10 @@ const examStatusText = computed(() => {
   return '进行中'
 })
 
-const parseOptions = (options) => {
+const parseOptions = (options, type) => {
   try {
+    // 判断题使用 T/F 作为选项值，与数据库存储一致
+    if (type === 3 && !options) return { T: '正确', F: '错误' }
     if (!options) return {}
     if (typeof options === 'string') return JSON.parse(options)
     return options

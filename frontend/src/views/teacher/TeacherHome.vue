@@ -63,7 +63,20 @@
       <div class="class-list-section">
         <div class="section-header">
           <h3>我创建的班级</h3>
-          <span class="class-count">全部班级</span>
+          <div class="header-right-area">
+            <el-input
+              v-model="searchKeyword"
+              placeholder="搜索班级名称或邀请码..."
+              clearable
+              class="search-input"
+              @input="handleSearch"
+            >
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
+            <span class="class-count">共 {{ filteredClassList.length }} 个班级</span>
+          </div>
         </div>
         
         <!-- 加载中 -->
@@ -136,11 +149,11 @@
         </div>
         
         <!-- 分页 -->
-        <div v-if="classList.length > pageSize" class="pagination">
+        <div v-if="filteredClassList.length > pageSize" class="pagination">
           <el-pagination
             v-model:current-page="currentPage"
             :page-size="pageSize"
-            :total="classList.length"
+            :total="filteredClassList.length"
             layout="prev, pager, next"
             @current-change="handlePageChange"
           />
@@ -251,7 +264,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAvatarUrl } from '@/utils/file'
 import { 
-  Plus, UserFilled, User, SwitchButton, Monitor, Loading, Document
+  Plus, UserFilled, User, SwitchButton, Monitor, Loading, Document, Search
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import AvatarUpload from '@/components/AvatarUpload.vue'
@@ -305,16 +318,37 @@ const loading = ref(false)
 // 课程列表
 const courseList = ref([])
 
+// 搜索关键词
+const searchKeyword = ref('')
+
 // 分页
 const currentPage = ref(1)
 const pageSize = ref(9) // 每页9个
+
+// 过滤后的班级列表
+const filteredClassList = computed(() => {
+  if (!searchKeyword.value.trim()) {
+    return classList.value
+  }
+  const keyword = searchKeyword.value.toLowerCase().trim()
+  return classList.value.filter(item => 
+    item.name?.toLowerCase().includes(keyword) ||
+    item.inviteCode?.toLowerCase().includes(keyword) ||
+    item.code?.toLowerCase().includes(keyword)
+  )
+})
 
 // 当前页的班级
 const currentPageClasses = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
-  return classList.value.slice(start, end)
+  return filteredClassList.value.slice(start, end)
 })
+
+// 搜索处理
+const handleSearch = () => {
+  currentPage.value = 1 // 搜索时重置到第一页
+}
 
 // 对话框状态
 const createDialogVisible = ref(false)
@@ -830,6 +864,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 35px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .section-header h3 {
@@ -839,10 +875,42 @@ onMounted(() => {
   margin: 0;
 }
 
+.header-right-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.search-input {
+  width: 280px;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.15);
+  transition: all 0.3s ease;
+}
+
+.search-input :deep(.el-input__wrapper:hover) {
+  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+}
+
+.search-input :deep(.el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+}
+
+.search-input :deep(.el-icon) {
+  color: #667eea;
+}
+
 .class-count {
   font-size: 14px;
-  color: #b0b3c1;
-  font-weight: 400;
+  color: #86909C;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 /* 加载中 */

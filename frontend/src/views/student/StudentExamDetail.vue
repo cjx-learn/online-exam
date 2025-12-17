@@ -1,35 +1,64 @@
 <template>
   <div class="student-exam-detail-container">
     <!-- 顶部导航栏 -->
-    <div class="detail-header">
-      <div class="header-content">
-        <button class="back-btn" @click="goBack">
-          <el-icon><ArrowLeft /></el-icon>
-        </button>
-        <div class="header-info">
-          <h1 class="detail-title">{{ exam.title || '考试详情' }}</h1>
-          <p v-if="examRecord" class="detail-subtitle">
-            <span class="time-icon">📅</span>
-            {{ formatTime(examRecord.examStartTime || exam.startTime) }}
-            <span class="separator">•</span>
-            {{ formatTime(examRecord.examEndTime || exam.endTime) }}
-          </p>
-        </div>
+    <div class="top-nav">
+      <div class="nav-left">
+        <h1 class="title">
+          <span class="title-text">{{ exam.title || '考试详情' }}</span>
+        </h1>
+        <span class="user-name-left">{{ currentUserInfo?.realName || '学生' }}</span>
+      </div>
+      
+      <div class="nav-center">
         <!-- 视图切换按钮 -->
         <div class="view-switch-buttons">
           <button 
             :class="['switch-btn', { active: currentView === 'report' }]"
             @click="currentView = 'report'"
           >
-            📊 学情报告
+            <el-icon><DataAnalysis /></el-icon>
+            学情报告
           </button>
           <button 
             :class="['switch-btn', { active: currentView === 'detail' }]"
             @click="currentView = 'detail'"
           >
-            📝 试卷详情
+            <el-icon><Document /></el-icon>
+            试卷详情
           </button>
         </div>
+      </div>
+
+      <div class="nav-right">
+        <el-button class="back-button" @click="goBack">
+          <el-icon><Back /></el-icon>
+          返回班级
+        </el-button>
+        
+        <!-- 用户头像下拉菜单 -->
+        <el-dropdown @command="handleCommand">
+          <div class="user-avatar">
+            <el-avatar 
+              :size="42" 
+              :icon="currentUserInfo?.avatar ? undefined : UserFilled" 
+              :src="getAvatarUrl(currentUserInfo?.avatar)"
+              class="avatar-img" 
+            />
+            <span class="user-name">{{ currentUserInfo?.realName || '个人设置' }}</span>
+          </div>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="profile">
+                <el-icon><User /></el-icon>
+                个人信息
+              </el-dropdown-item>
+              <el-dropdown-item command="logout" divided>
+                <el-icon><SwitchButton /></el-icon>
+                退出登录
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </div>
 
@@ -207,19 +236,45 @@
       <aside class="questions-nav">
         <div class="nav-header">
           <span class="nav-title">题目导航</span>
-          <span class="nav-progress">{{ questions.length }}</span>
+          <span class="nav-progress">共 {{ questions.length }} 题</span>
+        </div>
+        <!-- 答题统计 -->
+        <div class="nav-stats">
+          <div class="nav-stat-item correct">
+            <span class="stat-dot"></span>
+            <span>正确 {{ correctCount }}</span>
+          </div>
+          <div class="nav-stat-item wrong">
+            <span class="stat-dot"></span>
+            <span>错误 {{ wrongCount }}</span>
+          </div>
         </div>
         <div class="nav-grid">
           <button
             v-for="(q, index) in questions"
             :key="q.id"
             class="nav-item"
-            :class="{ 'is-current': currentQuestionId === q.id }"
+            :class="{ 
+              'is-current': currentQuestionId === q.id,
+              'is-correct': isQuestionCorrect(q),
+              'is-wrong': isQuestionWrong(q)
+            }"
             @click="scrollToQuestion(q.id)"
             :title="`题目 ${index + 1}`"
           >
             {{ index + 1 }}
           </button>
+        </div>
+        <!-- 图例 -->
+        <div class="nav-legend">
+          <div class="legend-item">
+            <span class="legend-dot correct"></span>
+            <span>正确</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot wrong"></span>
+            <span>错误</span>
+          </div>
         </div>
       </aside>
 
@@ -268,16 +323,34 @@
             :key="q.id"
             :id="'q-' + q.id"
             class="question-card"
+            :class="{ 
+              'is-correct-card': isQuestionCorrect(q),
+              'is-wrong-card': isQuestionWrong(q)
+            }"
           >
             <!-- 题目头部 -->
             <div class="question-header">
-              <div class="q-number-badge">{{ index + 1 }}</div>
+              <div class="q-number-badge" :class="{ 'correct': isQuestionCorrect(q), 'wrong': isQuestionWrong(q) }">
+                {{ index + 1 }}
+              </div>
               <div class="q-main-info">
                 <div class="q-content">{{ q.content }}</div>
                 <div class="q-tags">
                   <span class="q-type-tag">{{ typeLabel(q.type) }}</span>
-                  <span class="q-score-tag">{{ q.score ?? '-' }} 分</span>
+                  <span class="q-score-tag">满分 {{ q.score ?? '-' }} 分</span>
+                  <span class="q-result-tag" :class="{ 'correct': isQuestionCorrect(q), 'wrong': isQuestionWrong(q) }">
+                    <el-icon v-if="isQuestionCorrect(q)"><CircleCheck /></el-icon>
+                    <el-icon v-else-if="isQuestionWrong(q)"><CircleClose /></el-icon>
+                    {{ isQuestionCorrect(q) ? '回答正确' : isQuestionWrong(q) ? '回答错误' : '待批改' }}
+                  </span>
                 </div>
+              </div>
+              <!-- 得分显示 -->
+              <div class="q-score-display">
+                <span class="score-label">得分</span>
+                <span class="score-number" :class="{ 'full': isQuestionCorrect(q), 'zero': isQuestionWrong(q) && perQuestionScore(q).scoreText === '0 分' }">
+                  {{ perQuestionScore(q).scoreText }}
+                </span>
               </div>
             </div>
 
@@ -294,7 +367,6 @@
 
             <!-- 题目选项 -->
             <div v-if="[1, 2, 3].includes(q.type) && Object.keys(parseOptions(q.options, q.type)).length > 0" class="question-options">
-              <div class="options-label">选项</div>
               <div class="options-grid">
                 <div
                   v-for="(optionText, optionKey) in parseOptions(q.options, q.type)"
@@ -302,40 +374,75 @@
                   class="option-card"
                   :class="{
                     'is-correct': answerIncludesOption(formatAnswerText(q, q.answer), optionKey, q),
-                    'is-selected': answerIncludesOption(perQuestionScore(q).userAnswerText, optionKey, q)
+                    'is-selected': answerIncludesOption(perQuestionScore(q).userAnswerText, optionKey, q),
+                    'is-wrong-selected': answerIncludesOption(perQuestionScore(q).userAnswerText, optionKey, q) && !answerIncludesOption(formatAnswerText(q, q.answer), optionKey, q)
                   }"
                 >
                   <div class="option-key">{{ optionKey }}</div>
                   <div class="option-text">{{ optionText }}</div>
+                  <div class="option-status">
+                    <el-icon v-if="answerIncludesOption(formatAnswerText(q, q.answer), optionKey, q)" class="correct-icon"><CircleCheck /></el-icon>
+                    <el-icon v-else-if="answerIncludesOption(perQuestionScore(q).userAnswerText, optionKey, q)" class="wrong-icon"><CircleClose /></el-icon>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- 答题信息 -->
-            <div class="question-details">
-              <div class="detail-item score-item">
-                <span class="detail-label">本题得分</span>
-                <span class="detail-value score-value">{{ perQuestionScore(q).scoreText }}</span>
+            <!-- 主观题答案显示 -->
+            <div v-if="[4, 5].includes(q.type)" class="subjective-answer-section">
+              <div class="answer-block user-answer-block">
+                <div class="answer-block-header">
+                  <el-icon><User /></el-icon>
+                  <span>你的答案</span>
+                </div>
+                <div class="answer-block-content">
+                  {{ perQuestionScore(q).userAnswerText || '未作答' }}
+                </div>
               </div>
-              <div class="detail-item answer-item">
-                <span class="detail-label">正确答案</span>
-                <span class="detail-value correct-answer">{{ formatAnswerText(q, q.answer) }}</span>
+              <div class="answer-block correct-answer-block">
+                <div class="answer-block-header">
+                  <el-icon><CircleCheck /></el-icon>
+                  <span>参考答案</span>
+                </div>
+                <div class="answer-block-content">
+                  {{ formatAnswerText(q, q.answer) || '暂无参考答案' }}
+                </div>
               </div>
-              <div class="detail-item user-answer-item">
-                <span class="detail-label">你的答案</span>
-                <span class="detail-value user-answer">{{ perQuestionScore(q).userAnswerText }}</span>
-              </div>
-              <!-- 教师批改意见 -->
-              <div v-if="perQuestionScore(q).comment" class="detail-item comment-item">
-                <span class="detail-label">
-                  <el-icon style="margin-right: 4px;"><Edit /></el-icon>
-                  教师批改意见
+            </div>
+
+            <!-- 客观题答案对比 -->
+            <div v-if="[1, 2, 3].includes(q.type)" class="answer-comparison">
+              <div class="comparison-item correct-answer">
+                <span class="comparison-label">
+                  <el-icon><CircleCheck /></el-icon>
+                  正确答案
                 </span>
-                <div class="detail-value teacher-comment">{{ perQuestionScore(q).comment }}</div>
+                <span class="comparison-value">{{ formatAnswerText(q, q.answer) }}</span>
               </div>
+              <div class="comparison-item user-answer" :class="{ 'is-correct': isQuestionCorrect(q), 'is-wrong': isQuestionWrong(q) }">
+                <span class="comparison-label">
+                  <el-icon><User /></el-icon>
+                  你的答案
+                </span>
+                <span class="comparison-value">{{ perQuestionScore(q).userAnswerText }}</span>
+              </div>
+            </div>
+
+            <!-- 教师批改意见 -->
+            <div v-if="perQuestionScore(q).comment" class="teacher-comment-section">
+              <div class="comment-header">
+                <el-icon><Edit /></el-icon>
+                <span>教师批改意见</span>
+              </div>
+              <div class="comment-content">{{ perQuestionScore(q).comment }}</div>
             </div>
           </div>
         </div>
+      </div>
+      
+      <!-- 返回顶部按钮 -->
+      <div class="back-to-top" @click="scrollToTop" v-show="showBackToTop">
+        <el-icon><ArrowUp /></el-icon>
       </div>
       <!-- 关闭试题详情区域 questions-section -->
       </div>
@@ -344,17 +451,143 @@
       <!-- 关闭试卷详情视图 detail-view -->
     </div>
     <!-- 关闭主要内容 detail-body -->
+    
+    <!-- 个人信息对话框 -->
+    <el-dialog 
+      v-model="profileDialogVisible" 
+      title="个人信息" 
+      width="560px"
+      :close-on-click-modal="false"
+      class="profile-dialog"
+    >
+      <el-form :model="userForm" label-width="100px" class="profile-form">
+        <el-form-item label="头像">
+          <AvatarUpload v-model="userForm.avatar" />
+        </el-form-item>
+        <el-form-item label="用户名">
+          <el-input v-model="userForm.username" disabled>
+            <template #suffix>
+              <el-icon color="#909399"><Lock /></el-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="真实姓名">
+          <el-input v-model="userForm.realName" disabled>
+            <template #suffix>
+              <el-icon color="#909399"><Lock /></el-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="学号">
+          <el-input v-model="userForm.studentNo" disabled>
+            <template #suffix>
+              <el-icon color="#909399"><Lock /></el-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-divider content-position="left">
+          <span style="color: #909399; font-size: 13px;">可修改信息</span>
+        </el-divider>
+        <el-form-item label="邮箱">
+          <el-input 
+            v-model="userForm.email" 
+            placeholder="请输入邮箱"
+            clearable
+            type="email"
+          />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input 
+            v-model="userForm.phone" 
+            placeholder="请输入手机号" 
+            maxlength="11"
+            clearable
+          />
+        </el-form-item>
+      </el-form>
+      <div class="password-section">
+        <el-button 
+          @click="openPasswordDialog" 
+          :icon="Key" 
+          class="change-password-btn"
+        >
+          修改密码
+        </el-button>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="profileDialogVisible = false" size="large">取消</el-button>
+          <el-button type="primary" @click="saveProfile" size="large">保存修改</el-button>
+        </div>
+      </template>
+    </el-dialog>
+    
+    <!-- 修改密码对话框 -->
+    <el-dialog 
+      v-model="passwordDialogVisible" 
+      title="修改密码" 
+      width="480px"
+      :close-on-click-modal="false"
+      class="password-dialog"
+    >
+      <el-form 
+        :model="passwordForm" 
+        :rules="passwordRules"
+        ref="passwordFormRef"
+        label-width="100px" 
+        class="password-form"
+      >
+        <el-form-item label="旧密码" prop="oldPassword">
+          <el-input 
+            v-model="passwordForm.oldPassword" 
+            type="password" 
+            placeholder="请输入旧密码"
+            show-password
+            clearable
+          />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input 
+            v-model="passwordForm.newPassword" 
+            type="password" 
+            placeholder="请输入新密码（6-20位）"
+            show-password
+            clearable
+          />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input 
+            v-model="passwordForm.confirmPassword" 
+            type="password" 
+            placeholder="请再次输入新密码"
+            show-password
+            clearable
+          />
+        </el-form-item>
+        <div class="password-tips">
+          <el-icon color="#409EFF"><InfoFilled /></el-icon>
+          <span>密码长度为6-20位，建议包含字母和数字</span>
+        </div>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closePasswordDialog" size="large">取消</el-button>
+          <el-button type="primary" @click="changePassword" size="large">确认修改</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
   <!-- 关闭最外层容器 -->
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { getImageUrl } from '@/utils/file'
-import { ArrowLeft, Loading, Edit, Download } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getImageUrl, getAvatarUrl } from '@/utils/file'
+import { ArrowLeft, Loading, Edit, Download, Back, UserFilled, User, SwitchButton, DataAnalysis, Document, Lock, Key, InfoFilled, CircleCheck, CircleClose, ArrowUp } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import AvatarUpload from '@/components/AvatarUpload.vue'
 import * as echarts from 'echarts'
 import html2pdf from 'html2pdf.js'
 
@@ -363,6 +596,57 @@ const router = useRouter()
 
 const recordId = ref(Number(route.params.recordId))
 const loading = ref(true)
+
+// 用户信息
+let currentUserInfo = null
+try {
+  const stored = localStorage.getItem('userInfo')
+  if (stored) currentUserInfo = JSON.parse(stored)
+} catch (_) {}
+
+// 个人信息相关
+const profileDialogVisible = ref(false)
+const passwordDialogVisible = ref(false)
+const passwordFormRef = ref(null)
+
+const userForm = reactive({
+  username: currentUserInfo?.username || '',
+  realName: currentUserInfo?.realName || '',
+  studentNo: currentUserInfo?.studentNo || '',
+  email: currentUserInfo?.email || '',
+  phone: currentUserInfo?.phone || '',
+  avatar: currentUserInfo?.avatar || ''
+})
+
+const passwordForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+const passwordRules = {
+  oldPassword: [
+    { required: true, message: '请输入旧密码', trigger: 'blur' }
+  ],
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度为6-20位', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    { 
+      validator: (rule, value, callback) => {
+        if (value !== passwordForm.newPassword) {
+          callback(new Error('两次输入的密码不一致'))
+        } else {
+          callback()
+        }
+      }, 
+      trigger: 'blur' 
+    }
+  ]
+}
+
 const examRecord = ref(null)
 const exam = reactive({})
 const questions = ref([])
@@ -391,6 +675,52 @@ const subjectiveScoreText = computed(() => {
   if (!examRecord.value || examRecord.value.subjectiveScore == null) return '-'
   return `${examRecord.value.subjectiveScore} 分`
 })
+
+// 判断题目是否正确
+const isQuestionCorrect = (q) => {
+  const answer = answerMap[q.id]
+  if (!answer) return false
+  // 客观题：得分等于满分
+  if ([1, 2, 3].includes(q.type)) {
+    return answer.score != null && answer.score === q.score
+  }
+  // 主观题：得分大于0
+  return answer.score != null && answer.score > 0
+}
+
+// 判断题目是否错误
+const isQuestionWrong = (q) => {
+  const answer = answerMap[q.id]
+  // 客观题：有作答但得分为0或小于满分
+  if ([1, 2, 3].includes(q.type)) {
+    if (!answer || answer.score == null) return true
+    return answer.score < q.score
+  }
+  // 主观题：得分为0
+  return answer && answer.score != null && answer.score === 0
+}
+
+// 正确题目数量
+const correctCount = computed(() => {
+  return questions.value.filter(q => isQuestionCorrect(q)).length
+})
+
+// 错误题目数量
+const wrongCount = computed(() => {
+  return questions.value.filter(q => isQuestionWrong(q)).length
+})
+
+// 返回顶部
+const showBackToTop = ref(false)
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// 监听滚动
+const handleScroll = () => {
+  showBackToTop.value = window.scrollY > 300
+}
 
 // 班级排名列表
 const rankingList = computed(() => {
@@ -557,6 +887,129 @@ const goBack = () => {
   }
 }
 
+// 处理用户菜单命令
+const handleCommand = (command) => {
+  switch (command) {
+    case 'profile':
+      if (currentUserInfo) {
+        Object.assign(userForm, {
+          username: currentUserInfo.username || '',
+          realName: currentUserInfo.realName || '',
+          studentNo: currentUserInfo.studentNo || '',
+          email: currentUserInfo.email || '',
+          phone: currentUserInfo.phone || '',
+          avatar: currentUserInfo.avatar || ''
+        })
+      }
+      profileDialogVisible.value = true
+      break
+    case 'logout':
+      ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        localStorage.clear()
+        ElMessage.success('已退出登录')
+        router.push('/login')
+      }).catch(() => {})
+      break
+  }
+}
+
+// 保存个人信息
+const saveProfile = async () => {
+  if (!currentUserInfo || !currentUserInfo.userId) {
+    ElMessage.warning('用户信息未找到，请重新登录')
+    router.push('/login')
+    return
+  }
+
+  try {
+    const updateData = {
+      id: currentUserInfo.userId,
+      role: 0, // 学生角色
+      realName: userForm.realName,
+      studentNo: userForm.studentNo,
+      email: userForm.email,
+      phone: userForm.phone,
+      avatar: userForm.avatar
+    }
+    const response = await request.post('/user/update', updateData)
+
+    if (response.code === 200) {
+      ElMessage.success('个人信息已保存')
+      profileDialogVisible.value = false
+      
+      const updatedUserInfo = { ...currentUserInfo, ...updateData }
+      localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo))
+      currentUserInfo = updatedUserInfo
+    } else {
+      ElMessage.error(response.message || '保存个人信息失败')
+    }
+  } catch (error) {
+    console.error('保存个人信息失败:', error)
+    ElMessage.error('网络错误，无法保存个人信息')
+  }
+}
+
+// 打开修改密码对话框
+const openPasswordDialog = () => {
+  passwordDialogVisible.value = true
+}
+
+// 关闭修改密码对话框
+const closePasswordDialog = () => {
+  passwordDialogVisible.value = false
+  if (passwordFormRef.value) {
+    passwordFormRef.value.resetFields()
+  }
+  passwordForm.oldPassword = ''
+  passwordForm.newPassword = ''
+  passwordForm.confirmPassword = ''
+}
+
+// 修改密码
+const changePassword = async () => {
+  if (!passwordFormRef.value) return
+  
+  await passwordFormRef.value.validate(async (valid) => {
+    if (!valid) {
+      return false
+    }
+    
+    if (!currentUserInfo || !currentUserInfo.userId) {
+      ElMessage.warning('用户信息未找到，请重新登录')
+      router.push('/login')
+      return
+    }
+    
+    try {
+      const response = await request.post('/user/changePassword', {
+        id: currentUserInfo.userId,
+        oldPassword: passwordForm.oldPassword,
+        newPassword: passwordForm.newPassword
+      })
+      
+      if (response.code === 200) {
+        ElMessage.success('密码修改成功，请重新登录')
+        closePasswordDialog()
+        profileDialogVisible.value = false
+        
+        setTimeout(() => {
+          localStorage.clear()
+          router.push('/login')
+        }, 1500)
+      } else {
+        ElMessage.error(response.message || '密码修改失败')
+      }
+    } catch (error) {
+      console.error('修改密码失败:', error)
+      ElMessage.error('网络错误，无法修改密码')
+    }
+  })
+}
+
 const scrollToQuestion = (questionId) => {
   currentQuestionId.value = questionId
   setTimeout(() => {
@@ -578,7 +1031,8 @@ const typeLabel = (type) => {
 
 const parseOptions = (options, type) => {
   try {
-    if (type === 3 && !options) return { A: '正确', B: '错误' }
+    // 判断题使用 T/F 作为选项值，与数据库存储一致
+    if (type === 3 && !options) return { T: '正确', F: '错误' }
     if (!options) return {}
     if (typeof options === 'string') return JSON.parse(options)
     return options
@@ -706,6 +1160,11 @@ const getPercentageColor = (percentage) => {
 onMounted(() => {
   loadData()
   loadAnalysisData()
+  window.addEventListener('scroll', handleScroll)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
@@ -714,147 +1173,210 @@ onMounted(() => {
 .student-exam-detail-container {
   min-height: 100vh;
   padding: 0;
+  padding-top: 68px;
   background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #e8eaf6 100%);
   display: flex;
   flex-direction: column;
 }
 
 /* ============ 顶部导航栏 ============ */
-.detail-header {
-  position: sticky;
+.top-nav {
+  position: fixed;
   top: 0;
-  z-index: 100;
-  height: 68px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 251, 255, 0.95) 100%);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
   backdrop-filter: blur(16px);
-  border-bottom: 2px solid rgba(102, 126, 234, 0.1);
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.08);
+  padding: 0 40px;
+  height: 68px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
   display: flex;
   align-items: center;
-  padding: 0 24px;
+  justify-content: space-between;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.08);
 }
 
-.detail-header::after {
+.top-nav::after {
   content: '';
   position: absolute;
-  bottom: -2px;
+  bottom: 0;
   left: 0;
   right: 0;
   height: 2px;
   background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
-  opacity: 0.3;
+  opacity: 0.6;
 }
 
-.header-content {
+.nav-left {
   display: flex;
   align-items: center;
-  gap: 16px;
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
+  gap: 15px;
 }
 
-.back-btn {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-}
-
-.back-btn:hover {
-  transform: scale(1.05) translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-}
-
-.back-btn :deep(.el-icon) {
-  font-size: 20px;
-}
-
-.header-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.detail-title {
+.title {
+  font-size: 26px;
+  font-weight: 700;
   margin: 0;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.5px;
+}
+
+.title-text {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
 }
 
-.detail-subtitle {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: #6b7280;
+.user-name-left {
+  font-size: 16px;
+  color: #6a7a8a;
+  margin: 0;
+}
+
+.nav-center {
   display: flex;
   align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.time-icon {
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.back-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 11px 24px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 14px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.25);
+}
+
+.back-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s;
+}
+
+.back-button:hover::before {
+  left: 100%;
+}
+
+.back-button:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.35);
+  filter: brightness(1.05);
+}
+
+.back-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* 用户头像下拉菜单 */
+.user-avatar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.user-avatar:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.avatar-img {
+  transition: transform 0.3s;
+}
+
+.user-avatar:hover .avatar-img {
+  transform: scale(1.05);
+}
+
+.user-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #303133;
+  transition: all 0.3s;
+}
+
+.user-avatar:hover .user-name {
+  color: #667eea;
+}
+
+/* 下拉菜单美化 */
+:deep(.el-dropdown-menu) {
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(102, 126, 234, 0.06);
+}
+
+:deep(.el-dropdown-menu__item) {
+  border-radius: 8px;
+  padding: 10px 16px;
+  transition: all 0.3s ease;
   font-size: 14px;
 }
 
-.separator {
-  margin: 0 8px;
-  color: #d1d5db;
+:deep(.el-dropdown-menu__item:hover) {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.05) 100%);
+  color: #667eea;
 }
 
 /* ============ 视图切换按钮 ============ */
 .view-switch-buttons {
   display: flex;
-  gap: 12px;
-  margin-left: 20px;
+  gap: 8px;
+  background: rgba(102, 126, 234, 0.06);
+  padding: 6px;
+  border-radius: 14px;
 }
 
 .switch-btn {
   padding: 10px 20px;
-  border: 2px solid rgba(102, 126, 234, 0.2);
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
   color: #667eea;
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .switch-btn:hover {
-  border-color: rgba(102, 126, 234, 0.5);
   background: rgba(102, 126, 234, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .switch-btn.active {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: transparent;
   color: white;
   box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
 }
 
 .switch-btn.active:hover {
-  transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
@@ -935,7 +1457,7 @@ onMounted(() => {
   flex-shrink: 0;
   width: 120px;
   position: sticky;
-  top: 88px;
+  top: 100px;
   height: fit-content;
   padding: 16px;
   background: rgba(255, 255, 255, 0.95);
@@ -1012,6 +1534,95 @@ onMounted(() => {
 .nav-item.is-current:hover {
   transform: scale(1.12);
   box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+/* 题目导航 - 正确/错误状态 */
+.nav-item.is-correct {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border-color: transparent;
+  color: white;
+}
+
+.nav-item.is-wrong {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: transparent;
+  color: white;
+}
+
+.nav-item.is-correct:hover,
+.nav-item.is-wrong:hover {
+  transform: scale(1.08);
+}
+
+/* 答题统计 */
+.nav-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.nav-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.nav-stat-item.correct {
+  color: #22c55e;
+}
+
+.nav-stat-item.wrong {
+  color: #ef4444;
+}
+
+.stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.nav-stat-item.correct .stat-dot {
+  background: #22c55e;
+}
+
+.nav-stat-item.wrong .stat-dot {
+  background: #ef4444;
+}
+
+/* 图例 */
+.nav-legend {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.legend-dot.correct {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.legend-dot.wrong {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
 /* ============ 详情内容区域 ============ */
@@ -1385,8 +1996,313 @@ onMounted(() => {
   font-weight: 500;
 }
 
-/* ============ 答题信息 ============ */
+/* 选项状态图标 */
+.option-status {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.option-status .correct-icon {
+  color: #22c55e;
+  font-size: 18px;
+}
+
+.option-status .wrong-icon {
+  color: #ef4444;
+  font-size: 18px;
+}
+
+/* 错误选中的选项 */
+.option-card.is-wrong-selected {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 100%);
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.option-card.is-wrong-selected .option-key {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.option-card.is-wrong-selected .option-text {
+  color: #b91c1c;
+  font-weight: 500;
+}
+
+/* ============ 题目卡片状态 ============ */
+.question-card.is-correct-card {
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.question-card.is-correct-card::before {
+  background: linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%);
+  opacity: 1;
+}
+
+.question-card.is-wrong-card {
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.question-card.is-wrong-card::before {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 50%, #ef4444 100%);
+  opacity: 1;
+}
+
+/* 题号徽章状态 */
+.q-number-badge.correct {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.q-number-badge.wrong {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* 结果标签 */
+.q-result-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.q-result-tag.correct {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(22, 163, 74, 0.12) 100%);
+  color: #16a34a;
+  border: 1.5px solid rgba(34, 197, 94, 0.25);
+}
+
+.q-result-tag.wrong {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.12) 100%);
+  color: #dc2626;
+  border: 1.5px solid rgba(239, 68, 68, 0.25);
+}
+
+/* 得分显示 */
+.q-score-display {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+}
+
+.q-score-display .score-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.q-score-display .score-number {
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.q-score-display .score-number.full {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.q-score-display .score-number.zero {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============ 答案对比区域 ============ */
+.answer-comparison {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.comparison-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 10px;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+}
+
+.comparison-item.correct-answer {
+  border-color: rgba(34, 197, 94, 0.2);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.04) 0%, rgba(22, 163, 74, 0.04) 100%);
+}
+
+.comparison-item.user-answer.is-correct {
+  border-color: rgba(34, 197, 94, 0.3);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(22, 163, 74, 0.08) 100%);
+}
+
+.comparison-item.user-answer.is-wrong {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 100%);
+}
+
+.comparison-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.comparison-item.correct-answer .comparison-label {
+  color: #16a34a;
+}
+
+.comparison-item.user-answer.is-correct .comparison-label {
+  color: #16a34a;
+}
+
+.comparison-item.user-answer.is-wrong .comparison-label {
+  color: #dc2626;
+}
+
+.comparison-value {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.comparison-item.correct-answer .comparison-value {
+  color: #16a34a;
+}
+
+.comparison-item.user-answer.is-correct .comparison-value {
+  color: #16a34a;
+}
+
+.comparison-item.user-answer.is-wrong .comparison-value {
+  color: #dc2626;
+}
+
+/* ============ 主观题答案区域 ============ */
+.subjective-answer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.answer-block {
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 2px solid rgba(102, 126, 234, 0.1);
+}
+
+.answer-block-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.user-answer-block {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.04) 0%, rgba(234, 88, 12, 0.04) 100%);
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+.user-answer-block .answer-block-header {
+  color: #ea580c;
+}
+
+.correct-answer-block {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.04) 0%, rgba(22, 163, 74, 0.04) 100%);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.correct-answer-block .answer-block-header {
+  color: #16a34a;
+}
+
+.answer-block-content {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #374151;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ============ 教师批改意见 ============ */
+.teacher-comment-section {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.06) 0%, rgba(168, 85, 247, 0.06) 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(139, 92, 246, 0.15);
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #8b5cf6;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.comment-content {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #6b21a8;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  border-left: 4px solid #8b5cf6;
+}
+
+/* ============ 答题信息（隐藏旧的） ============ */
 .question-details {
+  display: none;
+}
+
+/* 旧的答题信息样式保留但隐藏 */
+.detail-item.score-item,
+.detail-item.answer-item,
+.detail-item.user-answer-item,
+.detail-item.comment-item {
+  display: none;
+}
+
+/* ============ 答题信息 ============ */
+.question-details-old {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
@@ -2021,5 +2937,192 @@ onMounted(() => {
   .analysis-content {
     padding: 20px;
   }
+}
+
+/* 个人信息对话框样式 */
+.profile-dialog :deep(.el-dialog__header) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  margin: 0;
+}
+
+.profile-dialog :deep(.el-dialog__title) {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.profile-dialog :deep(.el-dialog__headerbtn .el-icon) {
+  color: white;
+  font-size: 18px;
+}
+
+.profile-dialog :deep(.el-dialog__body) {
+  padding: 30px;
+}
+
+.profile-form :deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #606266;
+}
+
+.profile-form :deep(.el-input.is-disabled .el-input__wrapper) {
+  background-color: #f5f7fa;
+  cursor: not-allowed;
+}
+
+.profile-form :deep(.el-input.is-disabled .el-input__inner) {
+  color: #909399;
+}
+
+.profile-form :deep(.el-input:not(.is-disabled) .el-input__wrapper) {
+  background-color: white !important;
+  cursor: text;
+}
+
+.profile-form :deep(.el-input:not(.is-disabled) .el-input__inner) {
+  color: #606266;
+  cursor: text;
+}
+
+.profile-form :deep(.el-divider__text) {
+  background-color: white;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dialog-footer .el-button {
+  min-width: 100px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.dialog-footer .el-button--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s;
+}
+
+.dialog-footer .el-button--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+/* 修改密码按钮区域 */
+.password-section {
+  padding: 20px 30px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-radius: 8px;
+  margin-top: 16px;
+  text-align: center;
+}
+
+.change-password-btn {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 10px 24px;
+  transition: all 0.3s;
+}
+
+.change-password-btn:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+}
+
+/* 修改密码对话框样式 */
+.password-dialog :deep(.el-dialog__header) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  margin: 0;
+}
+
+.password-dialog :deep(.el-dialog__title) {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.password-dialog :deep(.el-dialog__headerbtn .el-icon) {
+  color: white;
+  font-size: 18px;
+}
+
+.password-dialog :deep(.el-dialog__body) {
+  padding: 30px;
+}
+
+.password-form :deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #606266;
+}
+
+.password-form :deep(.el-input__wrapper) {
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.password-form :deep(.el-input__wrapper:hover) {
+  border-color: #667eea;
+}
+
+.password-form :deep(.el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.password-tips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #ecf5ff;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #606266;
+}
+
+.password-tips .el-icon {
+  font-size: 16px;
+}
+
+/* 返回顶部按钮 */
+.back-to-top {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 999;
+}
+
+.back-to-top:hover {
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+}
+
+.back-to-top:active {
+  transform: translateY(-2px) scale(1.05);
 }
 </style>

@@ -7,19 +7,49 @@
           <el-icon><ArrowLeft /></el-icon>
         </button>
         <div class="header-info">
-          <h1 class="grading-title">主观题试卷批改</h1>
-          <p class="grading-subtitle">{{ examInfo.title }}</p>
+          <div class="title-row">
+            <span class="title-icon">📝</span>
+            <h1 class="grading-title">主观题试卷批改</h1>
+          </div>
+          <p class="grading-subtitle">
+            <span class="exam-name">{{ examInfo.title }}</span>
+          </p>
         </div>
       </div>
       <div class="header-stats">
-        <div class="stat-item pending-stat">
-          <span class="stat-label">待批改</span>
-          <span class="stat-value">{{ pendingCount }}</span>
+        <div class="stat-card pending-card">
+          <div class="stat-icon pending-icon">
+            <el-icon><Clock /></el-icon>
+          </div>
+          <div class="stat-content">
+            <span class="stat-value pending-value">{{ pendingCount }}</span>
+            <span class="stat-label">待批改</span>
+          </div>
         </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item graded-stat">
-          <span class="stat-label">已批改</span>
-          <span class="stat-value">{{ gradedCount }}</span>
+        <div class="stat-card graded-card">
+          <div class="stat-icon graded-icon">
+            <el-icon><Check /></el-icon>
+          </div>
+          <div class="stat-content">
+            <span class="stat-value graded-value">{{ gradedCount }}</span>
+            <span class="stat-label">已批改</span>
+          </div>
+        </div>
+        <div class="progress-ring">
+          <svg viewBox="0 0 36 36" class="circular-chart">
+            <path class="circle-bg"
+              d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path class="circle"
+              :stroke-dasharray="`${progressPercent}, 100`"
+              d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+          </svg>
+          <span class="progress-text">{{ progressPercent }}%</span>
         </div>
       </div>
     </div>
@@ -222,7 +252,7 @@ import { ref, reactive, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getImageUrl } from '@/utils/file'
-import { ArrowLeft, ArrowRight, Check, Picture } from '@element-plus/icons-vue'
+import { ArrowLeft, ArrowRight, Check, Picture, Clock } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -346,6 +376,13 @@ const gradedCount = computed(() => {
     }
   }
   return count
+})
+
+// 批改进度百分比
+const progressPercent = computed(() => {
+  const total = pendingCount.value + gradedCount.value
+  if (total === 0) return 0
+  return Math.round((gradedCount.value / total) * 100)
 })
 
 const getQuestionStatusClass = (question) => {
@@ -693,47 +730,80 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 100;
-  height: 68px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 251, 255, 0.95) 100%);
-  backdrop-filter: blur(16px);
-  border-bottom: 2px solid rgba(102, 126, 234, 0.1);
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.08);
+  height: 80px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 251, 255, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.08);
+  box-shadow: 
+    0 4px 24px rgba(102, 126, 234, 0.06),
+    0 1px 3px rgba(102, 126, 234, 0.04);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 32px;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   flex: 1;
 }
 
 .back-btn {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border: none;
+  width: 42px;
+  height: 42px;
+  border: 2px solid rgba(102, 126, 234, 0.2);
   border-radius: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 251, 255, 0.95) 100%);
+  color: #667eea;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.back-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
 }
 
 .back-btn:hover {
-  transform: scale(1.05) translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  border-color: transparent;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 20px rgba(102, 126, 234, 0.3),
+    0 3px 8px rgba(102, 126, 234, 0.15);
+}
+
+.back-btn:hover::before {
+  opacity: 1;
+}
+
+.back-btn:active {
+  transform: translateY(0) scale(0.96);
 }
 
 .back-btn :deep(.el-icon) {
-  font-size: 20px;
+  font-size: 18px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+
+.back-btn:hover :deep(.el-icon) {
+  transform: translateX(-2px);
 }
 
 .header-info {
@@ -741,27 +811,57 @@ onUnmounted(() => {
   min-width: 0;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title-icon {
+  font-size: 24px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
 .grading-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
-  letter-spacing: 0.02em;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  letter-spacing: 0.01em;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  animation: gradientShift 4s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
 }
 
 .grading-subtitle {
-  margin: 4px 0 0;
-  font-size: 12px;
+  margin: 6px 0 0;
+  font-size: 13px;
   color: #6b7280;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+.exam-name {
+  padding: 4px 12px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  border-radius: 20px;
+  font-weight: 500;
+  color: #667eea;
+  border: 1px solid rgba(102, 126, 234, 0.12);
+  max-width: 300px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -770,44 +870,130 @@ onUnmounted(() => {
 .header-stats {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   flex-shrink: 0;
 }
 
-.stat-divider {
-  width: 1px;
-  height: 32px;
-  background: linear-gradient(180deg, transparent 0%, rgba(102, 126, 234, 0.2) 50%, transparent 100%);
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
 }
 
-.stat-item {
+.stat-card.pending-card {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.06) 0%, rgba(251, 146, 60, 0.06) 100%);
+  border-color: rgba(249, 115, 22, 0.12);
+}
+
+.stat-card.pending-card:hover {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(251, 146, 60, 0.1) 100%);
+  border-color: rgba(249, 115, 22, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.12);
+}
+
+.stat-card.graded-card {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.06) 0%, rgba(74, 222, 128, 0.06) 100%);
+  border-color: rgba(34, 197, 94, 0.12);
+}
+
+.stat-card.graded-card:hover {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(74, 222, 128, 0.1) 100%);
+  border-color: rgba(34, 197, 94, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.12);
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.stat-icon.pending-icon {
+  background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
+}
+
+.stat-icon.graded-icon {
+  background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(34, 197, 94, 0.25);
+}
+
+.stat-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 2px;
 }
 
-.stat-item.pending-stat {
-  background: rgba(249, 115, 22, 0.05);
+.stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
 }
 
-.stat-item.graded-stat {
-  background: rgba(34, 197, 94, 0.05);
+.stat-value.pending-value {
+  color: #ea580c;
+}
+
+.stat-value.graded-value {
+  color: #16a34a;
 }
 
 .stat-label {
   font-size: 11px;
-  color: #6b7280;
+  color: #9ca3af;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
 }
 
-.stat-value {
-  font-size: 22px;
+/* 进度环 */
+.progress-ring {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  margin-left: 8px;
+}
+
+.circular-chart {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.circle-bg {
+  fill: none;
+  stroke: rgba(102, 126, 234, 0.1);
+  stroke-width: 3;
+}
+
+.circle {
+  fill: none;
+  stroke: url(#gradient);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  stroke: #667eea;
+  transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
   font-weight: 800;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
@@ -1686,20 +1872,72 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .grading-header {
-    height: 60px;
-    padding: 0 16px;
+    height: auto;
+    min-height: 60px;
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header-left {
+    gap: 12px;
+  }
+
+  .back-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .title-icon {
+    font-size: 20px;
   }
 
   .grading-title {
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  .grading-subtitle {
+    margin-top: 4px;
+  }
+
+  .exam-name {
+    font-size: 11px;
+    padding: 3px 8px;
+    max-width: 150px;
   }
 
   .header-stats {
-    gap: 12px;
+    gap: 8px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stat-card {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .stat-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
   }
 
   .stat-value {
     font-size: 16px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .progress-ring {
+    width: 42px;
+    height: 42px;
+  }
+
+  .progress-text {
+    font-size: 10px;
   }
 
   .grading-body {

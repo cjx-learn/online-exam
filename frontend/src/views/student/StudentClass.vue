@@ -3,7 +3,7 @@
     <div class="top-nav">
       <div class="nav-left">
         <h1 class="title">
-          <span class="title-text">明德大数据</span>
+          <span class="title-text">{{ className }}</span>
         </h1>
         <span class="user-name-left">{{ userInfo.realName || '学生' }}</span>
       </div>
@@ -102,19 +102,40 @@
         </div>
 
         <div class="recent-exams-wrapper"> <!-- New wrapper for styling -->
-          <div class="list-title-wrapper">
-            <h3 
-              class="list-title"
-              :class="{ 'is-active': selectedStatus === '' }"
-              @click="selectStatus('')"
-            >
-              <span class="title-dot"></span>
-              全部考试
-            </h3>
-            <template v-if="selectedStatus !== ''">
-              <span class="list-title-divider">/</span>
-              <h3 class="list-title sub-title">{{ listTitle }}</h3>
-            </template>
+          <div class="list-header">
+            <div class="list-title-wrapper">
+              <h3 
+                class="list-title"
+                :class="{ 'is-active': selectedStatus === '' }"
+                @click="selectStatus('')"
+              >
+                <span class="title-dot"></span>
+                全部考试
+              </h3>
+              <template v-if="selectedStatus !== ''">
+                <span class="list-title-divider">/</span>
+                <h3 class="list-title sub-title">{{ listTitle }}</h3>
+              </template>
+            </div>
+            
+            <!-- 搜索框 -->
+            <div class="search-box">
+              <el-input
+                v-model="searchKeyword"
+                placeholder="搜索考试名称..."
+                clearable
+                @keyup.enter="handleSearch"
+                @clear="clearSearch"
+                class="search-input"
+              >
+                <template #prefix>
+                  <el-icon><Search /></el-icon>
+                </template>
+              </el-input>
+              <el-button type="primary" @click="handleSearch" class="search-btn">
+                搜索
+              </el-button>
+            </div>
           </div>
           
           <div v-if="filteredExamList.length === 0" class="empty-list">
@@ -127,11 +148,11 @@
           </div>
           <div v-else class="exam-list">
             <div 
-              v-for="(examRecord, index) in filteredExamList" 
+              v-for="(examRecord, index) in paginatedExamList" 
               :key="examRecord.id"
               class="exam-card"
               :data-status="getRealtimeExamStatus(examRecord)"
-              :style="{ animationDelay: `${0.3 + index * 0.05}s` }"
+              :style="{ animationDelay: `${0.05 + index * 0.05}s` }"
               @click="goToExamAction(examRecord)"
             >
               <div class="exam-header">
@@ -216,6 +237,19 @@
                 </div>
               </div>
             </div>
+          </div>
+          
+          <!-- 分页组件 -->
+          <div v-if="totalExams > pageSize" class="pagination-wrapper">
+            <el-pagination
+              v-model:current-page="currentPage"
+              :page-size="pageSize"
+              :total="totalExams"
+              :pager-count="5"
+              layout="prev, pager, next, jumper"
+              background
+              @current-change="handlePageChange"
+            />
           </div>
         </div>
       </div>
@@ -353,7 +387,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
 import { getAvatarUrl } from '@/utils/file'
 import request from '@/utils/request';
-import { Clock, CircleCheck, CircleClose, Timer, Reading, TrophyBase, ArrowRight, Back, Document, UserFilled, User, Setting, SwitchButton, Edit, Lock, Key, InfoFilled } from '@element-plus/icons-vue';
+import { Clock, CircleCheck, CircleClose, Timer, Reading, TrophyBase, ArrowRight, Back, Document, UserFilled, User, Setting, SwitchButton, Edit, Lock, Key, InfoFilled, Search } from '@element-plus/icons-vue';
 import AvatarUpload from '@/components/AvatarUpload.vue';
 
 const route = useRoute();
@@ -364,6 +398,17 @@ const teacherName = ref('老师姓名');
 const examList = ref([]);
 const filteredExamList = ref([]);
 const selectedStatus = ref('');
+const searchKeyword = ref(''); // 搜索关键词
+
+// 分页相关
+const currentPage = ref(1);
+const pageSize = ref(6);
+const paginatedExamList = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filteredExamList.value.slice(start, end);
+});
+const totalExams = computed(() => filteredExamList.value.length);
 const examStats = ref({
   unfinished: 0,
   to_be_graded: 0,
@@ -681,21 +726,45 @@ const formatTime = (timeString) => {
 };
 
 const filterExams = () => {
-  if (selectedStatus.value === '') {
-    filteredExamList.value = examList.value;
-  } else if (selectedStatus.value === 'unfinished') {
-    filteredExamList.value = examList.value.filter(examRecord => 
+  let result = examList.value;
+  
+  // 按状态筛选
+  if (selectedStatus.value === 'unfinished') {
+    result = result.filter(examRecord => 
       getRealtimeExamStatus(examRecord) === 'unfinished'
     );
   } else if (selectedStatus.value === 'to_be_graded') {
-    filteredExamList.value = examList.value.filter(examRecord => 
+    result = result.filter(examRecord => 
       getRealtimeExamStatus(examRecord) === 'to_be_graded'
     );
   } else if (selectedStatus.value === 'graded') {
-    filteredExamList.value = examList.value.filter(examRecord => 
+    result = result.filter(examRecord => 
       getRealtimeExamStatus(examRecord) === 'graded'
     );
   }
+  
+  // 按关键词搜索
+  if (searchKeyword.value.trim()) {
+    const keyword = searchKeyword.value.trim().toLowerCase();
+    result = result.filter(examRecord => 
+      examRecord.examTitle && examRecord.examTitle.toLowerCase().includes(keyword)
+    );
+  }
+  
+  filteredExamList.value = result;
+};
+
+// 搜索处理
+const handleSearch = () => {
+  currentPage.value = 1;
+  filterExams();
+};
+
+// 清空搜索
+const clearSearch = () => {
+  searchKeyword.value = '';
+  currentPage.value = 1;
+  filterExams();
 };
 
 const updateExamStats = () => {
@@ -723,7 +792,18 @@ const updateExamStats = () => {
 
 const selectStatus = (status) => {
   selectedStatus.value = status;
+  currentPage.value = 1; // 切换状态时重置到第一页
   filterExams();
+};
+
+// 分页切换
+const handlePageChange = (page) => {
+  currentPage.value = page;
+  // 滚动到考试列表顶部
+  const wrapper = document.querySelector('.recent-exams-wrapper');
+  if (wrapper) {
+    wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 };
 
 const goToHomePage = () => {
@@ -1396,12 +1476,67 @@ const changePassword = async () => {
   border: 2px solid rgba(102, 126, 234, 0.08);
 }
 
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .list-title-wrapper {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
   padding-bottom: 0;
   border-bottom: none;
+}
+
+/* 搜索框样式 */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input {
+  width: 260px;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 10px;
+  border: 2px solid rgba(102, 126, 234, 0.15);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.06);
+  transition: all 0.3s ease;
+  padding: 4px 12px;
+}
+
+.search-input :deep(.el-input__wrapper:hover) {
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.search-input :deep(.el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-input :deep(.el-input__prefix) {
+  color: #667eea;
+}
+
+.search-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+  transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
 }
 
 .list-title {
@@ -2065,6 +2200,70 @@ const changePassword = async () => {
 
 .password-tips .el-icon {
   font-size: 16px;
+}
+
+/* 分页组件样式 */
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.pagination-wrapper :deep(.el-pagination) {
+  --el-pagination-button-bg-color: rgba(102, 126, 234, 0.08);
+  --el-pagination-hover-color: #667eea;
+}
+
+.pagination-wrapper :deep(.el-pagination.is-background .el-pager li) {
+  background: rgba(102, 126, 234, 0.08);
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.pagination-wrapper :deep(.el-pagination.is-background .el-pager li:hover) {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+}
+
+.pagination-wrapper :deep(.el-pagination.is-background .el-pager li.is-active) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.pagination-wrapper :deep(.el-pagination.is-background .btn-prev),
+.pagination-wrapper :deep(.el-pagination.is-background .btn-next) {
+  background: rgba(102, 126, 234, 0.08);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.pagination-wrapper :deep(.el-pagination.is-background .btn-prev:hover),
+.pagination-wrapper :deep(.el-pagination.is-background .btn-next:hover) {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+}
+
+.pagination-wrapper :deep(.el-pagination__jump) {
+  margin-left: 16px;
+}
+
+.pagination-wrapper :deep(.el-pagination__jump .el-input__wrapper) {
+  border-radius: 8px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  transition: all 0.3s ease;
+}
+
+.pagination-wrapper :deep(.el-pagination__jump .el-input__wrapper:hover) {
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.pagination-wrapper :deep(.el-pagination__jump .el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 }
 </style>
 

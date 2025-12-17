@@ -79,9 +79,26 @@
         <div v-if="activeMenu === 'students'" class="content-panel">
           <div class="panel-header">
             <h2>学生管理</h2>
+            <div class="search-box">
+              <el-input
+                v-model="studentSearchKeyword"
+                placeholder="搜索学生姓名、学号、用户名或邮箱..."
+                clearable
+                @keyup.enter="handleStudentSearch"
+                @clear="clearStudentSearch"
+                class="search-input"
+              >
+                <template #prefix>
+                  <el-icon><Search /></el-icon>
+                </template>
+              </el-input>
+              <el-button type="primary" @click="handleStudentSearch" class="search-btn">
+                搜索
+              </el-button>
+            </div>
           </div>
-          <el-table :data="studentList" stripe style="width: 100%">
-            <el-table-column type="index" label="序号" width="80" align="center" />
+          <el-table :data="paginatedStudentList" stripe style="width: 100%">
+            <el-table-column type="index" label="序号" width="80" align="center" :index="getStudentIndex" />
             <el-table-column prop="studentNo" label="学号" width="140" show-overflow-tooltip />
             <el-table-column prop="realName" label="姓名" width="120" show-overflow-tooltip />
             <el-table-column prop="username" label="用户名" width="150" show-overflow-tooltip />
@@ -99,6 +116,19 @@
               </template>
             </el-table-column>
           </el-table>
+          
+          <!-- 分页 -->
+          <el-pagination
+            v-if="filteredStudentList.length > studentPageSize"
+            v-model:current-page="studentCurrentPage"
+            v-model:page-size="studentPageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="filteredStudentList.length"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="handleStudentSizeChange"
+            @current-change="handleStudentPageChange"
+            style="margin-top: 20px; justify-content: center;"
+          />
         </div>
 
         <!-- 题库查看 -->
@@ -216,13 +246,32 @@
         <div v-if="activeMenu === 'exams'" class="content-panel">
           <div class="panel-header">
             <h2>考试管理</h2>
-            <el-button type="danger" @click="showCreateExamDialog">
-              <el-icon><Plus /></el-icon>
-              创建考试
-            </el-button>
+            <div class="header-actions">
+              <div class="search-box">
+                <el-input
+                  v-model="examSearchKeyword"
+                  placeholder="搜索考试名称..."
+                  clearable
+                  @keyup.enter="handleExamSearch"
+                  @clear="clearExamSearch"
+                  class="search-input"
+                >
+                  <template #prefix>
+                    <el-icon><Search /></el-icon>
+                  </template>
+                </el-input>
+                <el-button type="primary" @click="handleExamSearch" class="search-btn">
+                  搜索
+                </el-button>
+              </div>
+              <el-button type="danger" @click="showCreateExamDialog">
+                <el-icon><Plus /></el-icon>
+                创建考试
+              </el-button>
+            </div>
           </div>
-          <el-table :data="examList" stripe style="width: 100%">
-            <el-table-column type="index" label="序号" width="60" />
+          <el-table :data="paginatedExamList" stripe style="width: 100%">
+            <el-table-column type="index" label="序号" width="60" :index="getExamIndex" />
             <el-table-column prop="title" label="考试名称" min-width="180" />
             <el-table-column prop="startTime" label="开始时间" width="170">
               <template #default="scope">
@@ -274,15 +323,45 @@
               </template>
             </el-table-column>
           </el-table>
+          
+          <!-- 分页 -->
+          <el-pagination
+            v-if="filteredExamList.length > examPageSize"
+            v-model:current-page="examCurrentPage"
+            v-model:page-size="examPageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="filteredExamList.length"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="handleExamSizeChange"
+            @current-change="handleExamPageChange"
+            style="margin-top: 20px; justify-content: center;"
+          />
         </div>
 
         <!-- 主观题批改 -->
         <div v-if="activeMenu === 'grading'" class="content-panel">
           <div class="panel-header">
             <h2>主观题试卷批改</h2>
+            <div class="search-box">
+              <el-input
+                v-model="gradingSearchKeyword"
+                placeholder="搜索考试名称..."
+                clearable
+                @keyup.enter="handleGradingSearch"
+                @clear="clearGradingSearch"
+                class="search-input"
+              >
+                <template #prefix>
+                  <el-icon><Search /></el-icon>
+                </template>
+              </el-input>
+              <el-button type="primary" @click="handleGradingSearch" class="search-btn">
+                搜索
+              </el-button>
+            </div>
           </div>
-          <el-table :data="gradingList" stripe style="width: 100%">
-            <el-table-column type="index" label="序号" width="60" />
+          <el-table :data="paginatedGradingList" stripe style="width: 100%">
+            <el-table-column type="index" label="序号" width="60" :index="getGradingIndex" />
             <el-table-column prop="examName" label="考试名称" min-width="200" />
             <el-table-column prop="startTime" label="考试时间" width="170">
               <template #default="scope">
@@ -315,15 +394,38 @@
             <el-table-column label="操作" width="150" fixed="right">
               <template #default="scope">
                 <el-button
+                  v-if="canStartGrading(scope.row)"
                   type="primary"
                   size="small"
                   @click="handleGrading(scope.row)"
                 >
                   去批改
                 </el-button>
+                <el-button
+                  v-else
+                  type="info"
+                  size="small"
+                  disabled
+                  :title="getGradingDisabledReason(scope.row)"
+                >
+                  {{ getGradingDisabledText(scope.row) }}
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
+          
+          <!-- 分页 -->
+          <el-pagination
+            v-if="filteredGradingList.length > gradingPageSize"
+            v-model:current-page="gradingCurrentPage"
+            v-model:page-size="gradingPageSize"
+            :page-sizes="[10, 20, 50]"
+            :total="filteredGradingList.length"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="handleGradingSizeChange"
+            @current-change="handleGradingPageChange"
+            style="margin-top: 20px; justify-content: center;"
+          />
         </div>
       </div>
     </div>
@@ -461,6 +563,18 @@
               </el-checkbox>
             </el-checkbox-group>
             
+            <!-- 判断题：使用单选按钮 -->
+            <el-radio-group v-else-if="questionForm.type === 3" v-model="questionForm.answer" class="answer-card-group judge-answer-group">
+              <el-radio label="T">
+                <span class="option-label correct">✓</span>
+                <span class="option-text">正确</span>
+              </el-radio>
+              <el-radio label="F">
+                <span class="option-label wrong">✗</span>
+                <span class="option-text">错误</span>
+              </el-radio>
+            </el-radio-group>
+            
             <!-- 其他题型：保持输入框 -->
             <el-input 
               v-else
@@ -508,7 +622,7 @@
           </div>
         </el-descriptions-item>
         <el-descriptions-item label="答案">
-          {{ currentQuestion.answer }}
+          {{ formatAnswer(currentQuestion.type, currentQuestion.answer) }}
         </el-descriptions-item>
         <el-descriptions-item label="分值">
           {{ currentQuestion.score }}分
@@ -642,6 +756,26 @@ const activeMenu = ref('students')
 
 // 学生列表
 const studentList = ref([])
+const studentSearchKeyword = ref('')
+const studentCurrentPage = ref(1)
+const studentPageSize = ref(10)
+const filteredStudentList = computed(() => {
+  if (!studentSearchKeyword.value.trim()) {
+    return studentList.value
+  }
+  const keyword = studentSearchKeyword.value.trim().toLowerCase()
+  return studentList.value.filter(student => 
+    (student.realName && student.realName.toLowerCase().includes(keyword)) ||
+    (student.studentNo && student.studentNo.toLowerCase().includes(keyword)) ||
+    (student.username && student.username.toLowerCase().includes(keyword)) ||
+    (student.email && student.email.toLowerCase().includes(keyword))
+  )
+})
+const paginatedStudentList = computed(() => {
+  const start = (studentCurrentPage.value - 1) * studentPageSize.value
+  const end = start + studentPageSize.value
+  return filteredStudentList.value.slice(start, end)
+})
 
 // 题目列表
 const questionList = ref([])
@@ -686,9 +820,43 @@ const paginatedQuestionList = computed(() => {
 
 // 考试列表
 const examList = ref([])
+const examSearchKeyword = ref('')
+const examCurrentPage = ref(1)
+const examPageSize = ref(10)
+const filteredExamList = computed(() => {
+  if (!examSearchKeyword.value.trim()) {
+    return examList.value
+  }
+  const keyword = examSearchKeyword.value.trim().toLowerCase()
+  return examList.value.filter(exam => 
+    (exam.title && exam.title.toLowerCase().includes(keyword))
+  )
+})
+const paginatedExamList = computed(() => {
+  const start = (examCurrentPage.value - 1) * examPageSize.value
+  const end = start + examPageSize.value
+  return filteredExamList.value.slice(start, end)
+})
 
 // 批改列表
 const gradingList = ref([])
+const gradingSearchKeyword = ref('')
+const gradingCurrentPage = ref(1)
+const gradingPageSize = ref(10)
+const filteredGradingList = computed(() => {
+  if (!gradingSearchKeyword.value.trim()) {
+    return gradingList.value
+  }
+  const keyword = gradingSearchKeyword.value.trim().toLowerCase()
+  return gradingList.value.filter(grading => 
+    (grading.examName && grading.examName.toLowerCase().includes(keyword))
+  )
+})
+const paginatedGradingList = computed(() => {
+  const start = (gradingCurrentPage.value - 1) * gradingPageSize.value
+  const end = start + gradingPageSize.value
+  return filteredGradingList.value.slice(start, end)
+})
 
 // 对话框
 const questionDialogVisible = ref(false)
@@ -803,6 +971,63 @@ const handleQuestionSizeChange = (val) => {
 // 当前页变化
 const handleQuestionPageChange = (val) => {
   questionCurrentPage.value = val;
+}
+
+// 学生列表分页和搜索
+const getStudentIndex = (index) => {
+  return (studentCurrentPage.value - 1) * studentPageSize.value + index + 1
+}
+const handleStudentSizeChange = (val) => {
+  studentPageSize.value = val
+  studentCurrentPage.value = 1
+}
+const handleStudentPageChange = (val) => {
+  studentCurrentPage.value = val
+}
+const handleStudentSearch = () => {
+  studentCurrentPage.value = 1
+}
+const clearStudentSearch = () => {
+  studentSearchKeyword.value = ''
+  studentCurrentPage.value = 1
+}
+
+// 考试列表分页和搜索
+const getExamIndex = (index) => {
+  return (examCurrentPage.value - 1) * examPageSize.value + index + 1
+}
+const handleExamSizeChange = (val) => {
+  examPageSize.value = val
+  examCurrentPage.value = 1
+}
+const handleExamPageChange = (val) => {
+  examCurrentPage.value = val
+}
+const handleExamSearch = () => {
+  examCurrentPage.value = 1
+}
+const clearExamSearch = () => {
+  examSearchKeyword.value = ''
+  examCurrentPage.value = 1
+}
+
+// 批改列表分页和搜索
+const getGradingIndex = (index) => {
+  return (gradingCurrentPage.value - 1) * gradingPageSize.value + index + 1
+}
+const handleGradingSizeChange = (val) => {
+  gradingPageSize.value = val
+  gradingCurrentPage.value = 1
+}
+const handleGradingPageChange = (val) => {
+  gradingCurrentPage.value = val
+}
+const handleGradingSearch = () => {
+  gradingCurrentPage.value = 1
+}
+const clearGradingSearch = () => {
+  gradingSearchKeyword.value = ''
+  gradingCurrentPage.value = 1
 }
 
 // 获取难度颜色
@@ -1186,6 +1411,19 @@ const getQuestionTypeText = (type) => {
   return textMap[type] || '未知'
 }
 
+// 格式化答案显示（判断题 T/F 转为 正确/错误）
+const formatAnswer = (type, answer) => {
+  if (type === 3) {
+    // 判断题
+    if (answer === 'T' || answer === '正确' || answer === '对' || answer === 'true') {
+      return '正确'
+    } else if (answer === 'F' || answer === '错误' || answer === '错' || answer === 'false') {
+      return '错误'
+    }
+  }
+  return answer
+}
+
 // 获取考试状态标签
 const getExamStatusTag = (exam) => {
   const now = new Date()
@@ -1213,6 +1451,82 @@ const isExamEnded = (exam) => {
   const now = new Date()
   const endTime = new Date(exam.endTime)
   return now > endTime
+}
+
+// 判断批改列表中的考试是否已结束
+const isGradingExamEnded = (row) => {
+  const now = new Date()
+  const endTime = new Date(row.endTime)
+  return now > endTime
+}
+
+// 判断是否所有学生都已交卷
+const isAllStudentsSubmitted = (row) => {
+  // 如果有 totalStudents 字段，检查是否所有人都交卷
+  // submittedCount = pendingCount + gradedCount（已提交的答卷数）
+  const submittedCount = (row.pendingCount || 0) + (row.gradedCount || 0)
+  const totalStudents = row.totalStudents || 0
+  
+  // 必须有 totalStudents 字段且大于0，才能判断是否全部交卷
+  // 如果 totalStudents 为0或不存在，无法判断，返回false
+  if (totalStudents <= 0) {
+    return false
+  }
+  
+  // 所有学生都已交卷
+  return submittedCount >= totalStudents
+}
+
+// 判断是否可以开始批改（考试结束 或 所有学生都已交卷）
+const canStartGrading = (row) => {
+  // 必须有待批改或已批改的记录（说明有人交卷）
+  const total = (row.pendingCount || 0) + (row.gradedCount || 0)
+  if (total === 0) {
+    return false
+  }
+  
+  // 条件1：考试已结束
+  if (isGradingExamEnded(row)) {
+    return true
+  }
+  
+  // 条件2：所有学生都已提前交卷
+  if (isAllStudentsSubmitted(row)) {
+    return true
+  }
+  
+  return false
+}
+
+// 获取批改按钮禁用原因
+const getGradingDisabledReason = (row) => {
+  const total = (row.pendingCount || 0) + (row.gradedCount || 0)
+  if (total === 0) {
+    return '暂无学生提交答卷'
+  }
+  if (!isGradingExamEnded(row) && !isAllStudentsSubmitted(row)) {
+    const totalStudents = row.totalStudents || 0
+    const submittedCount = total
+    return `考试进行中，已交卷 ${submittedCount}/${totalStudents} 人，等待所有学生交卷或考试结束`
+  }
+  return ''
+}
+
+// 获取批改按钮禁用文本
+const getGradingDisabledText = (row) => {
+  const total = (row.pendingCount || 0) + (row.gradedCount || 0)
+  if (total === 0) {
+    return '暂无提交'
+  }
+  if (!isGradingExamEnded(row) && !isAllStudentsSubmitted(row)) {
+    const totalStudents = row.totalStudents || 0
+    // 如果没有总学生数，只显示已交卷人数
+    if (totalStudents > 0) {
+      return `${total}/${totalStudents}人交卷`
+    }
+    return '考试进行中'
+  }
+  return '无法批改'
 }
 
 // 格式化时间
@@ -1890,6 +2204,60 @@ watch(classId, (newClassId) => {
   height: 70%;
   background: linear-gradient(180deg, var(--primary) 0%, var(--primary-2) 100%);
   border-radius: 2px;
+}
+
+/* 搜索框样式 */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-box .search-input {
+  width: 300px;
+}
+
+.search-box .search-input :deep(.el-input__wrapper) {
+  border-radius: 10px;
+  border: 2px solid rgba(102, 126, 234, 0.15);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.06);
+  transition: all 0.3s ease;
+  padding: 4px 12px;
+}
+
+.search-box .search-input :deep(.el-input__wrapper:hover) {
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.search-box .search-input :deep(.el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-box .search-input :deep(.el-input__prefix) {
+  color: #667eea;
+}
+
+.search-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 10px 20px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+  transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
+}
+
+/* 考试管理头部操作区域 */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 /* 题库筛选区域样式 */
@@ -2784,5 +3152,20 @@ watch(classId, (newClassId) => {
 
 .answer-input :deep(.el-input__wrapper) {
   background: white;
+}
+
+/* 判断题答案样式 */
+.judge-answer-group {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+.judge-answer-group .option-label.correct {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  color: white;
+}
+
+.judge-answer-group .option-label.wrong {
+  background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+  color: white;
 }
 </style>

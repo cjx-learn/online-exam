@@ -57,170 +57,282 @@
       </template>
     </el-dialog>
 
+    <!-- 顶部导航栏 -->
     <div v-show="!noticeVisible" class="exam-header">
       <div class="header-left">
-        <div class="exam-info">
-          <h1 class="exam-title">{{ exam.title || '考试' }}</h1>
-          <div class="exam-meta">
-            <span class="meta-item">
-              <el-icon><Timer /></el-icon>
-              {{ exam.duration ? exam.duration + ' 分钟' : '-' }}
-            </span>
-            <span class="meta-item">
-              <el-icon><Trophy /></el-icon>
-              总分 {{ totalScore }}
-            </span>
-          </div>
-        </div>
+        <h1 class="title">
+          <span class="title-text">{{ exam.title || '考试' }}</span>
+        </h1>
+        <el-tag type="success" effect="dark" class="status-tag">考试中</el-tag>
+        <span class="user-name-left">{{ currentUserInfo?.realName || '学生' }}</span>
       </div>
       
-      <div class="header-center">
+      <div class="header-right">
         <div class="countdown-box" :class="{ 'urgent': timeLeftMs < 300000 }">
+          <el-icon><Timer /></el-icon>
           <span class="countdown-label">剩余时间</span>
           <span class="countdown-value">{{ timeLeftText }}</span>
         </div>
-      </div>
+        
+        <transition name="fade" mode="out-in">
+          <div v-if="saving" class="save-status saving">
+            <el-icon class="is-loading"><Loading /></el-icon>
+            <span>保存中</span>
+          </div>
+          <div v-else-if="lastSavedAt" class="save-status saved">
+            <el-icon><Select /></el-icon>
+            <span>已保存</span>
+          </div>
+        </transition>
 
-      <div class="header-right">
-        <div class="status-area">
-          <transition name="fade" mode="out-in">
-            <div v-if="saving" class="save-status saving">
-              <el-icon class="is-loading"><Loading /></el-icon>
-              <span>保存中</span>
-            </div>
-            <div v-else-if="lastSavedAt" class="save-status saved">
-              <el-icon><Select /></el-icon>
-              <span>已保存</span>
-            </div>
-          </transition>
-        </div>
+        <el-tag v-if="switchCount > 0" type="danger" effect="dark" class="switch-tag">
+          切屏: {{ switchCount }}/3
+        </el-tag>
 
-        <div class="switch-count-tag" v-if="switchCount > 0">
-          <el-tag type="danger" effect="dark">切屏: {{ switchCount }}/3</el-tag>
-        </div>
+        <el-button plain @click="refreshPage" class="refresh-btn">
+          <el-icon><Refresh /></el-icon>
+          刷新
+        </el-button>
+        
+        <el-button type="danger" @click="confirmSubmit" class="submit-btn">
+          交卷
+        </el-button>
 
-        <div class="action-buttons">
-          <el-button class="nav-btn-mobile" plain @click="navVisible = true">
-            <el-icon><Grid /></el-icon>
-            题目
-          </el-button>
-          <el-button type="danger" @click="confirmSubmit" class="submit-btn">
-            <el-icon><Checked /></el-icon>
-            交卷
-          </el-button>
-        </div>
+        <!-- 用户头像下拉菜单 -->
+        <el-dropdown @command="handleCommand">
+          <div class="user-avatar">
+            <el-avatar 
+              :size="42" 
+              :icon="currentUserInfo?.avatar ? undefined : UserFilled" 
+              :src="getAvatarUrl(currentUserInfo?.avatar)"
+              class="avatar-img" 
+            />
+          </div>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="profile">
+                <el-icon><User /></el-icon>
+                个人信息
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </div>
-
-    <el-progress
-      v-if="questions.length && !noticeVisible"
-      class="progress-bar"
-      :percentage="progressPercent"
-      :stroke-width="6"
-      :format="p => `进度 ${answeredCount}/${questions.length}`"
-      status="success"
-    />
 
     <el-card v-if="loading && !noticeVisible" class="loading-card" shadow="never">
       <el-icon class="is-loading"><Loading /></el-icon>
       正在加载试题...
     </el-card>
 
+    <!-- 主体区域 -->
     <div v-show="!loading && !noticeVisible" class="exam-body">
-      <aside class="q-nav">
-        <div class="nav-header">
-          <span>题目导航</span>
-          <span class="nav-progress">{{ answeredCount }}/{{ questions.length }}</span>
+      <!-- 左侧信息面板 -->
+      <aside class="left-panel">
+        <!-- 学生信息 -->
+        <div class="student-info-card">
+          <div class="info-row">
+            <span class="info-label">姓名</span>
+            <span class="info-value">{{ currentUserInfo?.realName || '学生' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">学号</span>
+            <span class="info-value">{{ currentUserInfo?.studentNo || '-' }}</span>
+          </div>
         </div>
-        <div class="nav-grid">
-          <button
-            v-for="(item, i) in navList"
-            :key="item.id"
-            class="nav-item"
-            :class="{ done: isAnswered(answers[item.id], item.type) }"
-            @click="scrollToQuestion(item.id)"
-          >{{ i + 1 }}</button>
+
+        <!-- 答题进度 -->
+        <div class="progress-card">
+          <div class="progress-header">
+            <span class="progress-label">答题进度</span>
+            <span class="progress-value" :class="{ 'complete': answeredCount === questions.length }">
+              {{ answeredCount }}/{{ questions.length }}
+            </span>
+          </div>
+          <div class="progress-info">
+            共 <strong>{{ questions.length }}</strong> 题；满分 <strong class="score-highlight">{{ totalScore }}</strong> 分
+          </div>
+        </div>
+
+        <!-- 题目导航 -->
+        <div class="nav-sections">
+          <template v-for="section in groupedQuestions" :key="section.type">
+            <div class="nav-section" v-if="section.items.length">
+              <div class="nav-section-header">
+                <el-icon><Minus /></el-icon>
+                <span>{{ section.title }}</span>
+              </div>
+              <div class="nav-grid">
+                <button
+                  v-for="(q, idx) in section.items"
+                  :key="q.id"
+                  class="nav-item"
+                  :class="{ 
+                    'answered': isAnswered(answers[q.id], q.type),
+                    'current': currentQuestion?.id === q.id,
+                    'marked': markedQuestions.has(q.id)
+                  }"
+                  @click="goToQuestion(q.id)"
+                >
+                  {{ getGlobalIndex(q.id) }}
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- 图例 -->
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-dot answered"></span>
+            <span>已答</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot unanswered"></span>
+            <span>未答</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot marked"></span>
+            <span>标记</span>
+          </div>
         </div>
       </aside>
 
-      <el-card class="paper-card" shadow="never">
-        <template v-for="section in groupedQuestions" :key="section.type">
-          <div class="section">
-            <div class="section-header">
-              <h3>{{ section.title }}（共 {{ section.items.length }} 题，{{ section.totalScore }} 分）</h3>
-            </div>
-            <div class="question" :id="'q-' + q.id" v-for="(q, idx) in section.items" :key="q.id">
-              <div class="q-header">
-                <span class="q-no">{{ indexMap[q.id] }}.</span>
-                <span class="q-content" v-text="q.content" />
-                <el-tag class="q-score" type="info">{{ q.score ?? '-' }} 分</el-tag>
-              </div>
-              <!-- 题目图片 -->
-              <div v-if="q.image" class="q-image-wrapper">
-                <el-image 
-                  :src="getImageUrl(q.image)" 
-                  :preview-src-list="[getImageUrl(q.image)]"
-                  fit="contain"
-                  class="q-image"
-                  :preview-teleported="true"
-                />
-              </div>
-              <div class="q-body">
-                <template v-if="[1,2,3].includes(q.type)">
-                  <el-radio-group v-if="q.type===1 || q.type===3" v-model="answers[q.id]" class="q-options">
-                    <el-radio border class="option-item" v-for="(opt, key) in parseOptions(q.options, q.type)" :key="key" :label="key">
-                      {{ key }}. {{ opt }}
-                    </el-radio>
-                  </el-radio-group>
-                  <el-checkbox-group v-else v-model="answers[q.id]" class="q-options">
-                    <el-checkbox border class="option-item" v-for="(opt, key) in parseOptions(q.options, q.type)" :key="key" :label="key">
-                      {{ key }}. {{ opt }}
-                    </el-checkbox>
-                  </el-checkbox-group>
-                </template>
-
-                <template v-else>
-                  <el-input
-                    v-model="answers[q.id]"
-                    type="textarea"
-                    :rows="4"
-                    placeholder="在此作答..."
-                    class="answer-textarea"
-                  />
-                </template>
-              </div>
-              <el-divider />
-            </div>
+      <!-- 右侧答题区域 - 单题显示 -->
+      <div class="right-panel">
+        <!-- 当前题目的题型标题 -->
+        <div class="section-header" v-if="currentQuestion">
+          <span class="section-title">{{ currentSectionNumber }}、{{ currentSectionTitle }}</span>
+          <span class="section-info">（共{{ currentSectionCount }}题；共{{ currentSectionScore }}分）</span>
+        </div>
+        
+        <!-- 当前题目 -->
+        <div class="question-card" v-if="currentQuestion">
+          <div class="question-header">
+            <span class="question-score">{{ currentQuestion.score }}分</span>
+            <span class="question-number">{{ getGlobalIndex(currentQuestion.id) }}.</span>
+            <span class="question-content">{{ currentQuestion.content }}</span>
           </div>
-        </template>
-        <div v-if="!questions.length" class="empty">暂无试题</div>
-      </el-card>
-    </div>
+          
+          <!-- 题目图片 -->
+          <div v-if="currentQuestion.image" class="question-image">
+            <el-image 
+              :src="getImageUrl(currentQuestion.image)" 
+              :preview-src-list="[getImageUrl(currentQuestion.image)]"
+              fit="contain"
+              class="q-image"
+              :preview-teleported="true"
+            />
+          </div>
 
-    <el-drawer v-model="navVisible" direction="ltr" size="260px" class="nav-drawer">
-      <div class="nav-header">
-        <span>题目导航</span>
-        <span class="nav-progress">{{ answeredCount }}/{{ questions.length }}</span>
+          <!-- 选项区域 -->
+          <div class="question-options">
+            <!-- 单选题 -->
+            <template v-if="currentQuestion.type === 1">
+              <div 
+                v-for="(opt, key) in parseOptions(currentQuestion.options, currentQuestion.type)" 
+                :key="key"
+                class="option-item"
+                :class="{ 'selected': answers[currentQuestion.id] === key }"
+                @click="answers[currentQuestion.id] = key"
+              >
+                <span class="option-radio">
+                  <span class="radio-inner" v-if="answers[currentQuestion.id] === key"></span>
+                </span>
+                <span class="option-label">{{ key }}.</span>
+                <span class="option-text">{{ opt }}</span>
+              </div>
+            </template>
+
+            <!-- 多选题 -->
+            <template v-else-if="currentQuestion.type === 2">
+              <div 
+                v-for="(opt, key) in parseOptions(currentQuestion.options, currentQuestion.type)" 
+                :key="key"
+                class="option-item"
+                :class="{ 'selected': answers[currentQuestion.id]?.includes(key) }"
+                @click="toggleMultiAnswer(currentQuestion.id, key)"
+              >
+                <span class="option-checkbox">
+                  <el-icon v-if="answers[currentQuestion.id]?.includes(key)"><Check /></el-icon>
+                </span>
+                <span class="option-label">{{ key }}.</span>
+                <span class="option-text">{{ opt }}</span>
+              </div>
+            </template>
+
+            <!-- 判断题 -->
+            <template v-else-if="currentQuestion.type === 3">
+              <div 
+                v-for="(opt, key) in parseOptions(currentQuestion.options, currentQuestion.type)" 
+                :key="key"
+                class="option-item"
+                :class="{ 'selected': answers[currentQuestion.id] === key }"
+                @click="answers[currentQuestion.id] = key"
+              >
+                <span class="option-radio">
+                  <span class="radio-inner" v-if="answers[currentQuestion.id] === key"></span>
+                </span>
+                <span class="option-label">{{ key }}.</span>
+                <span class="option-text">{{ opt }}</span>
+              </div>
+            </template>
+
+            <!-- 填空题/简答题 -->
+            <template v-else>
+              <el-input
+                v-model="answers[currentQuestion.id]"
+                type="textarea"
+                :rows="6"
+                placeholder="请输入答案..."
+                class="answer-textarea"
+              />
+            </template>
+          </div>
+
+          <!-- 标记按钮 -->
+          <div class="question-footer">
+            <button 
+              class="mark-btn" 
+              :class="{ 'marked': markedQuestions.has(currentQuestion.id) }"
+              @click="toggleMark(currentQuestion.id)"
+            >
+              <el-icon><Star /></el-icon>
+              {{ markedQuestions.has(currentQuestion.id) ? '取消标记' : '标记该题' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+          <el-button 
+            :disabled="currentIndex <= 0" 
+            @click="goToPrev"
+            class="nav-btn"
+          >
+            &lt; 上一题
+          </el-button>
+          <el-button 
+            type="primary" 
+            :disabled="currentIndex >= questions.length - 1" 
+            @click="goToNext"
+            class="nav-btn next-btn"
+          >
+            下一题 &gt;
+          </el-button>
+        </div>
       </div>
-      <div class="nav-grid">
-        <button
-          v-for="(item, i) in navList"
-          :key="item.id"
-          class="nav-item"
-          :class="{ done: isAnswered(answers[item.id], item.type) }"
-          @click="scrollToQuestion(item.id)"
-        >{{ i + 1 }}</button>
-      </div>
-    </el-drawer>
+    </div>
   </div>
 </template>
 
+
 <script setup>
-import { ref, reactive, onMounted, computed, onBeforeUnmount } from 'vue'
+import { ref, reactive, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
-import { getImageUrl } from '@/utils/file'
-import { Loading, Timer, Trophy, Select, Grid, Checked, WarningFilled } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getImageUrl, getAvatarUrl } from '@/utils/file'
+import { Loading, Timer, Select, WarningFilled, Minus, Star, Check, Refresh, UserFilled, User } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 const route = useRoute()
@@ -238,36 +350,12 @@ let noticeTimer = null
 const switchCount = ref(0)
 const switchWarningVisible = ref(false)
 
-const isAnswered = (val, type) => {
-  if (type === 2) return Array.isArray(val) && val.length > 0
-  return val != null && String(val).trim() !== ''
-}
+// 标记的题目
+const markedQuestions = ref(new Set())
 
-const answeredCount = computed(() => {
-  return questions.value.reduce((c, q) => c + (isAnswered(answers[q.id], q.type) ? 1 : 0), 0)
-})
+// 当前题目索引
+const currentIndex = ref(0)
 
-const progressPercent = computed(() => {
-  const total = questions.value.length
-  return total ? Math.round((answeredCount.value * 100) / total) : 0
-})
-
-// 题目导航
-const navVisible = ref(false)
-const navList = computed(() => questions.value.map(q => ({ id: q.id, type: q.type })))
-const indexMap = computed(() => {
-  const map = {}
-  questions.value.forEach((q, i) => { map[q.id] = i + 1 })
-  return map
-})
-const scrollToQuestion = (id) => {
-  navVisible.value = false
-  // 延迟以确保抽屉关闭不影响滚动
-  setTimeout(() => {
-    const el = document.getElementById('q-' + id)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, 10)
-}
 const examRecord = ref(null)
 const questions = ref([])
 const answers = reactive({})
@@ -276,7 +364,6 @@ const saving = ref(false)
 const loading = ref(true)
 const autosaveEnabled = ref(true)
 const lastPayloadKey = ref('')
-const errorNotified = ref(false)
 
 const countdownTimer = ref(null)
 const timeLeftMs = ref(0)
@@ -287,9 +374,54 @@ try {
   if (stored) currentUserInfo = JSON.parse(stored)
 } catch (_) {}
 
+// 当前题目
+const currentQuestion = computed(() => {
+  return questions.value[currentIndex.value] || null
+})
+
+// 获取题目全局序号
+const getGlobalIndex = (qId) => {
+  return questions.value.findIndex(q => q.id === qId) + 1
+}
+
+// 当前题型信息
+const currentSectionTitle = computed(() => {
+  const titles = { 1: '单选题', 2: '多选题', 3: '判断题', 4: '填空题', 5: '简答题' }
+  return currentQuestion.value ? titles[currentQuestion.value.type] || '' : ''
+})
+
+const currentSectionNumber = computed(() => {
+  if (!currentQuestion.value) return ''
+  const numbers = ['一', '二', '三', '四', '五']
+  const types = [...new Set(questions.value.map(q => q.type))]
+  const idx = types.indexOf(currentQuestion.value.type)
+  return numbers[idx] || ''
+})
+
+const currentSectionCount = computed(() => {
+  if (!currentQuestion.value) return 0
+  return questions.value.filter(q => q.type === currentQuestion.value.type).length
+})
+
+const currentSectionScore = computed(() => {
+  if (!currentQuestion.value) return 0
+  return questions.value
+    .filter(q => q.type === currentQuestion.value.type)
+    .reduce((sum, q) => sum + Number(q.score || 0), 0)
+})
+
+const isAnswered = (val, type) => {
+  if (type === 2) return Array.isArray(val) && val.length > 0
+  return val != null && String(val).trim() !== ''
+}
+
+const answeredCount = computed(() => {
+  return questions.value.reduce((c, q) => c + (isAnswered(answers[q.id], q.type) ? 1 : 0), 0)
+})
+
 const parseOptions = (options, type) => {
   try {
-    if (type === 3 && !options) return { A: '正确', B: '错误' }
+    if (type === 3 && !options) return { T: '正确', F: '错误' }
     if (!options) return {}
     if (typeof options === 'string') return JSON.parse(options)
     return options
@@ -321,6 +453,56 @@ const timeLeftText = computed(() => {
   const pad = (n) => String(n).padStart(2, '0')
   return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
 })
+
+// 切换多选答案
+const toggleMultiAnswer = (qId, key) => {
+  if (!Array.isArray(answers[qId])) {
+    answers[qId] = []
+  }
+  const index = answers[qId].indexOf(key)
+  if (index > -1) {
+    answers[qId].splice(index, 1)
+  } else {
+    answers[qId].push(key)
+    answers[qId].sort()
+  }
+}
+
+// 标记题目
+const toggleMark = (qId) => {
+  if (markedQuestions.value.has(qId)) {
+    markedQuestions.value.delete(qId)
+  } else {
+    markedQuestions.value.add(qId)
+  }
+}
+
+// 跳转到指定题目
+const goToQuestion = (qId) => {
+  const idx = questions.value.findIndex(q => q.id === qId)
+  if (idx >= 0) {
+    currentIndex.value = idx
+  }
+}
+
+// 上一题
+const goToPrev = () => {
+  if (currentIndex.value > 0) {
+    currentIndex.value--
+  }
+}
+
+// 下一题
+const goToNext = () => {
+  if (currentIndex.value < questions.value.length - 1) {
+    currentIndex.value++
+  }
+}
+
+// 刷新页面
+const refreshPage = () => {
+  window.location.reload()
+}
 
 const initCountdown = () => {
   let endMs = 0
@@ -356,7 +538,6 @@ const confirmSubmit = () => {
 const submit = async () => {
   if (!examRecord.value) return
   try {
-    // 先保存当前答案（强制保存）
     await saveAnswers(true)
     const res = await request.post('/examRecord/submit', null, { params: { examRecordId: examRecord.value.id } })
     if (res.code === 200) {
@@ -374,7 +555,6 @@ const submit = async () => {
 const loadData = async () => {
   loading.value = true
   try {
-    // 1) 加载考试
     const examRes = await request.get(`/exam/${examId.value}`)
     if (!examRes || !examRes.data) {
       ElMessage.error('考试不存在或已被删除')
@@ -382,7 +562,6 @@ const loadData = async () => {
     }
     Object.assign(exam, examRes.data)
 
-    // 2) 开始考试（或恢复未完成记录）
     if (currentUserInfo && currentUserInfo.userId) {
       try {
         const startRes = await request.post('/examRecord/start', null, { params: { studentId: currentUserInfo.userId, examId: examId.value } })
@@ -390,7 +569,6 @@ const loadData = async () => {
       } catch (_) {}
     }
 
-    // 3) 加载题目
     try {
       const qRes = await request.get(`/exam/${examId.value}/questions`)
       if (qRes && qRes.data) {
@@ -401,14 +579,12 @@ const loadData = async () => {
       }
     } catch (_) { questions.value = [] }
 
-    // 4) 若存在记录，加载已保存答案
     if (examRecord.value && examRecord.value.id) {
       try {
         const saved = await request.get(`/examRecord/${examRecord.value.id}/answers`)
         if (saved && saved.data && Array.isArray(saved.data)) {
           for (const item of saved.data) {
             if (!item) continue
-            // 多选存的是 JSON 字符串
             try {
               const raw = (item.userAnswer ?? item.answerValue)
               const parsed = JSON.parse(raw)
@@ -417,7 +593,6 @@ const loadData = async () => {
               answers[item.questionId] = (item.userAnswer ?? item.answerValue ?? '')
             }
           }
-          // 记录初始payload签名，避免首次就触发冗余保存
           const key = questions.value.map(q => {
             const raw = answers[q.id]
             const val = Array.isArray(raw) ? JSON.stringify(raw) : (raw != null ? String(raw) : '')
@@ -435,7 +610,6 @@ const loadData = async () => {
   }
 }
 
-// API: 批量保存答案
 const saveAnswers = async (force = false) => {
   if (!autosaveEnabled.value) return
   if (!examRecord.value || !examRecord.value.id) return
@@ -448,7 +622,6 @@ const saveAnswers = async (force = false) => {
     return `${q.id}:${val}`
   }).join('|')
 
-  // 若无变化，且非强制保存，则跳过
   if (!force && key === lastPayloadKey.value) return
 
   saving.value = true
@@ -456,50 +629,23 @@ const saveAnswers = async (force = false) => {
     await request.post(`/examRecord/${examRecord.value.id}/answers`, payload)
     lastSavedAt.value = Date.now()
     lastPayloadKey.value = key
-  } catch (_) { /* ignore */ }
+  } catch (_) { }
   finally { saving.value = false }
 }
 
-// 保存失败的容错（例如后端未部署新接口时）
-watch(saving, async (v, ov) => {
-  // 无法在此获知错误类型，改为在 request 拦截器之外做一次试探
-})
-
-// 包裹一层：发生 404 时停用自动保存，避免刷屏
-const _origPost = request.post
-request.post = async (url, data, config) => {
-  try {
-    return await _origPost(url, data, config)
-  } catch (e) {
-    const status = e?.response?.status
-    if (status === 404 && String(url || '').includes('/examRecord/') && String(url || '').includes('/answers')) {
-      autosaveEnabled.value = false
-      if (!errorNotified.value) {
-        errorNotified.value = true
-        ElMessage.error('自动保存接口不可用（404）。请确认后端已重启并提供 /examRecord/{id}/answers 接口。')
-      }
-      if (autosaveTimer) { clearInterval(autosaveTimer); autosaveTimer = null }
-    }
-    throw e
-  }
-}
-
-// 定时保存 + 防抖保存
-let autosaveTimer
 const debouncedSave = (() => {
   let t
   return () => { clearTimeout(t); t = setTimeout(saveAnswers, 800) }
 })()
 
-// 监听答案变化，触发防抖保存
 watch(answers, () => { debouncedSave() }, { deep: true })
 
+let autosaveTimer
 onMounted(() => {
-  autosaveTimer = setInterval(() => { saveAnswers() }, 30000) // 每30秒自动保存
+  autosaveTimer = setInterval(() => { saveAnswers() }, 30000)
 })
 onBeforeUnmount(() => { if (autosaveTimer) clearInterval(autosaveTimer) })
 
-// 考试须知倒计时
 const startNoticeCountdown = () => {
   noticeTimer = setInterval(() => {
     if (noticeCountdown.value > 0) {
@@ -511,15 +657,11 @@ const startNoticeCountdown = () => {
   }, 1000)
 }
 
-// 立即开始考试
 const startExamNow = () => {
-  if (noticeTimer) {
-    clearInterval(noticeTimer)
-  }
+  if (noticeTimer) clearInterval(noticeTimer)
   noticeVisible.value = false
 }
 
-// 防作弊：监听切屏
 const handleVisibilityChange = () => {
   if (document.hidden && !noticeVisible.value) {
     switchCount.value++
@@ -527,9 +669,7 @@ const handleVisibilityChange = () => {
       ElMessageBox.alert('您已切屏超过3次，系统将自动提交试卷！', '警告', {
         confirmButtonText: '确定',
         type: 'error',
-        callback: () => {
-          submit()
-        }
+        callback: () => { submit() }
       })
     } else {
       switchWarningVisible.value = true
@@ -538,7 +678,6 @@ const handleVisibilityChange = () => {
   }
 }
 
-// 防作弊：禁用快捷键
 const handleKeydown = (e) => {
   if ((e.ctrlKey && ['c', 'v', 'x', 'a'].includes(e.key.toLowerCase())) || e.key === 'F12') {
     e.preventDefault()
@@ -552,6 +691,15 @@ onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
 })
 
+// 处理用户菜单命令
+const handleCommand = (command) => {
+  switch (command) {
+    case 'profile':
+      ElMessage.info('考试期间无法查看个人信息')
+      break
+  }
+}
+
 onMounted(loadData)
 
 onBeforeUnmount(() => { 
@@ -562,39 +710,56 @@ onBeforeUnmount(() => {
 })
 </script>
 
+
 <style scoped>
-.student-exam-container { 
-  margin: 0 auto; 
-  padding: 24px 0; 
-  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #e8eaf6 100%);
+.student-exam-container {
   min-height: 100vh;
-}
-
-.exam-header { 
-  display: grid; 
-  grid-template-columns: 1fr auto 1fr; 
-  align-items: center; 
-  gap: 16px; 
-  margin: 0 auto 20px;
-  max-width: 1360px;
-  padding: 20px 24px 20px calc(24px + 260px);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  backdrop-filter: blur(16px) saturate(180%);
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  background: linear-gradient(135deg, #f5f7ff 0%, #faf5ff 50%, #fff8fc 100%);
   position: relative;
-  overflow: hidden;
 }
 
-.exam-header::before {
+.student-exam-container::before {
   content: '';
-  position: absolute;
+  position: fixed;
+  top: -40%;
+  right: -5%;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 60%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.student-exam-container::after {
+  content: '';
+  position: fixed;
+  bottom: -25%;
+  left: -8%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.04) 0%, transparent 60%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 顶部导航栏 - 与其他界面统一 */
+.exam-header {
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 100%);
-  pointer-events: none;
+  z-index: 1000;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+  backdrop-filter: blur(16px);
+  padding: 0 40px;
+  height: 68px;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.08);
 }
 
 .exam-header::after {
@@ -603,635 +768,737 @@ onBeforeUnmount(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.6) 100%);
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
+  height: 2px;
+  background: linear-gradient(90deg, #8b5cf6 0%, #a855f7 50%, #8b5cf6 100%);
+  opacity: 0.6;
 }
 
-.exam-title { 
-  margin: 0; 
-  text-align: center; 
-  font-size: 26px; 
-  font-weight: 800; 
-  color: #ffffff;
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
   letter-spacing: 0.5px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.meta-left { 
-  display: flex; 
-  gap: 20px; 
-  font-size: 14px;
-  color: rgba(255,255,255,0.95);
+.title-text {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+}
+
+.status-tag {
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.user-name-left {
+  font-size: 16px;
+  color: #6a7a8a;
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.countdown-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.countdown-label {
+  font-size: 13px;
+  color: #8b5cf6;
   font-weight: 500;
 }
 
-.meta-left span {
+.countdown-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #7c3aed;
+}
+
+.countdown-box.urgent {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(244, 67, 54, 0.15) 100%);
+  border-color: rgba(244, 67, 54, 0.3);
+  color: #f44336;
+  animation: pulse 1s infinite;
+}
+
+.countdown-box.urgent .countdown-label,
+.countdown-box.urgent .countdown-value {
+  color: #f44336;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.save-status {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  font-size: 13px;
+  color: #7c3aed;
 }
 
-.meta-left span::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.8);
-}
-
-.meta-right { 
-  display: flex; 
-  justify-content: flex-end; 
-  align-items: center; 
-  gap: 12px; 
-}
-
-.countdown-tag { 
-  font-weight: 700;
-  font-size: 15px;
-  padding: 8px 16px;
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.3);
-  color: #fff;
-}
-
-.submit-btn { 
-  min-width: 100px;
-  height: 38px;
+.switch-tag {
   font-weight: 600;
-  background: #fff;
-  color: #dc2626;
-  border: 2px solid rgba(255,255,255,0.3);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.refresh-btn {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  color: #7c3aed;
+  border-radius: 12px;
+  padding: 11px 20px;
+  font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.refresh-btn:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+  border-color: rgba(139, 92, 246, 0.35);
+  transform: translateY(-2px);
+}
+
+.submit-btn {
+  font-weight: 600;
+  padding: 11px 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(245, 108, 108, 0.25);
 }
 
 .submit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
-  background: #fee;
+  box-shadow: 0 6px 20px rgba(245, 108, 108, 0.35);
 }
 
-.save-tag { 
-  height: 28px; 
-  display: inline-flex; 
-  align-items: center;
-  padding: 0 12px;
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.3);
-  color: #fff;
-  font-weight: 500;
-}
-
-.progress-bar { 
-  margin: 0 auto 20px;
-  max-width: 1360px;
-  padding-left: 260px;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.progress-bar :deep(.el-progress-bar__outer) {
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.progress-bar :deep(.el-progress-bar__inner) {
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
-  position: relative;
-}
-
-.progress-bar :deep(.el-progress-bar__inner)::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-  0% { left: -100%; }
-  50% { left: 100%; }
-  100% { left: 100%; }
-}
-
-.exam-body { 
+/* 用户头像下拉菜单 */
+.user-avatar {
   display: flex;
-  justify-content: flex-start;
-  gap: 20px;
-  align-items: flex-start;
-  max-width: 1360px;
-  margin: 0 auto;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 12px;
+  transition: all 0.3s;
 }
 
-.q-nav { 
-  position: sticky; 
-  top: 20px; 
-  width: 240px;
+.user-avatar:hover {
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.avatar-img {
+  transition: transform 0.3s;
+}
+
+.user-avatar:hover .avatar-img {
+  transform: scale(1.05);
+}
+
+/* 下拉菜单美化 */
+:deep(.el-dropdown-menu) {
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.06);
+}
+
+:deep(.el-dropdown-menu__item) {
+  border-radius: 8px;
+  padding: 10px 16px;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+:deep(.el-dropdown-menu__item:hover) {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(168, 85, 247, 0.05) 100%);
+  color: #8b5cf6;
+}
+
+/* 主体区域 */
+.exam-body {
+  display: flex;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-top: 88px;
+  gap: 20px;
+}
+
+/* 左侧面板 */
+.left-panel {
+  width: 280px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-  border: 1px solid rgba(102, 126, 234, 0.15);
-  border-radius: 16px; 
-  padding: 16px; 
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 88px;
+  max-height: calc(100vh - 108px);
+  overflow-y: auto;
+}
+
+.student-info-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.08);
   transition: all 0.3s ease;
 }
 
-.q-nav:hover {
-  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+.student-info-card:hover {
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.12);
+  transform: translateY(-2px);
 }
 
-.nav-header { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  font-weight: 700;
-  font-size: 15px;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid rgba(102, 126, 234, 0.1);
-  color: #374151;
+.info-row {
+  display: flex;
+  margin-bottom: 12px;
 }
 
-.nav-progress { 
-  color: #667eea;
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  width: 50px;
+  color: #666;
+  font-size: 14px;
+}
+
+.info-value {
+  flex: 1;
   font-weight: 600;
+  color: #333;
   font-size: 14px;
 }
 
-.nav-grid { 
-  display: grid; 
-  grid-template-columns: repeat(5, 1fr); 
-  gap: 10px; 
+.progress-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.08);
+  transition: all 0.3s ease;
 }
 
-.nav-item { 
-  height: 40px; 
-  border-radius: 10px; 
-  border: 2px solid rgba(102, 126, 234, 0.1);
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-  cursor: pointer; 
+.progress-card:hover {
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.12);
+  transform: translateY(-2px);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.progress-value {
+  font-size: 16px;
   font-weight: 700;
-  font-size: 14px;
+  color: #7c3aed;
+}
+
+.progress-value.complete {
+  color: #4caf50;
+}
+
+.progress-info {
+  font-size: 13px;
+  color: #888;
+}
+
+.score-highlight {
+  color: #f5222d;
+}
+
+/* 题目导航 */
+.nav-sections {
+  background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.08);
+}
+
+.nav-section {
+  margin-bottom: 12px;
+}
+
+.nav-section:last-child {
+  margin-bottom: 0;
+}
+
+.nav-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.nav-item {
+  width: 38px;
+  height: 38px;
+  border: 2px solid rgba(102, 126, 234, 0.15);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
   color: #6b7280;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.06);
 }
 
-.nav-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  opacity: 0;
-  transition: opacity 0.25s ease;
+.nav-item:hover {
+  border-color: #8b5cf6;
+  color: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
 }
 
-.nav-item:hover::before {
-  opacity: 1;
-}
-
-.nav-item:hover { 
-  transform: translateY(-2px); 
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-  border-color: #667eea;
-  color: #667eea;
-}
-
-.nav-item.done { 
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  border-color: #22c55e;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
-  position: relative;
-}
-
-.nav-item.done::before {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
-  opacity: 1;
-}
-
-.nav-item.done::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 10px;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.8);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.nav-item.done:hover::after {
-  opacity: 1;
-}
-
-.nav-item.done:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
-}
-
-.nav-btn-mobile { 
-  display: none; 
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.3);
+.nav-item.answered {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  border-color: transparent;
   color: #fff;
-  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
 }
 
-.loading-card { 
-  display: flex; 
-  align-items: center; 
-  gap: 12px; 
-  color: #667eea;
-  font-size: 16px;
-  padding: 40px;
-  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
-  max-width: 1360px;
-  margin: 0 auto;
+.nav-item.current {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2), 0 4px 12px rgba(139, 92, 246, 0.15);
+  transform: scale(1.05);
 }
 
-.paper-card { 
-  padding: 0;
-  border-radius: 16px;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  max-width: 1100px;
-  width: 100%;
-}
-
-.section { 
-  margin-bottom: 24px;
-  animation: fadeInUp 0.5s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.section-header { 
-  position: sticky; 
-  top: 0; 
-  z-index: 5; 
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 14px 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.25);
-  margin-bottom: 16px;
-  backdrop-filter: blur(10px);
-}
-
-.section-header h3 { 
-  margin: 0; 
-  font-size: 17px; 
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.3px;
-}
-
-.question { 
-  margin: 0 0 16px;
-  padding: 20px 24px;
-  background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
-  border: 2px solid rgba(102, 126, 234, 0.08);
-  border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.06);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.nav-item.marked {
   position: relative;
-  overflow: hidden;
 }
 
-.question::before {
-  content: '';
+.nav-item.marked::after {
+  content: '★';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  top: -4px;
+  right: -4px;
+  font-size: 10px;
+  color: #ff9800;
 }
 
-.question:hover {
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+/* 图例 */
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.08);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+  padding: 6px 12px;
+  background: rgba(102, 126, 234, 0.04);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.legend-item:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.legend-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid rgba(102, 126, 234, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+.legend-dot.answered {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  border-color: transparent;
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35);
+}
+
+.legend-dot.unanswered {
+  background: #fff;
   border-color: rgba(102, 126, 234, 0.2);
-  transform: translateY(-3px);
 }
 
-.question:hover::before {
-  opacity: 1;
+.legend-dot.marked {
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+  border-color: rgba(255, 152, 0, 0.3);
+  position: relative;
 }
 
-.q-header { 
-  display: flex; 
-  align-items: flex-start;
-  gap: 12px; 
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid rgba(102, 126, 234, 0.08);
+.legend-dot.marked::after {
+  content: '★';
+  font-size: 10px;
+  color: #ff9800;
 }
 
-.q-no { 
-  font-weight: 800;
-  color: #667eea;
+/* 右侧答题区域 */
+.right-panel {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-header {
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  border-radius: 14px 14px 0 0;
+  margin-bottom: 0;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+}
+
+.section-title {
   font-size: 16px;
-  min-width: 28px;
+  font-weight: 700;
+  color: #fff;
 }
 
-.q-content { 
-  flex: 1; 
-  color: #1f2937;
-  font-size: 15px;
+.section-info {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-left: 8px;
+}
+
+.question-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+  padding: 28px;
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.08);
+  border-top: none;
+  min-height: 420px;
+  position: relative;
+  z-index: 1;
+}
+
+.question-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.08);
   line-height: 1.7;
+}
+
+.question-score {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  color: #e65100;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid rgba(230, 81, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(230, 81, 0, 0.1);
+}
+
+.question-number {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 16px;
+  color: #7c3aed;
+}
+
+.question-content {
+  flex: 1;
+  color: #1f2937;
+  font-size: 16px;
   font-weight: 500;
 }
 
-.q-score { 
-  margin-left: auto;
-  font-weight: 700;
-  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
-  color: #ea580c;
-  border: 2px solid rgba(251, 146, 60, 0.2);
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 13px;
-  box-shadow: 0 2px 8px rgba(251, 146, 60, 0.15);
-  transition: all 0.3s ease;
-}
-
-.q-score:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(251, 146, 60, 0.25);
-}
-
-/* 题目图片样式 */
-.q-image-wrapper {
-  margin: 20px 0;
-  padding: 16px;
+.question-image {
+  margin: 24px 0;
+  padding: 20px;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 16px;
+  border-radius: 12px;
   border: 2px solid rgba(102, 126, 234, 0.1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08);
+  text-align: center;
   transition: all 0.3s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
-.q-image-wrapper:hover {
-  border-color: rgba(102, 126, 234, 0.25);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
-  transform: translateY(-2px);
+.question-image:hover {
+  border-color: rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.1);
 }
 
 .q-image {
   max-width: 100%;
-  width: auto;
-  height: auto;
-  border-radius: 12px;
+  max-height: 350px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .q-image:hover {
   transform: scale(1.02);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
-.q-body {
-  padding: 8px 0;
+/* 选项样式 */
+.question-options {
+  margin-top: 20px;
 }
 
-.q-options { 
-  display: grid; 
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.option-item { 
-  width: 100%; 
-  box-sizing: border-box; 
+.option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  margin-bottom: 14px;
+  border: 2px solid rgba(102, 126, 234, 0.12);
   border-radius: 12px;
-  padding: 12px 16px;
-  min-height: 48px;
-  border: 2px solid rgba(102, 126, 234, 0.1);
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  font-weight: 500;
-  position: relative;
-  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.04);
 }
 
-.option-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-  opacity: 0;
-  transition: opacity 0.25s ease;
+.option-item:hover {
+  border-color: rgba(139, 92, 246, 0.35);
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.12);
 }
 
-.option-item:hover::before {
-  opacity: 1;
+.option-item.selected {
+  border-color: #8b5cf6;
+  background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
 }
 
-.option-item.is-checked { 
-  border-color: #667eea;
-  background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%);
-  color: #4338ca;
+.option-radio {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #bdbdbd;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  transition: all 0.25s ease;
+}
+
+.option-item:hover .option-radio {
+  border-color: #8b5cf6;
+}
+
+.option-item.selected .option-radio {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.radio-inner {
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.4);
+}
+
+.option-checkbox {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #bdbdbd;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  font-size: 14px;
+  color: #fff;
+  transition: all 0.25s ease;
+}
+
+.option-item:hover .option-checkbox {
+  border-color: #8b5cf6;
+}
+
+.option-item.selected .option-checkbox {
+  border-color: #8b5cf6;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.4);
+}
+
+.option-label {
   font-weight: 600;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.25);
-  transform: translateY(-1px) scale(1.02);
+  color: #7c3aed;
+  flex-shrink: 0;
+  font-size: 15px;
 }
 
-.option-item.is-checked::before {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  opacity: 1;
-}
-
-.option-item:hover { 
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
-  border-color: #a5b4fc;
-  transform: translateY(-1px);
-}
-
-.option-item :deep(.el-radio__label),
-.option-item :deep(.el-checkbox__label) {
-  font-weight: inherit;
+.option-text {
+  flex: 1;
+  color: #374151;
   line-height: 1.6;
+  font-size: 15px;
 }
 
 .answer-textarea :deep(.el-textarea__inner) {
-  border: 2px solid rgba(102, 126, 234, 0.1);
   border-radius: 12px;
   padding: 16px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
   font-size: 15px;
-  line-height: 1.6;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.04);
-  resize: vertical;
+  line-height: 1.7;
+  border: 2px solid rgba(102, 126, 234, 0.12);
+  background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+  transition: all 0.3s ease;
+}
+
+.answer-textarea :deep(.el-textarea__inner:hover) {
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
 .answer-textarea :deep(.el-textarea__inner:focus) {
-  border-color: #667eea;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
-  background: linear-gradient(135deg, #fafbff 0%, #ffffff 100%);
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
 }
 
-.answer-textarea :deep(.el-textarea__inner::placeholder) {
-  color: #a1a1aa;
-  font-style: italic;
+/* 标记按钮 */
+.question-footer {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 2px solid rgba(102, 126, 234, 0.08);
 }
 
-.q-header .q-no {
-  position: relative;
+.mark-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 2px solid rgba(255, 152, 0, 0.2);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+  color: #f57c00;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.q-header .q-no::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: -6px;
-  width: 3px;
-  height: 16px;
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-  border-radius: 2px;
-  transform: translateY(-50%);
+.mark-btn:hover {
+  border-color: #ff9800;
+  color: #ff9800;
 }
 
-.section-header {
-  position: relative;
+.mark-btn.marked {
+  border-color: #ff9800;
+  background: #fff3e0;
+  color: #e65100;
 }
 
-.section-header::before {
-  content: '';
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  width: 6px;
-  height: 24px;
-  background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 100%);
-  border-radius: 3px;
-  transform: translateY(-50%);
+/* 底部导航 */
+.bottom-nav {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px;
+  margin-top: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.08);
 }
 
-.section-header h3 {
-  padding-left: 20px;
+.nav-btn {
+  min-width: 140px;
+  height: 44px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.empty { 
-  text-align: center; 
-  color: #9ca3af;
-  padding: 48px 0;
-  font-size: 16px;
+.nav-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.2);
+}
+
+.next-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+}
+
+.next-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.45);
+}
+
+/* 加载状态 */
+.loading-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 80px;
+  margin: 24px auto;
+  margin-top: 100px;
+  max-width: 600px;
+  color: #7c3aed;
+  font-size: 17px;
   font-weight: 500;
-  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
   border-radius: 16px;
-  border: 2px dashed rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.08);
 }
 
-@media (max-width: 1400px) {
-  .exam-header {
-    padding-left: calc(20px + 260px);
-  }
-
-  .progress-bar {
-    padding-left: calc(20px + 260px);
-    padding-right: 20px;
-  }
-
-  .exam-body {
-    padding: 0 20px;
-    max-width: none;
-  }
-  
-  .paper-card {
-    max-width: none;
-  }
-}
-
-@media (max-width: 960px) {
-  .student-exam-container {
-    padding: 24px 20px;
-  }
-
-  .exam-header { 
-    grid-template-columns: 1fr; 
-    gap: 12px;
-    padding: 16px 20px;
-  }
-
-  .progress-bar {
-    padding-left: 0;
-    padding-right: 0;
-  }
-  
-  .exam-title {
-    font-size: 22px;
-  }
-  
-  .meta-left, .meta-right { 
-    justify-content: center; 
-  }
-  
-  .exam-body { 
-    flex-direction: column;
-    padding: 0;
-  }
-  
-  .q-nav { 
-    display: none; 
-  }
-  
-  .nav-btn-mobile { 
-    display: inline-flex; 
-  }
-  
-  .q-options { 
-    grid-template-columns: 1fr; 
-  }
-  
-  .question {
-    padding: 16px 18px;
-  }
-}
-
-/* 考试须知弹窗样式 */
+/* 考试须知弹窗 */
 .notice-content {
   padding: 10px 0;
 }
@@ -1261,7 +1528,7 @@ onBeforeUnmount(() => {
   font-weight: bold;
 }
 
-/* 切屏警告弹窗样式 */
+/* 切屏警告弹窗 */
 .warning-content {
   text-align: center;
   padding: 20px 0;
@@ -1289,7 +1556,42 @@ onBeforeUnmount(() => {
   margin: 0 5px;
 }
 
-.switch-count-tag {
-  margin-right: 12px;
+/* 响应式 */
+@media (max-width: 960px) {
+  .exam-body {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .left-panel {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+
+  .nav-sections {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .exam-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header-left {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .question-card {
+    min-height: auto;
+  }
 }
 </style>
