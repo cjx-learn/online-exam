@@ -319,7 +319,9 @@
                 </div>
               </el-descriptions-item>
               <el-descriptions-item label="答案">
-                {{ detailQuestion.answer }}
+                <!-- 简答题使用公式渲染 -->
+                <FormulaRenderer v-if="detailQuestion.type === 5" :content="detailQuestion.answer" />
+                <span v-else>{{ detailQuestion.answer }}</span>
               </el-descriptions-item>
               <el-descriptions-item label="分值">
                 {{ detailQuestion.score }}分
@@ -605,6 +607,7 @@ import { Back, UserFilled, User, SwitchButton, Document, Edit, CircleCheck, Plus
 import request from '@/utils/request';
 import QuestionSelectionTable from '@/components/QuestionSelectionTable.vue'; // 显式导入 QuestionSelectionTable 组件
 import AvatarUpload from '@/components/AvatarUpload.vue';
+import FormulaRenderer from '@/components/FormulaRenderer.vue';
 import { getAvatarUrl, getImageUrl } from '@/utils/file';
 
 const route = useRoute();

@@ -82,9 +82,21 @@
       <div class="content">
         <!-- 首页仪表板 -->
         <div v-if="activeMenu === 'dashboard'" class="dashboard">
+          <!-- 欢迎区域 -->
+          <div class="welcome-section">
+            <div class="welcome-content">
+              <h2 class="welcome-title">👋 欢迎回来，{{ userInfo.realName || '管理员' }}！</h2>
+              <p class="welcome-desc">今天是 {{ currentDate }}，祝您工作愉快！</p>
+            </div>
+            <div class="welcome-time">
+              <div class="time-display">{{ currentTime }}</div>
+            </div>
+          </div>
+
+          <!-- 统计卡片 -->
           <el-row :gutter="20">
             <el-col :span="6">
-              <el-card class="stat-card">
+              <el-card class="stat-card" @click="handleMenuSelect('course')">
                 <div class="stat-icon course">
                   <el-icon><Reading /></el-icon>
                 </div>
@@ -95,7 +107,7 @@
               </el-card>
             </el-col>
             <el-col :span="6">
-              <el-card class="stat-card">
+              <el-card class="stat-card" @click="handleMenuSelect('teacher')">
                 <div class="stat-icon teacher">
                   <el-icon><User /></el-icon>
                 </div>
@@ -106,7 +118,7 @@
               </el-card>
             </el-col>
             <el-col :span="6">
-              <el-card class="stat-card">
+              <el-card class="stat-card" @click="handleMenuSelect('student')">
                 <div class="stat-icon student">
                   <el-icon><UserFilled /></el-icon>
                 </div>
@@ -117,7 +129,7 @@
               </el-card>
             </el-col>
             <el-col :span="6">
-              <el-card class="stat-card">
+              <el-card class="stat-card" @click="handleMenuSelect('class')">
                 <div class="stat-icon class">
                   <el-icon><Document /></el-icon>
                 </div>
@@ -128,6 +140,103 @@
               </el-card>
             </el-col>
           </el-row>
+
+          <!-- 快捷操作和系统信息 -->
+          <el-row :gutter="20" class="dashboard-row">
+            <el-col :span="14">
+              <el-card class="quick-actions-card dashboard-card">
+                <template #header>
+                  <div class="card-header">
+                    <span>🚀 快捷操作</span>
+                  </div>
+                </template>
+                <div class="quick-actions">
+                  <div class="action-item" @click="quickAddCourse">
+                    <div class="action-icon course"><el-icon><Plus /></el-icon></div>
+                    <span>添加课程</span>
+                  </div>
+                  <div class="action-item" @click="quickAddTeacher">
+                    <div class="action-icon teacher"><el-icon><Plus /></el-icon></div>
+                    <span>添加教师</span>
+                  </div>
+                  <div class="action-item" @click="quickAddStudent">
+                    <div class="action-icon student"><el-icon><Plus /></el-icon></div>
+                    <span>添加学生</span>
+                  </div>
+                  <div class="action-item" @click="handleCommand('profile')">
+                    <div class="action-icon profile"><el-icon><Setting /></el-icon></div>
+                    <span>个人设置</span>
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
+            <el-col :span="10">
+              <el-card class="system-info-card dashboard-card">
+                <template #header>
+                  <div class="card-header">
+                    <span>📊 系统信息</span>
+                  </div>
+                </template>
+                <div class="system-info">
+                  <div class="info-item">
+                    <span class="info-label">系统名称</span>
+                    <span class="info-value">在线考试管理系统</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">当前版本</span>
+                    <span class="info-value">v1.0.0</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">登录账号</span>
+                    <span class="info-value">{{ userInfo.username || '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">用户角色</span>
+                    <span class="info-value"><el-tag type="danger" size="small">系统管理员</el-tag></span>
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
+          </el-row>
+
+          <!-- 功能说明 -->
+          <el-card class="feature-card dashboard-card dashboard-row">
+            <template #header>
+              <div class="card-header">
+                <span>📋 功能说明</span>
+              </div>
+            </template>
+            <div class="feature-grid">
+              <div class="feature-item" @click="handleMenuSelect('course')">
+                <div class="feature-icon course"><el-icon><Reading /></el-icon></div>
+                <div class="feature-content">
+                  <div class="feature-title">课程管理</div>
+                  <div class="feature-desc">管理系统中的所有课程信息，支持批量导入</div>
+                </div>
+              </div>
+              <div class="feature-item" @click="handleMenuSelect('class')">
+                <div class="feature-icon class"><el-icon><School /></el-icon></div>
+                <div class="feature-content">
+                  <div class="feature-title">班级管理</div>
+                  <div class="feature-desc">查看和管理所有班级，控制班级启用状态</div>
+                </div>
+              </div>
+              <div class="feature-item" @click="handleMenuSelect('teacher')">
+                <div class="feature-icon teacher"><el-icon><User /></el-icon></div>
+                <div class="feature-content">
+                  <div class="feature-title">教师管理</div>
+                  <div class="feature-desc">管理教师账号，支持批量导入和密码重置</div>
+                </div>
+              </div>
+              <div class="feature-item" @click="handleMenuSelect('student')">
+                <div class="feature-icon student"><el-icon><UserFilled /></el-icon></div>
+                <div class="feature-content">
+                  <div class="feature-title">学生管理</div>
+                  <div class="feature-desc">管理学生账号，支持批量导入和密码重置</div>
+                </div>
+              </div>
+            </div>
+          </el-card>
         </div>
         
         <!-- 课程管理 -->
@@ -141,6 +250,11 @@
               <el-button type="success"><el-icon><Upload /></el-icon>批量导入</el-button>
             </el-upload>
             <el-button type="info" text @click="downloadTemplate('course')">下载模板</el-button>
+            <div class="search-box">
+              <el-input v-model="courseSearch" placeholder="搜索课程代码/名称/分类/院系" clearable @input="handleCourseSearch" @clear="handleCourseSearch">
+                <template #prefix><el-icon><Search /></el-icon></template>
+              </el-input>
+            </div>
           </div>
           
           <el-table :data="courseList" border stripe>
@@ -159,10 +273,28 @@
               </template>
             </el-table-column>
           </el-table>
+          <div class="pagination-wrapper">
+            <el-pagination
+              v-model:current-page="coursePagination.current"
+              v-model:page-size="coursePagination.pageSize"
+              :page-sizes="[10, 20, 50, 100]"
+              :total="coursePagination.total"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="handleCourseSizeChange"
+              @current-change="handleCoursePageChange"
+            />
+          </div>
         </div>
         
         <!-- 班级管理 -->
         <div v-if="activeMenu === 'class'" class="class-management">
+          <div class="toolbar">
+            <div class="search-box">
+              <el-input v-model="classSearch" placeholder="搜索班级名称/课程代码/教师/学期" clearable @input="handleClassSearch" @clear="handleClassSearch">
+                <template #prefix><el-icon><Search /></el-icon></template>
+              </el-input>
+            </div>
+          </div>
           <el-table :data="classList" border stripe>
             <el-table-column prop="id" label="班级ID" width="80" />
             <el-table-column prop="name" label="班级名称" min-width="150" />
@@ -182,6 +314,17 @@
               </template>
             </el-table-column>
           </el-table>
+          <div class="pagination-wrapper">
+            <el-pagination
+              v-model:current-page="classPagination.current"
+              v-model:page-size="classPagination.pageSize"
+              :page-sizes="[10, 20, 50, 100]"
+              :total="classPagination.total"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="handleClassSizeChange"
+              @current-change="handleClassPageChange"
+            />
+          </div>
         </div>
         
         <!-- 教师账号管理 -->
@@ -195,6 +338,11 @@
               <el-button type="success"><el-icon><Upload /></el-icon>批量导入</el-button>
             </el-upload>
             <el-button type="info" text @click="downloadTemplate('teacher')">下载模板</el-button>
+            <div class="search-box">
+              <el-input v-model="teacherSearch" placeholder="搜索工号/姓名/用户名/院系/邮箱" clearable @input="handleTeacherSearch" @clear="handleTeacherSearch">
+                <template #prefix><el-icon><Search /></el-icon></template>
+              </el-input>
+            </div>
           </div>
           
           <el-table :data="teacherList" border stripe>
@@ -224,6 +372,17 @@
               </template>
             </el-table-column>
           </el-table>
+          <div class="pagination-wrapper">
+            <el-pagination
+              v-model:current-page="teacherPagination.current"
+              v-model:page-size="teacherPagination.pageSize"
+              :page-sizes="[10, 20, 50, 100]"
+              :total="teacherPagination.total"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="handleTeacherSizeChange"
+              @current-change="handleTeacherPageChange"
+            />
+          </div>
         </div>
         
         <!-- 学生账号管理 -->
@@ -237,6 +396,11 @@
               <el-button type="success"><el-icon><Upload /></el-icon>批量导入</el-button>
             </el-upload>
             <el-button type="info" text @click="downloadTemplate('student')">下载模板</el-button>
+            <div class="search-box">
+              <el-input v-model="studentSearch" placeholder="搜索学号/姓名/用户名/专业/邮箱" clearable @input="handleStudentSearch" @clear="handleStudentSearch">
+                <template #prefix><el-icon><Search /></el-icon></template>
+              </el-input>
+            </div>
           </div>
           
           <el-table :data="studentList" border stripe>
@@ -266,6 +430,17 @@
               </template>
             </el-table-column>
           </el-table>
+          <div class="pagination-wrapper">
+            <el-pagination
+              v-model:current-page="studentPagination.current"
+              v-model:page-size="studentPagination.pageSize"
+              :page-sizes="[10, 20, 50, 100]"
+              :total="studentPagination.total"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="handleStudentSizeChange"
+              @current-change="handleStudentPageChange"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -429,7 +604,9 @@ import {
   Search,
   Refresh,
   Download,
-  Upload
+  Upload,
+  Setting,
+  School
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import AvatarUpload from '@/components/AvatarUpload.vue'
@@ -492,6 +669,24 @@ const courseList = ref([])
 const classList = ref([])
 const teacherList = ref([])
 const studentList = ref([])
+
+// 完整数据列表（用于前端分页）
+const allCourseList = ref([])
+const allClassList = ref([])
+const allTeacherList = ref([])
+const allStudentList = ref([])
+
+// 分页数据
+const coursePagination = reactive({ current: 1, pageSize: 10, total: 0 })
+const classPagination = reactive({ current: 1, pageSize: 10, total: 0 })
+const teacherPagination = reactive({ current: 1, pageSize: 10, total: 0 })
+const studentPagination = reactive({ current: 1, pageSize: 10, total: 0 })
+
+// 搜索关键词
+const courseSearch = ref('')
+const classSearch = ref('')
+const teacherSearch = ref('')
+const studentSearch = ref('')
 
 // 对话框
 const courseDialogVisible = ref(false)
@@ -748,6 +943,17 @@ const downloadTemplate = (type) => {
   })
 }
 
+// 当前时间
+const currentTime = ref('')
+const currentDate = ref('')
+
+// 更新时间
+const updateTime = () => {
+  const now = new Date()
+  currentTime.value = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  currentDate.value = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
+}
+
 // 加载统计数据
 const loadStats = async () => {
   try {
@@ -765,7 +971,9 @@ const loadCourseList = async () => {
   try {
     const response = await request.get('/course/list')
     if (response.code === 200) {
-      courseList.value = response.data || []
+      allCourseList.value = response.data || []
+      coursePagination.total = allCourseList.value.length
+      updateCoursePageData()
     }
   } catch (error) {
     console.error('加载课程列表失败:', error)
@@ -773,17 +981,97 @@ const loadCourseList = async () => {
   }
 }
 
+// 过滤后的课程数据
+const filteredCourseList = () => {
+  if (!courseSearch.value.trim()) return allCourseList.value
+  const keyword = courseSearch.value.toLowerCase().trim()
+  return allCourseList.value.filter(item =>
+    (item.code && item.code.toLowerCase().includes(keyword)) ||
+    (item.name && item.name.toLowerCase().includes(keyword)) ||
+    (item.category && item.category.toLowerCase().includes(keyword)) ||
+    (item.department && item.department.toLowerCase().includes(keyword))
+  )
+}
+
+// 更新课程分页数据
+const updateCoursePageData = () => {
+  const filtered = filteredCourseList()
+  coursePagination.total = filtered.length
+  const start = (coursePagination.current - 1) * coursePagination.pageSize
+  const end = start + coursePagination.pageSize
+  courseList.value = filtered.slice(start, end)
+}
+
+// 课程搜索
+const handleCourseSearch = () => {
+  coursePagination.current = 1
+  updateCoursePageData()
+}
+
+// 课程分页变化
+const handleCoursePageChange = (page) => {
+  coursePagination.current = page
+  updateCoursePageData()
+}
+
+const handleCourseSizeChange = (size) => {
+  coursePagination.pageSize = size
+  coursePagination.current = 1
+  updateCoursePageData()
+}
+
 // 加载班级列表
 const loadClassList = async () => {
   try {
     const response = await request.get('/class/all')
     if (response.code === 200) {
-      classList.value = response.data || []
+      allClassList.value = response.data || []
+      classPagination.total = allClassList.value.length
+      updateClassPageData()
     }
   } catch (error) {
     console.error('加载班级列表失败:', error)
     ElMessage.error('加载班级列表失败')
   }
+}
+
+// 过滤后的班级数据
+const filteredClassList = () => {
+  if (!classSearch.value.trim()) return allClassList.value
+  const keyword = classSearch.value.toLowerCase().trim()
+  return allClassList.value.filter(item =>
+    (item.name && item.name.toLowerCase().includes(keyword)) ||
+    (item.code && item.code.toLowerCase().includes(keyword)) ||
+    (item.teacherName && item.teacherName.toLowerCase().includes(keyword)) ||
+    (item.semester && item.semester.toLowerCase().includes(keyword))
+  )
+}
+
+// 更新班级分页数据
+const updateClassPageData = () => {
+  const filtered = filteredClassList()
+  classPagination.total = filtered.length
+  const start = (classPagination.current - 1) * classPagination.pageSize
+  const end = start + classPagination.pageSize
+  classList.value = filtered.slice(start, end)
+}
+
+// 班级搜索
+const handleClassSearch = () => {
+  classPagination.current = 1
+  updateClassPageData()
+}
+
+// 班级分页变化
+const handleClassPageChange = (page) => {
+  classPagination.current = page
+  updateClassPageData()
+}
+
+const handleClassSizeChange = (size) => {
+  classPagination.pageSize = size
+  classPagination.current = 1
+  updateClassPageData()
 }
 
 // 删除班级
@@ -827,7 +1115,9 @@ const loadTeacherList = async () => {
   try {
     const response = await request.get('/admin/teacher/list')
     if (response.code === 200) {
-      teacherList.value = response.data || []
+      allTeacherList.value = response.data || []
+      teacherPagination.total = allTeacherList.value.length
+      updateTeacherPageData()
     }
   } catch (error) {
     console.error('加载教师列表失败:', error)
@@ -835,17 +1125,99 @@ const loadTeacherList = async () => {
   }
 }
 
+// 过滤后的教师数据
+const filteredTeacherList = () => {
+  if (!teacherSearch.value.trim()) return allTeacherList.value
+  const keyword = teacherSearch.value.toLowerCase().trim()
+  return allTeacherList.value.filter(item =>
+    (item.teacherNo && item.teacherNo.toLowerCase().includes(keyword)) ||
+    (item.realName && item.realName.toLowerCase().includes(keyword)) ||
+    (item.username && item.username.toLowerCase().includes(keyword)) ||
+    (item.department && item.department.toLowerCase().includes(keyword)) ||
+    (item.email && item.email.toLowerCase().includes(keyword))
+  )
+}
+
+// 更新教师分页数据
+const updateTeacherPageData = () => {
+  const filtered = filteredTeacherList()
+  teacherPagination.total = filtered.length
+  const start = (teacherPagination.current - 1) * teacherPagination.pageSize
+  const end = start + teacherPagination.pageSize
+  teacherList.value = filtered.slice(start, end)
+}
+
+// 教师搜索
+const handleTeacherSearch = () => {
+  teacherPagination.current = 1
+  updateTeacherPageData()
+}
+
+// 教师分页变化
+const handleTeacherPageChange = (page) => {
+  teacherPagination.current = page
+  updateTeacherPageData()
+}
+
+const handleTeacherSizeChange = (size) => {
+  teacherPagination.pageSize = size
+  teacherPagination.current = 1
+  updateTeacherPageData()
+}
+
 // 加载学生列表
 const loadStudentList = async () => {
   try {
     const response = await request.get('/admin/student/list')
     if (response.code === 200) {
-      studentList.value = response.data || []
+      allStudentList.value = response.data || []
+      studentPagination.total = allStudentList.value.length
+      updateStudentPageData()
     }
   } catch (error) {
     console.error('加载学生列表失败:', error)
     ElMessage.error('加载学生列表失败')
   }
+}
+
+// 过滤后的学生数据
+const filteredStudentList = () => {
+  if (!studentSearch.value.trim()) return allStudentList.value
+  const keyword = studentSearch.value.toLowerCase().trim()
+  return allStudentList.value.filter(item =>
+    (item.studentNo && item.studentNo.toLowerCase().includes(keyword)) ||
+    (item.realName && item.realName.toLowerCase().includes(keyword)) ||
+    (item.username && item.username.toLowerCase().includes(keyword)) ||
+    (item.major && item.major.toLowerCase().includes(keyword)) ||
+    (item.email && item.email.toLowerCase().includes(keyword))
+  )
+}
+
+// 更新学生分页数据
+const updateStudentPageData = () => {
+  const filtered = filteredStudentList()
+  studentPagination.total = filtered.length
+  const start = (studentPagination.current - 1) * studentPagination.pageSize
+  const end = start + studentPagination.pageSize
+  studentList.value = filtered.slice(start, end)
+}
+
+// 学生搜索
+const handleStudentSearch = () => {
+  studentPagination.current = 1
+  updateStudentPageData()
+}
+
+// 学生分页变化
+const handleStudentPageChange = (page) => {
+  studentPagination.current = page
+  updateStudentPageData()
+}
+
+const handleStudentSizeChange = (size) => {
+  studentPagination.pageSize = size
+  studentPagination.current = 1
+  updateStudentPageData()
 }
 
 // 显示添加课程对话框
@@ -1098,8 +1470,26 @@ const deleteStudent = (row) => {
   }).catch(() => {})
 }
 
+// 快捷操作
+const quickAddCourse = () => {
+  showAddCourseDialog()
+  courseDialogVisible.value = true
+}
+
+const quickAddTeacher = () => {
+  showAddTeacherDialog()
+  teacherDialogVisible.value = true
+}
+
+const quickAddStudent = () => {
+  showAddStudentDialog()
+  studentDialogVisible.value = true
+}
+
 onMounted(() => {
   loadStats()
+  updateTime()
+  setInterval(updateTime, 1000)
 })
 </script>
 
@@ -1330,10 +1720,215 @@ onMounted(() => {
   margin-top: 0;
 }
 
-.stat-card {
+/* 欢迎区域 */
+.welcome-section {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 255, 0.95) 100%);
+  border-radius: 16px;
+  padding: 20px 28px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.08);
+}
+
+.welcome-title {
+  margin: 0 0 6px 0;
+  font-size: 22px;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.welcome-desc {
+  margin: 0;
+  color: #888;
+  font-size: 13px;
+}
+
+.time-display {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+}
+
+/* 仪表板行间距 */
+.dashboard-row {
+  margin-top: 20px;
+}
+
+/* 仪表板卡片统一样式 */
+.dashboard-card {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.08);
+  height: 100%;
+}
+
+.dashboard-card :deep(.el-card__header) {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dashboard-card :deep(.el-card__body) {
+  padding: 20px;
+}
+
+.card-header {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 快捷操作 */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  border-radius: 12px;
+  background: #f8f9fb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-item:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.action-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  padding: 24px;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.action-icon.course { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.action-icon.teacher { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.action-icon.student { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.action-icon.profile { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+.action-item span {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 系统信息 */
+.system-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #f8f9fb;
+  border-radius: 8px;
+}
+
+.info-label {
+  color: #666;
+  font-size: 13px;
+}
+
+.info-value {
+  color: #333;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+/* 功能说明 */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8f9fb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #fff;
+  margin-right: 14px;
+}
+
+.feature-icon.course { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.feature-icon.class { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.feature-icon.teacher { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.feature-icon.student { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+
+.feature-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.feature-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.feature-desc {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
   border-radius: 16px;
   border: none;
   background: rgba(255, 255, 255, 0.9);
@@ -1342,6 +1937,8 @@ onMounted(() => {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
+  min-height: 140px;
 }
 
 .stat-card::before {
@@ -1349,9 +1946,9 @@ onMounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 4px;
-  height: 100%;
-  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-2) 100%);
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-2) 100%);
   opacity: 0;
   transition: opacity 0.3s;
 }
@@ -1366,14 +1963,14 @@ onMounted(() => {
 }
 
 .stat-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30px;
-  margin-right: 20px;
+  font-size: 26px;
+  margin-bottom: 12px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
@@ -1434,10 +2031,30 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .upload-btn {
   display: inline-block;
+}
+
+/* 搜索框 */
+.search-box {
+  margin-left: auto;
+}
+
+.search-box .el-input {
+  width: 280px;
+}
+
+:deep(.search-box .el-input__wrapper) {
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+:deep(.search-box .el-input__wrapper:hover),
+:deep(.search-box .el-input__wrapper:focus-within) {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 /* 内容面板样式 - 添加班级管理 */
@@ -1470,6 +2087,25 @@ onMounted(() => {
 
 :deep(.el-table--enable-row-hover .el-table__body tr:hover > td) {
   background-color: #f0f7ff;
+}
+
+/* 分页样式 */
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding: 12px 0;
+}
+
+:deep(.el-pagination) {
+  --el-pagination-button-bg-color: #fff;
+  --el-pagination-hover-color: var(--primary);
+}
+
+:deep(.el-pagination .el-pager li.is-active) {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+  color: #fff;
+  border-radius: 6px;
 }
 </style>
 

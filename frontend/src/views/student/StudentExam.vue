@@ -278,15 +278,58 @@
               </div>
             </template>
 
-            <!-- 填空题/简答题 -->
-            <template v-else>
-              <el-input
-                v-model="answers[currentQuestion.id]"
-                type="textarea"
-                :rows="6"
-                placeholder="请输入答案..."
-                class="answer-textarea"
-              />
+            <!-- 填空题 -->
+            <template v-else-if="currentQuestion.type === 4">
+              <div class="fill-blank-input">
+                <el-input
+                  v-model="answers[currentQuestion.id]"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入填空答案..."
+                  class="answer-textarea fill-blank"
+                  maxlength="500"
+                  show-word-limit
+                />
+              </div>
+            </template>
+
+            <!-- 简答题 -->
+            <template v-else-if="currentQuestion.type === 5">
+              <div class="essay-input">
+                <div class="essay-mode-switch">
+                  <el-radio-group v-model="essayMode" size="small">
+                    <el-radio-button value="simple">简单模式</el-radio-button>
+                    <el-radio-button value="formula">公式模式</el-radio-button>
+                  </el-radio-group>
+                  <span class="mode-tip">{{ essayMode === 'formula' ? '支持 LaTeX 公式编辑' : '普通文本输入' }}</span>
+                </div>
+                <!-- 简单模式 -->
+                <template v-if="essayMode === 'simple'">
+                  <div class="essay-toolbar">
+                    <span class="toolbar-tip">💡 请认真作答，注意条理清晰</span>
+                  </div>
+                  <el-input
+                    v-model="answers[currentQuestion.id]"
+                    type="textarea"
+                    :rows="10"
+                    placeholder="请输入您的答案...&#10;&#10;建议：&#10;1. 先理清思路，分点作答&#10;2. 注意逻辑性和条理性&#10;3. 字迹工整，表达清晰"
+                    class="answer-textarea essay"
+                    maxlength="5000"
+                    show-word-limit
+                    resize="vertical"
+                  />
+                  <div class="essay-footer">
+                    <span class="char-count">已输入 {{ (answers[currentQuestion.id] || '').length }} 字</span>
+                  </div>
+                </template>
+                <!-- 公式模式 -->
+                <FormulaEditor 
+                  v-else
+                  v-model="answers[currentQuestion.id]"
+                  :rows="10"
+                  placeholder="请输入您的答案...&#10;&#10;公式示例：&#10;行内公式：$x^2 + y^2 = z^2$&#10;独立公式：$$\frac{a}{b}$$"
+                />
+              </div>
             </template>
           </div>
 
@@ -334,8 +377,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { getImageUrl, getAvatarUrl } from '@/utils/file'
 import { Loading, Timer, Select, WarningFilled, Minus, Star, Check, Refresh, UserFilled, User } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import FormulaEditor from '@/components/FormulaEditor.vue'
 
 const route = useRoute()
+
+// 简答题模式
+const essayMode = ref('simple')
 const router = useRouter()
 
 const examId = ref(Number(route.params.id))
@@ -1406,6 +1453,68 @@ onBeforeUnmount(() => {
 .answer-textarea :deep(.el-textarea__inner:focus) {
   border-color: #8b5cf6;
   box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
+}
+
+/* 填空题输入框 */
+.fill-blank-input {
+  margin-top: 8px;
+}
+
+.answer-textarea.fill-blank :deep(.el-textarea__inner) {
+  min-height: 80px;
+}
+
+/* 简答题输入框 */
+.essay-input {
+  margin-top: 8px;
+}
+
+.essay-mode-switch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(102, 126, 234, 0.05) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.mode-tip {
+  font-size: 12px;
+  color: #666;
+}
+
+.essay-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(102, 126, 234, 0.08) 100%);
+  border-radius: 10px;
+}
+
+.toolbar-tip {
+  font-size: 13px;
+  color: #8b5cf6;
+}
+
+.answer-textarea.essay :deep(.el-textarea__inner) {
+  min-height: 200px;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.essay-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.char-count {
+  font-size: 12px;
+  color: #999;
 }
 
 /* 标记按钮 */

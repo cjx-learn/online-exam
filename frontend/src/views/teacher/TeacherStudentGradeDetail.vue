@@ -218,7 +218,7 @@
                     <span>学生答案</span>
                   </div>
                   <div class="answer-block-content">
-                    {{ perQuestionScore(q).userAnswerText || '未作答' }}
+                    <FormulaRenderer :content="perQuestionScore(q).userAnswerText || ''" />
                   </div>
                 </div>
                 <div class="answer-block correct-answer-block">
@@ -227,7 +227,7 @@
                     <span>参考答案</span>
                   </div>
                   <div class="answer-block-content">
-                    {{ formatAnswerText(q, q.answer) || '暂无参考答案' }}
+                    <FormulaRenderer :content="formatAnswerText(q, q.answer) || ''" />
                   </div>
                 </div>
               </div>
@@ -379,6 +379,7 @@ import { getImageUrl, getAvatarUrl } from '@/utils/file'
 import { Loading, Edit, Back, User, CircleCheck, CircleClose, ArrowUp, UserFilled, SwitchButton, Lock, Key, InfoFilled } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import AvatarUpload from '@/components/AvatarUpload.vue'
+import FormulaRenderer from '@/components/FormulaRenderer.vue'
 
 const route = useRoute()
 const router = useRouter()

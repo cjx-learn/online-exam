@@ -575,12 +575,20 @@
               </el-radio>
             </el-radio-group>
             
-            <!-- 其他题型：保持输入框 -->
+            <!-- 填空题：普通输入框 -->
             <el-input 
-              v-else
+              v-else-if="questionForm.type === 4"
               v-model="questionForm.answer" 
               :placeholder="getAnswerPlaceholder()"
               class="answer-input"
+            />
+            
+            <!-- 简答题：使用公式编辑器 -->
+            <FormulaEditor
+              v-else-if="questionForm.type === 5"
+              v-model="questionForm.answer"
+              :rows="6"
+              placeholder="请输入简答题参考答案...&#10;&#10;支持LaTeX公式：&#10;行内公式：$x^2 + y^2 = z^2$&#10;独立公式：$$\frac{a}{b}$$"
             />
           </el-form-item>
         </div>
@@ -622,7 +630,9 @@
           </div>
         </el-descriptions-item>
         <el-descriptions-item label="答案">
-          {{ formatAnswer(currentQuestion.type, currentQuestion.answer) }}
+          <!-- 简答题使用公式渲染 -->
+          <FormulaRenderer v-if="currentQuestion.type === 5" :content="currentQuestion.answer" />
+          <span v-else>{{ formatAnswer(currentQuestion.type, currentQuestion.answer) }}</span>
         </el-descriptions-item>
         <el-descriptions-item label="分值">
           {{ currentQuestion.score }}分
@@ -691,6 +701,8 @@ import request from '@/utils/request'
 import * as XLSX from 'xlsx'
 import AvatarUpload from '@/components/AvatarUpload.vue'
 import QuestionImageUpload from '@/components/QuestionImageUpload.vue'
+import FormulaEditor from '@/components/FormulaEditor.vue'
+import FormulaRenderer from '@/components/FormulaRenderer.vue'
 import { getAvatarUrl, getImageUrl } from '@/utils/file'
 
 const route = useRoute()

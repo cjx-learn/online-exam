@@ -396,7 +396,7 @@
                   <span>你的答案</span>
                 </div>
                 <div class="answer-block-content">
-                  {{ perQuestionScore(q).userAnswerText || '未作答' }}
+                  <FormulaRenderer :content="perQuestionScore(q).userAnswerText || ''" />
                 </div>
               </div>
               <div class="answer-block correct-answer-block">
@@ -405,7 +405,7 @@
                   <span>参考答案</span>
                 </div>
                 <div class="answer-block-content">
-                  {{ formatAnswerText(q, q.answer) || '暂无参考答案' }}
+                  <FormulaRenderer :content="formatAnswerText(q, q.answer) || ''" />
                 </div>
               </div>
             </div>
@@ -588,6 +588,7 @@ import { getImageUrl, getAvatarUrl } from '@/utils/file'
 import { ArrowLeft, Loading, Edit, Download, Back, UserFilled, User, SwitchButton, DataAnalysis, Document, Lock, Key, InfoFilled, CircleCheck, CircleClose, ArrowUp } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import AvatarUpload from '@/components/AvatarUpload.vue'
+import FormulaRenderer from '@/components/FormulaRenderer.vue'
 import * as echarts from 'echarts'
 import html2pdf from 'html2pdf.js'
 

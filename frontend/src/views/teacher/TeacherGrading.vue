@@ -163,7 +163,7 @@
             <div class="answer-section">
               <div class="section-title">学生答案</div>
               <div class="answer-box student-answer">
-                {{ currentAnswer.userAnswer || '未作答' }}
+                <FormulaRenderer :content="currentAnswer.userAnswer" />
               </div>
             </div>
 
@@ -254,6 +254,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { getImageUrl } from '@/utils/file'
 import { ArrowLeft, ArrowRight, Check, Picture, Clock } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import FormulaRenderer from '@/components/FormulaRenderer.vue'
 
 const route = useRoute()
 const router = useRouter()

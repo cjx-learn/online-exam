@@ -117,7 +117,9 @@
         </div>
       </el-descriptions-item>
       <el-descriptions-item label="答案">
-        {{ currentQuestion.answer }}
+        <!-- 简答题使用公式渲染 -->
+        <FormulaRenderer v-if="currentQuestion.type === 5" :content="currentQuestion.answer" />
+        <span v-else>{{ currentQuestion.answer }}</span>
       </el-descriptions-item>
       <el-descriptions-item label="分值">
         {{ currentQuestion.score }}分
@@ -143,6 +145,7 @@ import { ref, reactive, watch, computed, onMounted, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Document, View, DocumentDelete, Picture } from '@element-plus/icons-vue';
 import { getImageUrl } from '@/utils/file';
+import FormulaRenderer from '@/components/FormulaRenderer.vue';
 
 const props = defineProps({
   questions: { type: Array, default: () => [] },
