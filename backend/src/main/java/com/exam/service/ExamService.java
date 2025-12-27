@@ -1,13 +1,17 @@
 package com.exam.service;
 
+import com.exam.entity.Class;
 import com.exam.entity.Exam;
 import com.exam.entity.ExamRecord;
 import com.exam.entity.Question;
 import com.exam.entity.StudentClass;
+import com.exam.mapper.ClassMapper;
 import com.exam.mapper.ExamMapper;
 import com.exam.mapper.ExamQuestionMapper;
 import com.exam.mapper.ExamRecordMapper;
 import com.exam.mapper.StudentClassMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +26,8 @@ import java.time.ZoneId;
 @Service
 public class ExamService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ExamService.class);
+
     @Autowired
     private ExamMapper examMapper;
 
@@ -33,6 +39,12 @@ public class ExamService {
 
     @Autowired
     private ExamRecordMapper examRecordMapper;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private ClassMapper classMapper;
 
     /**
      * 根据班级ID获取考试列表
@@ -107,7 +119,22 @@ public class ExamService {
             }
         }
 
-        // 4. 返回创建的考试（包含ID）
+        // 4. 如果考试状态为已发布，发送通知给班级学生
+        if (exam.getStatus() != null && exam.getStatus() == 1 && exam.getClassId() != null) {
+            logger.info("考试创建时已发布，发送通知: examId={}, classId={}, title={}", 
+                exam.getId(), exam.getClassId(), exam.getTitle());
+            try {
+                // 获取班级名称
+                Class classEntity = classMapper.selectById(exam.getClassId());
+                String className = classEntity != null ? classEntity.getName() : "未知班级";
+                notificationService.notifyExamPublished(exam.getClassId(), exam.getId(), exam.getTitle(), className);
+            } catch (Exception e) {
+                logger.error("发送考试发布通知失败", e);
+                // 通知失败不影响考试创建
+            }
+        }
+
+        // 5. 返回创建的考试（包含ID）
         return exam;
     }
 

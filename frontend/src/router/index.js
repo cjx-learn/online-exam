@@ -58,6 +58,11 @@ const routes = [
         path: 'exam-detail/:recordId',
         name: 'StudentExamDetail',
         component: () => import('@/views/student/StudentExamDetail.vue')
+      },
+      {
+        path: 'notifications',
+        name: 'StudentNotifications',
+        component: () => import('@/views/student/StudentNotifications.vue')
       }
     ]
   },
@@ -101,6 +106,11 @@ const routes = [
         path: 'student-grade-detail/:recordId',
         name: 'TeacherStudentGradeDetail',
         component: () => import('@/views/teacher/TeacherStudentGradeDetail.vue')
+      },
+      {
+        path: 'notifications',
+        name: 'TeacherNotifications',
+        component: () => import('@/views/student/StudentNotifications.vue')
       }
     ]
   },
@@ -114,6 +124,11 @@ const routes = [
         path: 'home',
         name: 'AdminHome',
         component: () => import('@/views/admin/AdminHome.vue')
+      },
+      {
+        path: 'notifications',
+        name: 'AdminNotifications',
+        component: () => import('@/views/student/StudentNotifications.vue')
       }
     ]
   }

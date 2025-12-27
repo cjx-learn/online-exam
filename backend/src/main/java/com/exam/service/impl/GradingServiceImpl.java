@@ -361,9 +361,13 @@ public class GradingServiceImpl implements GradingService {
                 examRecord.setStatus(2);
                 examRecord.setUpdateTime(new Date());
                 examRecordMapper.update(examRecord);
+                
+                // 返回true表示所有主观题都已批改完成
+                return true;
             }
         }
         
-        return true;
+        // 返回false表示还有主观题未批改
+        return false;
     }
 }

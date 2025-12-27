@@ -162,8 +162,9 @@ public class JwtInterceptor implements HandlerInterceptor {
             System.out.println("[JWT拦截器] 未知角色或旧Token（无角色信息），跳过单设备验证");
         }
 
-        // 将userId存入request attribute，供后续使用
+        // 将userId和role存入request attribute，供后续使用
         request.setAttribute("userId", userId);
+        request.setAttribute("role", role);
         
         return true;
     }

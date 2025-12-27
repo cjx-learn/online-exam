@@ -31,6 +31,9 @@
           加入班级
         </el-button>
         
+        <!-- 消息通知 -->
+        <NotificationBell role-prefix="student" />
+        
         <!-- 用户头像下拉菜单 -->
         <el-dropdown @command="handleCommand">
           <div class="user-avatar">
@@ -293,6 +296,7 @@ import {
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import AvatarUpload from '@/components/AvatarUpload.vue'
+import NotificationBell from '@/components/NotificationBell.vue'
 
 const router = useRouter()
 

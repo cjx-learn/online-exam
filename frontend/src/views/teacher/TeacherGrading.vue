@@ -273,6 +273,7 @@ const currentQuestionId = ref(null)
 const currentAnswerIndex = ref(0)
 const currentAnswerData = ref(null) // 直接存储当前答案的引用
 const loading = ref(true)
+const saving = ref(false) // 防止重复提交
 const hasUnsavedChanges = ref(false) // 是否有未保存的修改
 const savedAnswers = ref(new Set()) // 已保存的答案ID集合
 
@@ -582,10 +583,15 @@ const goToNextAnswer = async () => {
 
 const saveCurrentAnswer = async () => {
   if (!currentAnswer.value || !currentQuestion.value) return
+  
+  // 防止重复提交
+  if (saving.value) return
+  saving.value = true
 
   // 验证得分
   if (currentAnswer.value.currentScore === null || currentAnswer.value.currentScore === undefined) {
     ElMessage.warning('请输入得分')
+    saving.value = false
     return
   }
 
@@ -652,6 +658,8 @@ const saveCurrentAnswer = async () => {
   } catch (error) {
     console.error('保存批改失败:', error)
     ElMessage.error('保存批改失败')
+  } finally {
+    saving.value = false
   }
 }
 

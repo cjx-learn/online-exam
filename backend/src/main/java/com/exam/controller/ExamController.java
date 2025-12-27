@@ -2,9 +2,12 @@ package com.exam.controller;
 
 import com.exam.common.Result;
 import com.exam.dto.ExamCreateRequest;
+import com.exam.entity.Class;
 import com.exam.entity.Exam;
 import com.exam.entity.Question;
+import com.exam.mapper.ClassMapper;
 import com.exam.service.ExamService;
+import com.exam.service.NotificationService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +24,12 @@ public class ExamController {
 
     @Autowired
     private ExamService examService;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private ClassMapper classMapper;
 
     /**
      * 根据班级ID获取考试列表
@@ -109,6 +118,12 @@ public class ExamController {
             int affectedRows = examService.updateExam(exam);
             
             if (affectedRows > 0) {
+                // 发送通知给班级所有学生
+                if (exam.getClassId() != null) {
+                    Class classEntity = classMapper.selectById(exam.getClassId());
+                    String className = classEntity != null ? classEntity.getName() : "未知班级";
+                    notificationService.notifyExamPublished(exam.getClassId(), exam.getId(), exam.getTitle(), className);
+                }
                 return Result.success("试卷发布成功");
             } else {
                 return Result.error("发布失败");
