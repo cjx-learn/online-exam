@@ -61,5 +61,10 @@
         DELETE FROM student_class WHERE student_id = #{studentId} AND class_id = #{classId}
     </delete>
     
+    <!-- 根据班级ID删除所有关联 -->
+    <delete id="deleteByClassId">
+        DELETE FROM student_class WHERE class_id = #{classId}
+    </delete>
+    
 </mapper>
 

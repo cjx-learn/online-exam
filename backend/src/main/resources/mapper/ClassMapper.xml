@@ -122,6 +122,12 @@
     <select id="selectByName" resultMap="ClassResultMap">
         SELECT id, name, code, teacher_id, course_id FROM class WHERE name = #{name}
     </select>
+    
+    <!-- 根据教师ID和班级名称查询班级 -->
+    <select id="selectByTeacherIdAndName" resultMap="ClassResultMap">
+        SELECT id, name, code, teacher_id, course_id FROM class 
+        WHERE teacher_id = #{teacherId} AND name = #{name}
+    </select>
 
 </mapper>
 

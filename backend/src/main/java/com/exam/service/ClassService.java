@@ -99,10 +99,12 @@ public class ClassService {
      */
     @Transactional
     public Class createClass(Class classEntity) {
-        // 1. 检查班级名称是否重复
-        Class existingClass = classMapper.selectByName(classEntity.getName());
-        if (existingClass != null) {
-            throw new RuntimeException("班级名称已存在，请勿重复创建");
+        // 1. 检查同一教师下班级名称是否重复
+        if (classEntity.getTeacherId() != null) {
+            Class existingClass = classMapper.selectByTeacherIdAndName(classEntity.getTeacherId(), classEntity.getName());
+            if (existingClass != null) {
+                throw new RuntimeException("您已创建过同名班级，请使用其他名称");
+            }
         }
 
         // 2. 如果指定了课程ID，从课程表同步信息
@@ -136,13 +138,15 @@ public class ClassService {
     }
     
     /**
-     * 删除班级（软删除）
+     * 删除班级（硬删除，级联删除相关数据）
      */
+    @Transactional
     public boolean deleteClass(Long id) {
-        Class classEntity = new Class();
-        classEntity.setId(id);
-        classEntity.setStatus(0); // 归档
-        return classMapper.update(classEntity) > 0;
+        // 1. 删除班级-学生关联
+        studentClassMapper.deleteByClassId(id);
+        
+        // 2. 删除班级
+        return classMapper.deleteById(id) > 0;
     }
     
     /**

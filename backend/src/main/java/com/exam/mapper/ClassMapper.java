@@ -28,6 +28,11 @@ public interface ClassMapper {
     Class selectByName(@Param("name") String name);
     
     /**
+     * 根据教师ID和班级名称查询班级
+     */
+    Class selectByTeacherIdAndName(@Param("teacherId") Long teacherId, @Param("name") String name);
+    
+    /**
      * 查询教师的所有班级
      */
     List<Class> selectByTeacherId(@Param("teacherId") Long teacherId);

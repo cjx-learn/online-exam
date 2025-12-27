@@ -51,5 +51,10 @@ public interface StudentClassMapper {
      * 根据学生ID和班级ID删除关联
      */
     int deleteByStudentAndClass(@Param("studentId") Long studentId, @Param("classId") Long classId);
+
+    /**
+     * 根据班级ID删除所有关联
+     */
+    int deleteByClassId(@Param("classId") Long classId);
 }
 
