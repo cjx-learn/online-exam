@@ -249,7 +249,7 @@
               <el-icon><Plus /></el-icon>
               添加课程
             </el-button>
-            <el-upload class="upload-btn" :action="uploadUrl + '/admin/import/course'" :show-file-list="false" :on-success="handleImportSuccess" :on-error="handleImportError" accept=".xlsx,.xls">
+            <el-upload class="upload-btn" :action="uploadUrl + '/admin/import/course'" :headers="uploadHeaders" :show-file-list="false" :on-success="handleImportSuccess" :on-error="handleImportError" accept=".xlsx,.xls">
               <el-button type="success"><el-icon><Upload /></el-icon>批量导入</el-button>
             </el-upload>
             <el-button type="info" text @click="downloadTemplate('course')">下载模板</el-button>
@@ -337,7 +337,7 @@
               <el-icon><Plus /></el-icon>
               添加教师
             </el-button>
-            <el-upload class="upload-btn" :action="uploadUrl + '/admin/import/teacher'" :show-file-list="false" :on-success="handleImportSuccess" :on-error="handleImportError" accept=".xlsx,.xls">
+            <el-upload class="upload-btn" :action="uploadUrl + '/admin/import/teacher'" :headers="uploadHeaders" :show-file-list="false" :on-success="handleImportSuccess" :on-error="handleImportError" accept=".xlsx,.xls">
               <el-button type="success"><el-icon><Upload /></el-icon>批量导入</el-button>
             </el-upload>
             <el-button type="info" text @click="downloadTemplate('teacher')">下载模板</el-button>
@@ -395,7 +395,7 @@
               <el-icon><Plus /></el-icon>
               添加学生
             </el-button>
-            <el-upload class="upload-btn" :action="uploadUrl + '/admin/import/student'" :show-file-list="false" :on-success="handleImportSuccess" :on-error="handleImportError" accept=".xlsx,.xls">
+            <el-upload class="upload-btn" :action="uploadUrl + '/admin/import/student'" :headers="uploadHeaders" :show-file-list="false" :on-success="handleImportSuccess" :on-error="handleImportError" accept=".xlsx,.xls">
               <el-button type="success"><el-icon><Upload /></el-icon>批量导入</el-button>
             </el-upload>
             <el-button type="info" text @click="downloadTemplate('student')">下载模板</el-button>
@@ -659,6 +659,12 @@ const menuTitles = {
 
 // 上传URL
 const uploadUrl = API_URL
+
+// 上传请求头（携带token）
+const uploadHeaders = computed(() => {
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+})
 
 // 统计数据
 const stats = reactive({
