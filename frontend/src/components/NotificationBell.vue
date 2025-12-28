@@ -152,6 +152,9 @@ const handleClick = async (item) => {
   if (item.relatedType === 'class' && item.relatedId) {
     // 跳转到班级详情页面
     router.push(`/${props.rolePrefix}/class/${item.relatedId}`)
+  } else if (item.relatedType === 'exam_record' && item.relatedId) {
+    // 批改完成通知：跳转到考试详情页面
+    router.push(`/${props.rolePrefix}/exam-detail/${item.relatedId}`)
   } else if (item.relatedType === 'exam' && item.relatedId) {
     // 兼容旧的考试类型通知
     router.push(`/${props.rolePrefix}/exam`)

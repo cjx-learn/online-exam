@@ -139,11 +139,15 @@ public class NotificationService {
 
     /**
      * 批改完成通知
+     * @param studentId 学生ID
+     * @param examRecordId 考试记录ID（用于跳转到考试详情）
+     * @param examTitle 考试标题
      */
-    public void notifyGradingComplete(Long studentId, Long examId, String examTitle) {
+    public void notifyGradingComplete(Long studentId, Long examRecordId, String examTitle) {
         String title = "试卷批改完成";
         String content = "您的「" + examTitle + "」试卷已批改完成，请查看成绩。";
-        sendToUser(studentId, 0, "grading_complete", title, content, examId, "exam");
+        // relatedId 存储 examRecordId，方便跳转到考试详情页面
+        sendToUser(studentId, 0, "grading_complete", title, content, examRecordId, "exam_record");
     }
 
     /**

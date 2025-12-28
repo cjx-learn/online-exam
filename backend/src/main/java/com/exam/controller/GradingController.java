@@ -97,9 +97,10 @@ public class GradingController {
                     if (examRecord != null) {
                         Exam exam = examMapper.selectById(examRecord.getExamId());
                         if (exam != null) {
+                            // 传递 examRecordId 用于跳转到考试详情页面
                             notificationService.notifyGradingComplete(
                                 examRecord.getStudentId(), 
-                                exam.getId(), 
+                                examRecordId,  // 使用 examRecordId 而不是 examId
                                 exam.getTitle()
                             );
                         }
