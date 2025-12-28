@@ -1517,9 +1517,7 @@ const getGradingDisabledReason = (row) => {
     return '暂无学生提交答卷'
   }
   if (!isGradingExamEnded(row) && !isAllStudentsSubmitted(row)) {
-    const totalStudents = row.totalStudents || 0
-    const submittedCount = total
-    return `考试进行中，已交卷 ${submittedCount}/${totalStudents} 人，等待所有学生交卷或考试结束`
+    return '考试正在进行中'
   }
   return ''
 }
@@ -1531,11 +1529,6 @@ const getGradingDisabledText = (row) => {
     return '暂无提交'
   }
   if (!isGradingExamEnded(row) && !isAllStudentsSubmitted(row)) {
-    const totalStudents = row.totalStudents || 0
-    // 如果没有总学生数，只显示已交卷人数
-    if (totalStudents > 0) {
-      return `${total}/${totalStudents}人交卷`
-    }
     return '考试进行中'
   }
   return '无法批改'
